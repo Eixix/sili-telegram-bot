@@ -20,6 +20,6 @@ jobs:
       - name: Enter src dir
         run: cd src
       - name: Kill old script
-        run: pkill bot.py
+        run: pkill python3
       - name: Restart script
-        run: nohup src/bot.py &
+        run: nohup bot.py &
