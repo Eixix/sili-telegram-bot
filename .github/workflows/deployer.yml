@@ -19,7 +19,5 @@ jobs:
         run: rsync -avz ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/sili-telegram-bot/
       - name: Kill old script
         run: pkill bot.py
-      - name: Kill old script
-        run: pkill bot.py
       - name: Restart script
-        run: nohup bot.py &
+        run: nohup src/bot.py &

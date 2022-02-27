@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import dota_api, time
 import telegram_send
 
