@@ -5,7 +5,7 @@ def api_crawl():
     heroes = requests.get("https://api.opendota.com/api/heroes").json()
 
     accounts_file = []
-    with open("matchdata/accounts_file.json", 'r') as f:
+    with open("accounts_file.json", 'r') as f:
         accounts_file = json.load(f)
 
     for account in accounts_file:
