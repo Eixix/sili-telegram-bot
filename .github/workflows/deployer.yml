@@ -22,4 +22,5 @@ jobs:
       - name: Kill old script
         run: pkill python3
       - name: Restart script
-        run: nohup bot.py &
+        if: always()
+        run: nohup python3 -u ./bot.py > output.log &
