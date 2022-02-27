@@ -15,7 +15,5 @@ jobs:
         run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
       - name: Checkout project
         uses: actions/checkout@v2
-      - name: get file contents
-        run: ls -la
       - name: Deploy with rsync
         run: rsync -avz ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/sili-telegram-bot/
