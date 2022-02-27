@@ -18,7 +18,7 @@ def api_crawl():
 
         # Get all old matches
         local_matches = []
-        with open(f"matchdata/{account_id}.json", 'r') as f:
+        with open(f"../matchdata/{account_id}.json", 'r') as f:
             local_matches = json.load(f)
 
         # The amount of new games
@@ -54,7 +54,7 @@ def api_crawl():
                 messages.append(f"{account_name} hat mit {hero_name} {verb} mit {kills} Kills, {deaths} Toden und {assists} Assists")
 
 
-        with open(f"matchdata/{account_id}.json", 'w', encoding='utf-8') as f:
+        with open(f"../matchdata/{account_id}.json", 'w', encoding='utf-8') as f:
             json.dump(api_matches, f, ensure_ascii=False, indent=2)
     
     return messages
