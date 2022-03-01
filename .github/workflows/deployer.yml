@@ -18,4 +18,4 @@ jobs:
       - name: Deploy with rsync
         run: rsync -avz ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/sili-telegram-bot/
       - name: build docker container
-        run: docker build -t sili-bot --build-arg bot_token=${{ secrets.BOT_TOKEN }} --build-arg chat_id=${{ secrets.CHAT_TOKEN }} .
+        run: docker build -t sili-bot --build-arg bot_token=${{ secrets.BOT_TOKEN }} --build-arg chat_id=${{ secrets.CHAT_ID }} .
