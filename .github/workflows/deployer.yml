@@ -17,10 +17,5 @@ jobs:
         uses: actions/checkout@v2
       - name: Deploy with rsync
         run: rsync -avz ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/sili-telegram-bot/
-      - name: Kill old script
-        run: pkill python3
-      - name: Restart script
-        if: always()
-        run: |
-          cd src 
-          nohup python3 -u ./bot.py > output.log &
+      - name: build docker container
+        run: docker build -t sili-bot --build-arg bot_token=${{ secrets.BOT_TOKEN }} --build-arg chat_id=${{ secrets.CHAT_TOKEN }} .
