@@ -10,37 +10,23 @@
             "Muss leider masturbieren",
             "Nein will nicht mit Noret spielen"
         ],
-        "kda": [
-            {
-                "<0.5": [
-                    "mächtigst abgestunken und wird hier der öffentlichen Schmach preisgegeben"
-                ]
-            },
-            {
-                "<1": [
-                    "schlecht, aber nicht absolut erbärmlich gespielt"
-                ]
-            },
-            {
-                "<2": [
-                    "immerhin neutral oder leicht besser gespielt"
-                ]
-            },
-            {
-                "<5": [
-                    "mehr impact gehabt als erwartet, da kann man nicht meckern"
-                ]
-            },
-            {
-                "<10": [
-                    "total rasiert"
-                ]
-            },
-            {
-                ">10": [
-                    "absolut gottartig gespielt und darf hier nicht mehr angezweifelt werden"
-                ]
-            }
+        "<0.5": [
+            "mächtigst abgestunken und wird hier der öffentlichen Schmach preisgegeben"
+        ],
+        "<1": [
+            "schlecht, aber nicht absolut erbärmlich gespielt"
+        ],
+        "<2": [
+            "immerhin neutral oder leicht besser gespielt"
+        ],
+        "<5": [
+            "mehr impact gehabt als erwartet, da kann man nicht meckern"
+        ],
+        "<10": [
+            "total rasiert"
+        ],
+        ">10": [
+            "absolut gottartig gespielt und darf hier nicht mehr angezweifelt werden"
         ]
     }
 ]
