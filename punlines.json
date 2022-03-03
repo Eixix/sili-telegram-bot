@@ -15,19 +15,32 @@
             "mächtigst abgestunken und wird hier der öffentlichen Schmach preisgegeben",
             "schlechter als meine Oma gespielt",
             "wie Tobi sagt: \"__immerhin besser als Cormo__\" gespielt",
-            "seinem Carry das ganze Spiel aufgebürdet"
+            "seinem Carry das ganze Spiel aufgebürdet",
+            "das Spiel __wahrscheinlich__ im Alleingang verloren",
+            "seinen Mitspielern eine vernünftige Challenge gegeben",
+            "mehr gesuckt, als Pugna mit Shard",
+            "die Antriebslust eines Beamten",
+            "verkackt, muss wohl an den __**laaaaags**__ liegen,"
         ],
         "<1": [
             "schlecht, aber nicht absolut erbärmlich gespielt",
             "fast seinen Kopf verloren",
-            "hat mit seinem Körper die Wards gesucht",
-            "zu oft \"ich war doch nur dewarden\" gesagt"
+            "mit seinem Körper die Wards gesucht",
+            "zu oft \"ich war doch nur dewarden\" gesagt",
+            "langsamere Reflexe als Treant Protector gehabt",
+            "schneller gefeedet, als Spiritbreaker rennt",
+            "härter abgestunken, als Pudge,",
+            "seine Nase zu tief in den gegnerischen Fontain gesteckt",
+            "gedacht er spiele __**Un**__dying",
+            "mehr Grabsteine hinterlassen, als Undying,",
+            "die Comeback-Mechanik einer kritischen Untersuchung unterzogen"
         ],
         "<2": [
             "immerhin neutral oder leicht besser gespielt",
             "gut gespielt? - I daut it - ",
             "gespielt, wie ein Sonntagsfahrer fährt,",
-            "nen ruhigen Shuh geschoben"
+            "nen ruhigen Shuh geschoben",
+            "seinen Impact fairer Weise ausgeglichen"
         ],
         "<5": [
             "mehr impact gehabt als erwartet, da kann man nicht meckern",
@@ -35,11 +48,17 @@
         ],
         "<10": [
             "total rasiert",
-            "übermäßig krass geballert"
+            "übermäßig krass geballert",
+            "ordentlich Kills \"secured\"",
+            "so gut gespielt, dass zwischenzeitlich seine Mama übernehmen konnte,",
+            "absolut rasiert - ein Wunder - ",
+            "mehr Feed gehabt, als Max am Buffet,"
         ],
         ">10": [
             "absolut gottartig gespielt und darf hier nicht mehr angezweifelt werden",
-            "seinen Riesenprügel rausgeholt und die Gegner weggefickt"
+            "seinen Riesenprügel rausgeholt und die Gegner weggefickt",
+            "so gut wie Chuck Norris gespielt",
+            "sein absolut bestes Spiel gespielt - er sollte jetzt aufhören - "
         ]
     }
 ]
