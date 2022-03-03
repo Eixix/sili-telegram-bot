@@ -8,25 +8,38 @@
         "nein": [
             "Nein, weil ich stinke!",
             "Muss leider masturbieren",
-            "Nein will nicht mit Noret spielen"
+            "Nein will nicht mit Noret spielen (eklig)",
+            "Meine Taschenmuschi schmiert sich nicht von selbst"
         ],
         "<0.5": [
-            "mächtigst abgestunken und wird hier der öffentlichen Schmach preisgegeben"
+            "mächtigst abgestunken und wird hier der öffentlichen Schmach preisgegeben",
+            "schlechter als meine Oma gespielt",
+            "wie Tobi sagt: \"__immerhin besser als Cormo__\" gespielt",
+            "seinem Carry das ganze Spiel aufgebürdet"
         ],
         "<1": [
-            "schlecht, aber nicht absolut erbärmlich gespielt"
+            "schlecht, aber nicht absolut erbärmlich gespielt",
+            "fast seinen Kopf verloren",
+            "hat mit seinem Körper die Wards gesucht",
+            "zu oft \"ich war doch nur dewarden\" gesagt"
         ],
         "<2": [
-            "immerhin neutral oder leicht besser gespielt"
+            "immerhin neutral oder leicht besser gespielt",
+            "gut gespielt? - I daut it - ",
+            "gespielt, wie ein Sonntagsfahrer fährt,",
+            "nen ruhigen Shuh geschoben"
         ],
         "<5": [
-            "mehr impact gehabt als erwartet, da kann man nicht meckern"
+            "mehr impact gehabt als erwartet, da kann man nicht meckern",
+            "die Gegner invaded als wäre er Putin: mit mäßigem Erfolg - "
         ],
         "<10": [
-            "total rasiert"
+            "total rasiert",
+            "übermäßig krass geballert"
         ],
         ">10": [
-            "absolut gottartig gespielt und darf hier nicht mehr angezweifelt werden"
+            "absolut gottartig gespielt und darf hier nicht mehr angezweifelt werden",
+            "seinen Riesenprügel rausgeholt und die Gegner weggefickt"
         ]
     }
 ]
