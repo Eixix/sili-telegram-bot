@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from datetime import time
-import telegram
+from telegram import Update
 from telegram.ext import CallbackContext, CommandHandler, Updater
 import dota_api
 import logging
@@ -19,11 +19,15 @@ logger = logging.getLogger(__name__)
 
 def get_dota_matches(context: CallbackContext):
     messages = dota_api.api_crawl()
+    print(f"messages: {messages}")
 
     if messages:
         messages = '\n\n'.join(messages)
         context.bot.send_message(chat_id=chat_id,
                                  text=messages)
+    else:
+        context.bot.send_message(chat_id=chat_id,
+                                 text="Crawled but found nothing")
 
 
 def poll(context: CallbackContext) -> None:
@@ -38,6 +42,10 @@ def poll(context: CallbackContext) -> None:
     )
 
 
+def crawl(update: Update, context: CallbackContext):
+    get_dota_matches()
+
+
 def main():
 
     updater = Updater(token)
@@ -45,7 +53,7 @@ def main():
     job_queue = updater.job_queue
 
     dispatcher.add_handler(CommandHandler('dodo', poll))
-    dispatcher.add_handler(CommandHandler('crawl', get_dota_matches))
+    dispatcher.add_handler(CommandHandler('crawl', crawl))
 
     job_queue.run_repeating(get_dota_matches, interval=600, first=10)
     job_queue.run_daily(poll, time(0, 0, 0), days=(3,))

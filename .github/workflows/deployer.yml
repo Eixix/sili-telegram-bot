@@ -28,4 +28,5 @@ jobs:
             cd sili-telegram-bot
             docker build -t sili-bot --build-arg bot_token=${{ secrets.BOT_TOKEN }} --build-arg chat_id=${{ secrets.CHAT_ID }} .
             docker stop sili-bot
+            docker rm sili-bot
             docker run --name sili-bot -d sili-bot
