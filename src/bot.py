@@ -68,8 +68,12 @@ def main():
     job_queue.run_daily(poll, time(0, 0, 0), days=(3,))
 
     updater.start_polling()
+<<<<<<< HEAD
     updater.idle()
 
+=======
+    #### Dies ist ein Bug :)
+>>>>>>> 9804a0f0905fcb3f9e987e97d5b3bdc03c3105e7
 
 if __name__ == '__main__':
     main()
