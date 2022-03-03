@@ -17,5 +17,15 @@ jobs:
         uses: actions/checkout@v2
       - name: Deploy with rsync
         run: rsync -avz ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/sili-telegram-bot/
-      - name: build docker container
-        run: docker build -t sili-bot --build-arg bot_token=${{ secrets.BOT_TOKEN }} --build-arg chat_id=${{ secrets.CHAT_ID }} .
+      - name: executing remote ssh commands using ssh key
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.DEPLOY_SECRET_KEY }}
+          port: 22
+          script: |
+            cd sili-telegram-bot
+            docker build -t sili-bot --build-arg bot_token=${{ secrets.BOT_TOKEN }} --build-arg chat_id=${{ secrets.CHAT_ID }} .
+            docker stop sili-bot
+            docker run --name sili-bot -d sili-bot

@@ -24,9 +24,6 @@ def get_dota_matches(context: CallbackContext):
         messages = '\n\n'.join(messages)
         context.bot.send_message(chat_id=chat_id,
                                  text=messages)
-    else:
-        context.bot.send_message(chat_id=chat_id,
-                                 text="Bing")
 
 
 def poll(context: CallbackContext) -> None:
