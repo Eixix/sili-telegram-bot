@@ -60,7 +60,7 @@ def main():
     job_queue.run_daily(poll, time(0, 0, 0), days=(3,))
 
     updater.start_polling()
-
+    #### Dies ist ein Bug :)
 
 if __name__ == '__main__':
     main()
