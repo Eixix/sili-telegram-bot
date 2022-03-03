@@ -4,7 +4,9 @@ from datetime import time
 from telegram import Update
 from telegram.ext import CallbackContext, CommandHandler, Updater
 import dota_api
+import json
 import logging
+import random
 import os
 
 # Environment variable
@@ -16,10 +18,14 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+punlines = {}
+with open("../punlines.json", 'r') as f:
+    punlines = json.load(f)
 
-def get_dota_matches(context: CallbackContext):
+
+def get_dota_matches(context: CallbackContext) -> None:
     messages = dota_api.api_crawl()
-    print(f"messages: {messages}")
+    logger.info(f"messages: {messages}")
 
     if messages:
         messages = '\n\n'.join(messages)
@@ -28,8 +34,10 @@ def get_dota_matches(context: CallbackContext):
 
 
 def poll(context: CallbackContext) -> None:
-    # TODO: Add dumb phrases here
-    questions = ["Ja", "Nein"]
+    logger.info(f"DODO")
+
+    questions = [random.choice(punlines[0]["ja"]),
+                 random.choice(punlines[0]["nein"])]
     context.bot.send_poll(
         chat_id,
         "DoDo?",
@@ -60,6 +68,7 @@ def main():
     job_queue.run_daily(poll, time(0, 0, 0), days=(3,))
 
     updater.start_polling()
+    updater.idle()
 
 
 if __name__ == '__main__':

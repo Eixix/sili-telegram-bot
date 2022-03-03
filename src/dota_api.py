@@ -1,5 +1,10 @@
 import json
 import requests
+import random
+
+punlines = {}
+with open("../punlines.json", 'r') as f:
+    punlines = json.load(f)
 
 
 def _get_heroes():
@@ -34,17 +39,17 @@ def _generate_verb(kills, assists, deaths):
     verb = ""
 
     if meme_constant < 0.5:
-        verb = "mächtigst abgestunken und wird hier der öffentlichen Schmach preisgegeben"
+        verb = random.choice(punlines[0]["<0.5"])
     elif meme_constant < 1:
-        verb = "schlecht, aber nicht absolut erbärmlich gespielt"
+        verb = random.choice(punlines[0]["<1"])
     elif meme_constant < 2:
-        verb = "immerhin neutral oder leicht besser gespielt"
+        verb = random.choice(punlines[0]["<2"])
     elif meme_constant < 5:
-        verb = "mehr impact gehabt als erwartet, da kann man nicht meckern"
+        verb = random.choice(punlines[0]["<5"])
     elif meme_constant < 10:
-        verb = "total rasiert"
+        verb = random.choice(punlines[0]["<10"])
     else:
-        verb = "absolut gottartig gespielt und darf hier nicht mehr angezweifelt werden"
+        verb = random.choice(punlines[0][">10"])
 
     return verb
 
@@ -52,6 +57,7 @@ def _generate_verb(kills, assists, deaths):
 def _get_messages(account_name, api_matches, diff, heroes):
 
     messages = []
+    print("account name", account_name, "diff", diff)
 
     # Only for less then 5 matches, for new files
     if diff < 5:
@@ -79,6 +85,7 @@ def _get_messages(account_name, api_matches, diff, heroes):
 def api_crawl():
     heroes = _get_heroes()
     accounts_file = _get_accounts()
+    messages = []
 
     for account in accounts_file:
 
@@ -97,4 +104,6 @@ def api_crawl():
         with open(f"../matchdata/{account_id}.json", 'w', encoding='utf-8') as f:
             json.dump(api_matches, f, ensure_ascii=False, indent=2)
 
-    return _get_messages(account_name, api_matches, diff, heroes)
+        messages.extend(_get_messages(account_name, api_matches, diff, heroes))
+
+    return messages

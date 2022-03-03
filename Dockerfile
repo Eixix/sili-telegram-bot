@@ -10,6 +10,7 @@ ENV chat_id=${chat_id}
 COPY src /bot/src
 COPY requirements.txt requirements.txt
 COPY heroes.json heroes.json
+COPY punlines.json punlines.json
 COPY matchdata/accounts_file.json matchdata/accounts_file.json
 
 VOLUME [ "/app/matchdata" ]
