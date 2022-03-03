@@ -25,9 +25,6 @@ def get_dota_matches(context: CallbackContext):
         messages = '\n\n'.join(messages)
         context.bot.send_message(chat_id=chat_id,
                                  text=messages)
-    else:
-        context.bot.send_message(chat_id=chat_id,
-                                 text="Crawled but found nothing")
 
 
 def poll(context: CallbackContext) -> None:
@@ -43,7 +40,11 @@ def poll(context: CallbackContext) -> None:
 
 
 def crawl(update: Update, context: CallbackContext):
-    get_dota_matches()
+    get_dota_matches(context)
+
+
+def dodo(update: Update, context: CallbackContext):
+    poll(context)
 
 
 def main():
@@ -52,7 +53,7 @@ def main():
     dispatcher = updater.dispatcher
     job_queue = updater.job_queue
 
-    dispatcher.add_handler(CommandHandler('dodo', poll))
+    dispatcher.add_handler(CommandHandler('dodo', dodo))
     dispatcher.add_handler(CommandHandler('crawl', crawl))
 
     job_queue.run_repeating(get_dota_matches, interval=600, first=10)
