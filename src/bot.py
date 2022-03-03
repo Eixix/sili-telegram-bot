@@ -30,7 +30,7 @@ def get_dota_matches(context: CallbackContext):
 def poll(context: CallbackContext) -> None:
     # TODO: Add dumb phrases here
     questions = ["Ja", "Nein"]
-    message = context.bot.send_poll(
+    context.bot.send_poll(
         chat_id,
         "DoDo?",
         questions,
@@ -60,7 +60,6 @@ def main():
     job_queue.run_daily(poll, time(0, 0, 0), days=(3,))
 
     updater.start_polling()
-    updater.idle()
 
 
 if __name__ == '__main__':
