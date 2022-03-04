@@ -38,6 +38,10 @@ def poll(context: CallbackContext) -> None:
 
     questions = [random.choice(punlines[0]["ja"]),
                  random.choice(punlines[0]["nein"])]
+
+    context.bot.send_audio(chat_id=chat_id, audio=open(
+        'resources/lets_dota.mpeg', 'rb'))
+
     context.bot.send_poll(
         chat_id,
         "DoDo?",
@@ -48,11 +52,13 @@ def poll(context: CallbackContext) -> None:
 
 
 def crawl(update: Update, context: CallbackContext):
-    get_dota_matches(context)
+    if (update.effective_chat.id == chat_id):
+        get_dota_matches(context)
 
 
 def dodo(update: Update, context: CallbackContext):
-    poll(context)
+    if (update.effective_chat.id == chat_id):
+        poll(context)
 
 
 def main():

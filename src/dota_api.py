@@ -3,7 +3,7 @@ import requests
 import random
 
 punlines = {}
-with open("../punlines.json", 'r') as f:
+with open("../resources/punlines.json", 'r') as f:
     punlines = json.load(f)
 
 
