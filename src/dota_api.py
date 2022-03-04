@@ -57,7 +57,6 @@ def _generate_verb(kills, assists, deaths):
 def _get_messages(account_name, api_matches, diff, heroes):
 
     messages = []
-    print("account name", account_name, "diff", diff)
 
     # Only for less then 5 matches, for new files
     if diff < 5:
@@ -70,7 +69,7 @@ def _get_messages(account_name, api_matches, diff, heroes):
             hero_name = ""
 
             win = "L"
-            if (api_matches[i]['radiant_win'] and api_matches[i]['player_slot']<=127) or (not api_matches[i]['radiant_win'] and not api_matches[i]['player_slot']<=127):
+            if (api_matches[i]['radiant_win'] and api_matches[i]['player_slot'] <= 127) or (not api_matches[i]['radiant_win'] and not api_matches[i]['player_slot'] <= 127):
                 win = "W"
 
             try:
