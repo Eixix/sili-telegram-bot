@@ -69,6 +69,10 @@ def _get_messages(account_name, api_matches, diff, heroes):
             hero_id = api_matches[i]['hero_id']
             hero_name = ""
 
+            win = "L"
+            if (api_matches[i]['radiant_win'] and api_matches[i]['player_slot']<=127) or (not api_matches[i]['radiant_win'] and not api_matches[i]['player_slot']<=127):
+                win = "W"
+
             try:
                 hero_name = heroes[hero_id-2]['localized_name']
             except IndexError:
@@ -77,7 +81,7 @@ def _get_messages(account_name, api_matches, diff, heroes):
             verb = _generate_verb(kills, assists, deaths)
 
             messages.append(
-                f"{account_name} hat mit {hero_name} {verb} mit {kills} Kills, {deaths} Toden und {assists} Assists")
+                f"{win}: {account_name} hat mit {hero_name} {verb} mit {kills} Kills, {deaths} Toden und {assists} Assists")
 
     return messages
 
