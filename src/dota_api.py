@@ -1,14 +1,18 @@
 import json
 import requests
 import random
+import logging
 
+logger = logging.getLogger(__name__)
 punlines = {}
+
 with open("../resources/punlines.json", 'r') as f:
     punlines = json.load(f)
 
 
 def _get_heroes():
-    return requests.get("https://api.opendota.com/api/heroes").json()
+    with open("../resources/heroes.json", 'r') as f:
+        return json.load(f)
 
 
 def _get_accounts():
@@ -73,7 +77,8 @@ def _get_messages(account_name, api_matches, diff, heroes):
                 win = "W"
 
             try:
-                hero_name = heroes[hero_id-2]['localized_name']
+                logger.info(heroes)
+                hero_name = heroes[str(hero_id-2)]['localized_name']
             except IndexError:
                 hero_name = f"Unbekannter Held Nr. {hero_id}"
 
