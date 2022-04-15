@@ -77,8 +77,8 @@ def _get_messages(account_name, api_matches, diff, heroes):
                 win = "W"
 
             try:
-                logger.info(heroes)
-                hero_name = heroes[str(hero_id-2)]['localized_name']
+                hero_name = heroes[str(hero_id)]['localized_name']
+                logger.info(hero_name)
             except IndexError:
                 hero_name = f"Unbekannter Held Nr. {hero_id}"
 
