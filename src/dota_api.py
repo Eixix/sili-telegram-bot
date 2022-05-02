@@ -1,10 +1,14 @@
 import json
+from pickle import TRUE
 import requests
 import random
+import queue
 import logging
 
 logger = logging.getLogger(__name__)
 punlines = {}
+used_verbs = []
+verb_decay = 5
 
 with open("../resources/punlines.json", 'r') as f:
     punlines = json.load(f)
@@ -30,6 +34,15 @@ def _get_local_matches(account_id):
 
 def _get_api_matches(account_id):
     return requests.get(f"https://api.opendota.com/api/players/{account_id}/matches").json()
+
+
+def _check_verb(verb):
+    if not verb in used_verbs:
+        used_verbs = used_verbs[1:verb_decay - 1] + [verb]
+        queue.put(verb)
+        return True
+    else:
+        return False
 
 
 def _generate_verb(kills, assists, deaths):
@@ -83,6 +96,10 @@ def _get_messages(account_name, api_matches, diff, heroes):
                 hero_name = f"Unbekannter Held Nr. {hero_id}"
 
             verb = _generate_verb(kills, assists, deaths)
+
+            # FIXME: check if this is the most efficient way to reroll something
+            while not _check_verb:
+                verb = _generate_verb(kills, assists, deaths)
 
             messages.append(
                 f"{win}: {account_name} hat mit {hero_name} {verb} mit {kills} Kills, {deaths} Toden und {assists} Assists")
