@@ -1,8 +1,6 @@
 import json
-from pickle import TRUE
 import requests
 import random
-import queue
 import logging
 
 logger = logging.getLogger(__name__)
@@ -39,7 +37,6 @@ def _get_api_matches(account_id):
 def _check_verb(verb):
     if not verb in used_verbs:
         used_verbs = used_verbs[1:verb_decay - 1] + [verb]
-        queue.put(verb)
         return True
     else:
         return False
