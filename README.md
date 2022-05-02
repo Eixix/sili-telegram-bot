@@ -1,6 +1,7 @@
-# sili-telegram-bot
+# dota-telegram-bot
 
 A telegram bot that evaluates DOTA2 matches of people and notifies about their results.
+forked from Eixix/sili-telegram-bot
 
 # Local development
 
