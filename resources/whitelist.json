@@ -1,0 +1,16 @@
+[
+        "gaming-group-1": [
+		{
+			"name": "Gamers1",
+			"ip": "123.456.789",
+			"port": "12345"
+		}
+        ],
+        "gaming-group-2": [
+		{
+			"name": "Gamers2",
+			"ip": "987.654.321",
+			"port": "54321"
+		}
+        ]
+]
