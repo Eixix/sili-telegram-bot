@@ -43,17 +43,17 @@ def _generate_verb(kills, assists, deaths):
     verb = ""
 
     if meme_constant < 0.5:
-        verb = random.choice(punlines[0]["<0.5"])
+        verb = random.choice(punlines["<0.5"])
     elif meme_constant < 1:
-        verb = random.choice(punlines[0]["<1"])
+        verb = random.choice(punlines["<1"])
     elif meme_constant < 2:
-        verb = random.choice(punlines[0]["<2"])
+        verb = random.choice(punlines["<2"])
     elif meme_constant < 5:
-        verb = random.choice(punlines[0]["<5"])
+        verb = random.choice(punlines["<5"])
     elif meme_constant < 10:
-        verb = random.choice(punlines[0]["<10"])
+        verb = random.choice(punlines["<10"])
     else:
-        verb = random.choice(punlines[0][">10"])
+        verb = random.choice(punlines[">10"])
 
     return verb
 
@@ -97,8 +97,8 @@ def api_crawl():
 
     for account in accounts_file:
 
-        account_id = list(account)[0]
-        account_name = list(account.values())[0]
+        account_id = account['identifier']
+        account_name = account['name']
 
         # Get all old matches
         local_matches = _get_local_matches(account_id)
