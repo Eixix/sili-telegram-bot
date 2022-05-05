@@ -24,6 +24,16 @@
         "Bin leider ein Kacknoob und schiebs auf meine Mates",
         "Nein, Doktoranden sind doof!"
     ],
+    "win": [
+        "Gewonnen!!! Sili hats den Gegnern mal wieder gezeigt!",
+        "Wir haben lange Penise",
+        "Ez Game Ez Life"
+    ],
+    "lose": [
+        "Ob Sili gut gespielt hat? I daud it!",
+        "Nene das war nix",
+        "Verloren - da hat wohl Fitchi mitgespielt"
+    ],
     "<0.5": [
         "mächtigst abgestunken und wird hier der öffentlichen Schmach preisgegeben",
         "schlechter, als meine Oma gespielt",
