@@ -42,9 +42,6 @@ def api_crawl():
         # Get all matches
         api_matches = _get_api_matches(account_id)
 
-        api_matches = api_matches[:4]
-
-
         # The amount of new games
         diff = len(api_matches) - len(local_matches)
 
