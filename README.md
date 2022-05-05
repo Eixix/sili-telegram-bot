@@ -21,8 +21,17 @@ docker run --name sili-bot sili-bot
 
 Change the two variables `bot_token` and `chat_id` in `bot.py` accordingly
 
+### For Linux
 ```bash
 pip install -r requirements.txt
 cd src
 bot_token="<bot_token>" chat_id="<chat_id>" ./bot.py
+```
+
+```powershell
+pip install -r requirements.txt
+cd src
+set bot_token="<bot_token>" 
+set chat_id="<chat_id>" 
+./bot.py
 ```
