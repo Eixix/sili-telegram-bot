@@ -26,7 +26,7 @@ class Matches:
             hero_name = f"Unbekannter Held Nr. {hero_id}"
 
         existing_match = next((m for m in self.matches if m.id == match_id), None)
-        matchresult = MatchResult(account_name ,kills, assists, deaths, hero_name)
+        matchresult = MatchResult(account_name, kills, assists, deaths, hero_name)
 
         if existing_match:
             existing_match.add_matchresult(matchresult)
