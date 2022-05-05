@@ -8,6 +8,7 @@ import json
 import logging
 import random
 import os
+from models.message import Message
 
 # Environment variable
 token = os.environ['bot_token']
@@ -24,20 +25,19 @@ with open("../resources/punlines.json", 'r') as f:
 
 
 def get_dota_matches(context: CallbackContext) -> None:
-    messages = dota_api.api_crawl()
-    logger.info(f"messages: {messages}")
+    message = Message(dota_api.api_crawl(),punlines)
+    messages = message.get_messages()
 
     if messages:
-        messages = '\n\n'.join(messages)
-        context.bot.send_message(chat_id=chat_id,
-                                 text=messages)
-
+        for m in messages:
+            context.bot.send_message(chat_id=chat_id,
+                                    text=m)
 
 def poll(context: CallbackContext) -> None:
     logger.info(f"DODO")
 
-    questions = [random.choice(punlines[0]["ja"]),
-                 random.choice(punlines[0]["nein"])]
+    questions = [random.choice(punlines["ja"]),
+                 random.choice(punlines["nein"])]
 
     context.bot.send_voice(chat_id=chat_id, voice=open(
         '../resources/lets_dota.mpeg', 'rb'))
@@ -62,7 +62,7 @@ def dodo(update: Update, context: CallbackContext):
 
 
 def doubt(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(chat_id) and "doubt" in update.message.text:
+    if update.effective_chat.id == int(chat_id) and ("doubt" in update.message.text or "daud" in update.message.text) :
         context.bot.send_animation(
             chat_id=chat_id, animation=open('../resources/i_daut_it.gif', 'rb'))
 
