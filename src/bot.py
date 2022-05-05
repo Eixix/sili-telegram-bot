@@ -4,6 +4,7 @@ from datetime import time
 from telegram import Update
 from telegram.ext import CallbackContext, CommandHandler, Filters, MessageHandler, Updater
 import dota_api
+import challenge
 import json
 import logging
 import random
@@ -67,6 +68,22 @@ def doubt(update: Update, context: CallbackContext):
             chat_id=chat_id, animation=open('../resources/i_daut_it.gif', 'rb'))
 
 
+#add challenge functionality
+
+def challenge(update: Update, context: CallbackContext):
+
+    #get users.id of requesting user
+    user_id = update.effective_user.id;
+
+    logger.info(f"new challenge from user-id: {user_id}")
+
+    #check if user who sent request is member of group
+    if context.bot.get_chat_member(chat_id=chat_id, user_id=user_id).user.id == user_id
+        challenge_menu(update, context)
+    else
+        context.bot.send_message(chat_id = update.effective_chat.id, text = "Du bist nicht Teil der Gruppe")
+        
+
 def main():
 
     updater = Updater(token)
@@ -77,6 +94,9 @@ def main():
     dispatcher.add_handler(CommandHandler('crawl', crawl))
     dispatcher.add_handler(MessageHandler(
         Filters.text & (~Filters.command), doubt))
+
+    #add challenge functionality
+    dispatcher.add_handler(CommandHandler('challenge', challenge))
 
     job_queue.run_repeating(get_dota_matches, interval=600, first=10)
     job_queue.run_daily(poll, time(0, 0, 0), days=(3,))
