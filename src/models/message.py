@@ -5,6 +5,10 @@ import logging
 class Message:
     matches = Matches
     punlines = {}
+    used_verbs = []
+
+    # this value represents the expected maximum number of players in a match
+    verb_decay = 5
 
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -29,10 +33,21 @@ class Message:
             messages.append(random.choice(self.punlines["lose"]))
 
         for matchresult in match.matchresults:
+            verb = self._generate_verb(matchresult)
+
+            while self._check_verb_used(verb):
+                verb = self._generate_verb(matchresult)
+
             messages.append(f"{matchresult.name} hat mit {matchresult.hero} {self._generate_verb(matchresult)} mit {matchresult.kills} Kills, {matchresult.deaths} Toden und {matchresult.assists} Assists")
 
         return '\n\n'.join(messages)
-
+        
+    def _check_verb_used(self, verb):
+        if verb in self.used_verbs:
+            return True
+        else:
+            used_verbs = used_verbs[1:self.verb_decay - 1] + [verb]
+            return False
 
     def _generate_verb(self, matchresult):
         verb = ""
