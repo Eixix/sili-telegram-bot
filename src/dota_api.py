@@ -6,11 +6,11 @@ from models.matches import Matches
 logger = logging.getLogger(__name__)
 
 def _get_heroes():
-    with open("../resources/heroes.json", 'r') as f:
+    with open("resources/heroes.json", 'r') as f:
         return json.load(f)
 
 def _get_accounts():
-    with open("../matchdata/accounts_file.json", 'r') as f:
+    with open("matchdata/accounts_file.json", 'r') as f:
         return json.load(f)
 
 def _get_local_matches(account_id):
@@ -45,7 +45,7 @@ def api_crawl():
         # The amount of new games
         diff = len(api_matches) - len(local_matches)
 
-        with open(f"../matchdata/{account_id}.json", 'w', encoding='utf-8') as f:
+        with open(f"matchdata/{account_id}.json", 'w', encoding='utf-8') as f:
             json.dump(api_matches, f, ensure_ascii=False, indent=2)
 
         if diff < 5:
