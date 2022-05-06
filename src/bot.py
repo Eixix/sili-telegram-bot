@@ -67,37 +67,6 @@ def doubt(update: Update, context: CallbackContext):
             chat_id=chat_id, animation=open('resources/i_daut_it.gif', 'rb'))
 
 
-<<<<<<< Updated upstream
-=======
-# add challenge functionality
-def challenge(update: Update, context: CallbackContext):
-
-    # get users.id of requesting user
-    user_id = update.effective_user.id
-
-    logger.info(f"new challenge from user-id: {user_id}")
-
-    # check if user who sent request is member of group
-    if context.bot.get_chat_member(chat_id=chat_id, user_id=user_id).user.id == user_id:
-        logger.info("Ist in Gruppe")
-        # challenge_menu(update, context)
-    else:
-        context.bot.send_message(
-            chat_id=update.effective_chat.id, text="Du bist nicht Teil der Gruppe")
-
-
-def check_for_challenge(context: CallbackContext):
-    challenges = {}
-
-    with open("resources/communication.json", 'w') as f:
-        challenges = json.load(f)
-        json.dump({}, f)
-
-    context.bot.send_message(
-        chat_id=chat_id, text=challenges)
-
-
->>>>>>> Stashed changes
 def main():
 
     updater = Updater(token)
