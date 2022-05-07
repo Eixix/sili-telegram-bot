@@ -66,6 +66,8 @@ def message_handler(update: Update, context: CallbackContext):
             context.bot.send_animation(chat_id=chat_id, animation=open('resources/i_daut_it.gif', 'rb'))
         if ("/stopbot" in message_text and updater.running):
             updater.stop()
+        if ("/crawlbot" in message_text):
+            crawl(update, context)
         
 
 def main():
