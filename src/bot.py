@@ -25,8 +25,8 @@ with open("resources/punlines.json", 'r') as f:
 
 
 def get_dota_matches(context: CallbackContext) -> None:
-    message = Message(dota_api.api_crawl(),punlines)
-    messages = message.get_messages()
+    message = Message(dota_api.api_crawl(), punlines, None)
+    messages = message.get_messages_for_matches()
 
     if messages:
         for m in messages:
@@ -59,6 +59,25 @@ def dodo(update: Update, context: CallbackContext):
     if update.effective_chat.id == int(chat_id):
         poll(context)
 
+def playerinfos(update: Update, context: CallbackContext):
+    if update.effective_chat.id == int(chat_id):
+        message = Message(None, None, dota_api.get_playerinfos())
+        messages = message.get_message_for_playerinfos()
+
+        if messages:
+            context.bot.send_message(chat_id=chat_id,
+                                     text=messages,
+                                     parse_mode=ParseMode.HTML)
+
+def lastgame(update: Update, context: CallbackContext):
+    if update.effective_chat.id == int(chat_id):
+        time = dota_api.get_lastgame()
+        
+        if time:
+            context.bot.send_message(chat_id=chat_id,
+                                     text=time,
+                                     parse_mode=ParseMode.HTML)
+
 def stopbot(update: Update, context: CallbackContext):
     if (update.effective_chat.id == int(chat_id) and updater.running):
         updater.stop() 
@@ -75,6 +94,8 @@ def main():
 
     dispatcher.add_handler(CommandHandler('dodo', dodo))
     dispatcher.add_handler(CommandHandler('crawl', crawl))
+    dispatcher.add_handler(CommandHandler('playerinfos', playerinfos))
+    dispatcher.add_handler(CommandHandler('lastgame', lastgame))
     dispatcher.add_handler(CommandHandler('stopbot', stopbot))
     dispatcher.add_handler(MessageHandler(
         Filters.text & (~Filters.command), message_handler))
