@@ -59,16 +59,15 @@ def dodo(update: Update, context: CallbackContext):
     if update.effective_chat.id == int(chat_id):
         poll(context)
 
+def stopbot(update: Update, context: CallbackContext):
+    if (update.effective_chat.id == int(chat_id) and updater.running):
+        updater.stop() 
+
 def message_handler(update: Update, context: CallbackContext):
     if update.effective_chat.id == int(chat_id):
         message_text = update.message.text.lower()
         if ("doubt" in message_text or "daud" in message_text or "daut" in message_text) :
-            context.bot.send_animation(chat_id=chat_id, animation=open('resources/i_daut_it.gif', 'rb'))
-        if ("/stopbot" in message_text and updater.running):
-            updater.stop()
-        if ("/crawlbot" in message_text):
-            crawl(update, context)
-        
+            context.bot.send_animation(chat_id=chat_id, animation=open('resources/i_daut_it.gif', 'rb'))                 
 
 def main():
     dispatcher = updater.dispatcher
@@ -76,6 +75,7 @@ def main():
 
     dispatcher.add_handler(CommandHandler('dodo', dodo))
     dispatcher.add_handler(CommandHandler('crawl', crawl))
+    dispatcher.add_handler(CommandHandler('stopbot', stopbot))
     dispatcher.add_handler(MessageHandler(
         Filters.text & (~Filters.command), message_handler))
 
@@ -84,7 +84,6 @@ def main():
 
     updater.start_polling()
     updater.idle()
-
 
 if __name__ == '__main__':
     main()
