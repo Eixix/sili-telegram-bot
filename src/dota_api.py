@@ -15,7 +15,7 @@ def _get_accounts():
 
 def _get_local_matches(account_id):
     try:
-        with open(f"../matchdata/{account_id}.json", 'r') as f:
+        with open(f"matchdata/{account_id}.json", 'r') as f:
             return json.load(f)
     except FileNotFoundError:
         return []
