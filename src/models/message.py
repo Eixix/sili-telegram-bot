@@ -24,9 +24,9 @@ class Message:
         messages = []
 
         if match.win:
-            messages.append(random.choice(self.punlines["win"]))
+            messages.append(f"<b>W: {random.choice(self.punlines['win'])}</b>")
         else:
-            messages.append(random.choice(self.punlines["lose"]))
+            messages.append(f"<b>L: {random.choice(self.punlines['lose'])}</b>")
 
         for matchresult in match.matchresults:
             messages.append(f"{matchresult.name} hat mit {matchresult.hero} {self._generate_verb(matchresult)} mit {matchresult.kills} Kills, {matchresult.deaths} Toden und {matchresult.assists} Assists")
