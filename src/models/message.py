@@ -85,7 +85,8 @@ class Message:
 
         return None
 
-    def _reset_used_verbs(self):
+    def _reset_used_verbs(self, cat = None):
+        # TODO: reset only specific categories
         self.used_verbs = {key: [] for key in self.verb_numbers.keys()}
 
         return None
@@ -106,7 +107,8 @@ class Message:
         cat_verb_n = self.verb_numbers[cat]
 
         if len(self.used_verbs[cat]) >= cat_verb_n:
-            # TODO: log resetting of list of used indices
+            self.logger.info(f"Out of unique verbs for category {cat}, "
+                                "resetting list of used verbs...")
             self._reset_used_verbs()
 
         verb_idx_list = [* range(0, cat_verb_n)]
