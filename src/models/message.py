@@ -1,7 +1,6 @@
 from models.matches import Matches
 import random
 import numpy as np
-import re
 import logging
 from models.match import Match
 from models.playerinfo import Playerinfo
