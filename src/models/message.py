@@ -120,7 +120,7 @@ class Message:
         if len(self.used_verbs[cat]) >= cat_verb_n:
             self.logger.info(f"Out of unique verbs for category {cat}, "
                                 "resetting list of used verbs...")
-            self._reset_used_verbs()
+            self._reset_used_verbs(cat)
 
         verb_idx_list = [* range(0, cat_verb_n)]
 
