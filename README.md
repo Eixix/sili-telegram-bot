@@ -2,7 +2,7 @@
 
 A telegram bot that evaluates DOTA2 matches of people and notifies about their results.
 
-# Local development 🚀
+# Local development 🏗️
 
 - Copy the `accounts_file.json.example` to `matchdata/accounts_file.json`
 - Find your [Steam32 ID with this website and update your name](https://steamid.xyz/) in the `accounts_file.json`
