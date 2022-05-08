@@ -77,7 +77,7 @@ class Message:
 
         for const_cat in self.meme_const_cats:
             prefix_match = re.search("^[<>]", const_cat)
-            cat_cat_match = re.search("(?<=^[<>])[0-9]+", const_cat)
+            cat_cat_match = re.search("(?<=^[<>])[0-9.]+", const_cat)
 
             if not all([prefix_match, cat_cat_match]):
                 raise(f"Could not parse meme constant category {const_cat}. "
