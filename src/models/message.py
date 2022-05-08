@@ -13,21 +13,26 @@ class Message:
     verb_numbers = {}
     meme_const_cats = []
     meme_const_cats_parsed = {}
-    playerinfos = []
     used_verbs = {}
+    playerinfos = []
 
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
     logger = logging.getLogger(__name__)
 
     def __init__(self, matches, punlines, playerinfos):
-        self.matches = matches
-        self.punlines = punlines
-        self.verb_numbers = {key: len(value) for key, value in punlines['performance_verbs'].items()}
-        self.meme_const_cats = [key for key in punlines['performance_verbs'].keys()]
-        self.meme_const_cats_parsed = self._parse_meme_const_categories()
-        self.playerinfos = playerinfos
-        self.used_verbs = self._reset_used_verbs()
+        if not matches is None:
+            self.matches = matches
+
+        if not punlines is None:
+            self.punlines = punlines
+            self.verb_numbers = {key: len(value) for key, value in punlines['performance_verbs'].items()}
+            self.meme_const_cats = [key for key in punlines['performance_verbs'].keys()]
+            self.meme_const_cats_parsed = self._parse_meme_const_categories()
+            self.used_verbs = self._reset_used_verbs()
+
+        if not playerinfos is None:
+            self.playerinfos = playerinfos
         
     def get_messages_for_matches(self):
         messages = []
