@@ -37,8 +37,8 @@ def get_dota_matches(context: CallbackContext) -> None:
 def poll(context: CallbackContext) -> None:
     logger.info(f"DODO")
 
-    questions = [random.choice(punlines["ja"]),
-                 random.choice(punlines["nein"])]
+    questions = [random.choice(punlines["dodo_poll"]["ja"]),
+                 random.choice(punlines["dodo_poll"]["nein"])]
 
     context.bot.send_voice(chat_id=chat_id, voice=open(
         'resources/lets_dota.mpeg', 'rb'))

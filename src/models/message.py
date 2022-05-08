@@ -50,9 +50,9 @@ class Message:
         messages = []
 
         if match.win:
-            messages.append(f"<b>W: {random.choice(self.punlines['win'])}</b>")
+            messages.append(f"<b>W: {random.choice(self.punlines['match_outcome']['win'])}</b>")
         else:
-            messages.append(f"<b>L: {random.choice(self.punlines['lose'])}</b>")
+            messages.append(f"<b>L: {random.choice(self.punlines['match_outcome']['lose'])}</b>")
 
         for matchresult in match.matchresults:
             verb = self._generate_verb(matchresult)
@@ -74,16 +74,16 @@ class Message:
     def _generate_verb(self, matchresult):
         verb = ""
         if matchresult.meme_constant < 0.5:
-            verb = random.choice(self.punlines["<0.5"])
+            verb = random.choice(self.punlines["performance_verbs"]["<0.5"])
         elif matchresult.meme_constant < 1:
-            verb = random.choice(self.punlines["<1"])
+            verb = random.choice(self.punlines["performance_verbs"]["<1"])
         elif matchresult.meme_constant < 2:
-            verb = random.choice(self.punlines["<2"])
+            verb = random.choice(self.punlines["performance_verbs"]["<2"])
         elif matchresult.meme_constant < 5:
-            verb = random.choice(self.punlines["<5"])
+            verb = random.choice(self.punlines["performance_verbs"]["<5"])
         elif matchresult.meme_constant < 10:
-            verb = random.choice(self.punlines["<10"])
+            verb = random.choice(self.punlines["performance_verbs"]["<10"])
         else:
-            verb = random.choice(self.punlines[">10"])
+            verb = random.choice(self.punlines["performance_verbs"][">10"])
 
         return verb
