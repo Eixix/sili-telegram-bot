@@ -110,15 +110,15 @@ class Message:
     def _generate_verb(self, matchresult):
         verb = ""
 
-        mc_cat_array = np.array(self.meme_const_cats_parsed.key())
+        mc_cat_arr = np.array([* self.meme_const_cats_parsed.keys()], "float")
 
         # TODO: this currently depends on categories being sorted, this may not be given
-        mc_cat_idx_arr = np.which(mc_cat_array > matchresult.meme_constant)[0]
+        mc_cat_idx_arr = np.where(mc_cat_arr > matchresult.meme_constant)[0]
 
         if mc_cat_idx_arr.size == 0:
-            cat = self.meme_const_cats[mc_cat_array.size - 1]
+            cat = self.meme_const_cats[mc_cat_arr.size - 1]
         else:
-            cat = self.meme_const_cats[mc_cat_array[0]]
+            cat = self.meme_const_cats[mc_cat_idx_arr[0]]
 
         cat_verb_n = self.verb_numbers[cat]
 
@@ -132,6 +132,8 @@ class Message:
         verb_idx_set_unused = set(verb_idx_list) - set(self.used_verbs[cat])
 
         verb_idx = random.choice([* verb_idx_set_unused])
+
+        self.used_verbs[cat].append(verb_idx)
 
         verb = self.punlines["performance_verbs"][cat][verb_idx]
 
