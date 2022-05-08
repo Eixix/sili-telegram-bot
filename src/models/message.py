@@ -70,7 +70,7 @@ class Message:
     def _parse_meme_const_categories(self):
         meme_const_cats_parsed = {}
 
-        for const_cat in self.meme_constant_cats:
+        for const_cat in self.meme_const_cats:
             prefix_match = re.search("^[<>]", const_cat)
             cat_cat_match = re.search("(?<=^[<>])[0-9]+", const_cat)
 
@@ -111,9 +111,9 @@ class Message:
         mc_cat_idx_arr = np.which(mc_cat_array > matchresult.meme_constant)[0]
 
         if mc_cat_idx_arr.size == 0:
-            cat = self.meme_constant_cats[mc_cat_array.size - 1]
+            cat = self.meme_const_cats[mc_cat_array.size - 1]
         else:
-            cat = self.meme_constant_cats[mc_cat_array[0]]
+            cat = self.meme_const_cats[mc_cat_array[0]]
 
         cat_verb_n = self.verb_numbers[cat]
 
