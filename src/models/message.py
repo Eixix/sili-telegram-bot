@@ -20,7 +20,7 @@ class Message:
                     level=logging.INFO)
     logger = logging.getLogger(__name__)
 
-    def __init__(self, matches, punlines,playerinfos):
+    def __init__(self, matches, punlines, playerinfos):
         self.matches = matches
         self.punlines = punlines
         self.verb_numbers = {key: len(value) for key, value in punlines['performance_verbs'].items()}
