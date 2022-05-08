@@ -28,8 +28,8 @@ class Message:
             self.punlines = punlines
             self.verb_numbers = {key: len(value) for key, value in punlines['performance_verbs'].items()}
             self.meme_const_cats = [key for key in punlines['performance_verbs'].keys()]
-            self.meme_const_cats_parsed = self._parse_meme_const_categories()
-            self.used_verbs = self._reset_used_verbs()
+            self._parse_meme_const_categories()
+            self._reset_used_verbs()
 
         if not playerinfos is None:
             self.playerinfos = playerinfos
