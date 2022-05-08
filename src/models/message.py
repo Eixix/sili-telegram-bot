@@ -12,7 +12,7 @@ class Message:
     punlines = {}
     verb_numbers = {}
     meme_const_cats = []
-    meme_const_cats_parsed = {}
+    meme_const_cats_arr = []
     used_verbs = {}
     playerinfos = []
 
@@ -28,7 +28,7 @@ class Message:
             self.punlines = punlines
             self.verb_numbers = {key: len(value) for key, value in punlines['performance_verbs'].items()}
             self.meme_const_cats = [key for key in punlines['performance_verbs'].keys()]
-            self._parse_meme_const_categories()
+            self.meme_const_cats_flt = np.array([float(mc_cat) for mc_cat in self.meme_const_cats])
             self._reset_used_verbs()
 
         if not playerinfos is None:
@@ -72,24 +72,6 @@ class Message:
 
         return '\n\n'.join(messages)
 
-    def _parse_meme_const_categories(self):
-        meme_const_cats_parsed = {}
-
-        for const_cat in self.meme_const_cats:
-            prefix_match = re.search("^[<>]", const_cat)
-            cat_cat_match = re.search("(?<=^[<>])[0-9.]+", const_cat)
-
-            if not all([prefix_match, cat_cat_match]):
-                raise(f"Could not parse meme constant category {const_cat}. "
-                        "Ensure it matches the convention of '[<>]x', with "
-                        "'x' being a positive integer.")
-
-            meme_const_cats_parsed[cat_cat_match.group(0)] = prefix_match.group(0)
-
-        self.meme_const_cats_parsed = meme_const_cats_parsed
-
-        return None
-
     def _reset_used_verbs(self, cat = None):
         if cat is None:
             self.used_verbs = {key: [] for key in self.verb_numbers.keys()}
@@ -109,17 +91,16 @@ class Message:
 
     def _generate_verb(self, matchresult):
         verb = ""
+        mc_cat_arr_order = self.meme_const_cats_flt.argsort()
+        order_idx_arr = np.where(np.sort(self.meme_const_cats_flt) > matchresult.meme_constant)[0]
 
-        mc_cat_arr = np.array([* self.meme_const_cats_parsed.keys()], "float")
-
-        # TODO: this currently depends on categories being sorted, this may not be given
-        mc_cat_idx_arr = np.where(mc_cat_arr > matchresult.meme_constant)[0]
-
-        if mc_cat_idx_arr.size == 0:
-            cat = self.meme_const_cats[mc_cat_arr.size - 1]
+        if order_idx_arr.size == 0:
+            cat = self.meme_const_cats[self.meme_const_cats_flt.size - 1]
         else:
-            cat = self.meme_const_cats[mc_cat_idx_arr[0]]
+            mc_cat_idx = mc_cat_arr_order[order_idx_arr[0]]
+            cat = self.meme_const_cats[mc_cat_idx]
 
+        cat = str(cat)
         cat_verb_n = self.verb_numbers[cat]
 
         if len(self.used_verbs[cat]) >= cat_verb_n:
@@ -128,11 +109,9 @@ class Message:
             self._reset_used_verbs(cat)
 
         verb_idx_list = [* range(0, cat_verb_n)]
-
         verb_idx_set_unused = set(verb_idx_list) - set(self.used_verbs[cat])
 
         verb_idx = random.choice([* verb_idx_set_unused])
-
         self.used_verbs[cat].append(verb_idx)
 
         verb = self.punlines["performance_verbs"][cat][verb_idx]

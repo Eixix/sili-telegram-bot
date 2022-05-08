@@ -39,7 +39,7 @@
         ]
     },
     "performance_verbs": {
-        "<0.5": [
+        "0.5": [
             "mächtigst abgestunken und wird hier der öffentlichen Schmach preisgegeben",
             "schlechter, als meine Oma gespielt",
             "wie Tobi sagt: \"immerhin besser als Cormo\" gespielt",
@@ -61,7 +61,7 @@
             "nach dem neuen Patch ein Camp gestack",
             "vor dem Spiel noch das Ladysdiplom gemacht"
         ],
-        "<1": [
+        "1": [
             "schlecht, aber nicht absolut erbärmlich gespielt",
             "fast seinen Kopf verloren",
             "Bristleback auf die Schulter geklopft",
@@ -80,7 +80,7 @@
             "nicht schlecht gespielt. ich sags wies Is.",
             "länger zum farmen gebraucht als Cand. Dr. rer. nat. Jonas Matthes zu seinem Abschluss"
         ],
-        "<2": [
+        "2": [
             "immerhin neutral oder leicht besser gespielt",
             "gut gespielt? - I daut it - ",
             "gespielt, wie ein Sonntagsfahrer fährt,",
@@ -98,7 +98,7 @@
             "sich mal wieder carrien lassen",
             "sich blendend als laufenden Ward gemacht"
         ],
-        "<5": [
+        "5": [
             "mehr impact gehabt als erwartet, da kann man nicht meckern",
             "ganz guten Einsatz geleistet",
             "seinen Battlehunger auf jedenfall gestillt",
@@ -108,7 +108,7 @@
             "mehr Erfolg im Spiel als Cand. Dr. rer. nat. Jonas Matthes beim Ladysdiplom gehabt",
             "sich zur richtigen Zeit am richtigen Ort befunden"
         ],
-        "<10": [
+        "10": [
             "total rasiert",
             "übermäßig krass geballert",
             "seinen neuen Gamingstuhl ausprobiert",
@@ -125,7 +125,7 @@
             "den Segen Gabens gehabt",
             "Gegner gekillt wie Sgt Fitch Wards kauft"
         ],
-        ">10": [
+        "inf": [
             "absolut gottartig gespielt und darf hier nicht mehr angezweifelt werden",
             "seinen Riesenprügel rausgeholt und die Gegner weggefickt",
             "so gut gespielt wie Chuck Norris",
