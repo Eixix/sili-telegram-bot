@@ -16,9 +16,6 @@ class Message:
     playerinfos = []
     used_verbs = {}
 
-    # this value represents the expected maximum number of players in a match
-    verb_decay = 5
-
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
     logger = logging.getLogger(__name__)
@@ -64,23 +61,11 @@ class Message:
             messages.append(f"<b>L: {random.choice(self.punlines['match_outcome']['lose'])}</b>")
 
         for matchresult in match.matchresults:
-            verb = self._generate_verb(matchresult)
-
-            while self._check_verb_used(verb):
-                verb = self._generate_verb(matchresult)
-
             messages.append(f"{matchresult.name} hat mit {matchresult.hero} {self._generate_verb(matchresult)} mit {matchresult.kills} Kills, {matchresult.deaths} Toden und {matchresult.assists} Assists")
 
         self._reset_used_verbs()
 
         return '\n\n'.join(messages)
-        
-    def _check_verb_used(self, verb):
-        if verb in self.used_verbs:
-            return True
-        else:
-            used_verbs = used_verbs[1:self.verb_decay - 1] + [verb]
-            return False
 
     def _parse_meme_const_categories(self):
         meme_const_cats_parsed = {}
