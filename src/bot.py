@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from datetime import time
-from telegram import Update
+from telegram import Update, ParseMode
 from telegram.ext import CallbackContext, CommandHandler, Filters, MessageHandler, Updater
 import dota_api
 import json
@@ -13,25 +13,26 @@ from models.message import Message
 # Environment variable
 token = os.environ['bot_token']
 chat_id = os.environ['chat_id']
-
+updater = Updater(token)
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 punlines = {}
-with open("../resources/punlines.json", 'r') as f:
+with open("resources/punlines.json", 'r') as f:
     punlines = json.load(f)
 
 
 def get_dota_matches(context: CallbackContext) -> None:
-    message = Message(dota_api.api_crawl(),punlines)
-    messages = message.get_messages()
+    message = Message(dota_api.api_crawl(), punlines, None)
+    messages = message.get_messages_for_matches()
 
     if messages:
         for m in messages:
             context.bot.send_message(chat_id=chat_id,
-                                    text=m)
+                                     text=m,
+                                     parse_mode=ParseMode.HTML)
 
 def poll(context: CallbackContext) -> None:
     logger.info(f"DODO")
@@ -40,7 +41,7 @@ def poll(context: CallbackContext) -> None:
                  random.choice(punlines["nein"])]
 
     context.bot.send_voice(chat_id=chat_id, voice=open(
-        '../resources/lets_dota.mpeg', 'rb'))
+        'resources/lets_dota.mpeg', 'rb'))
 
     context.bot.send_poll(
         chat_id,
@@ -50,40 +51,60 @@ def poll(context: CallbackContext) -> None:
         allows_multiple_answers=False,
     )
 
-
 def crawl(update: Update, context: CallbackContext):
     if update.effective_chat.id == int(chat_id):
         get_dota_matches(context)
-
 
 def dodo(update: Update, context: CallbackContext):
     if update.effective_chat.id == int(chat_id):
         poll(context)
 
+def playerinfos(update: Update, context: CallbackContext):
+    if update.effective_chat.id == int(chat_id):
+        message = Message(None, None, dota_api.get_playerinfos())
+        messages = message.get_message_for_playerinfos()
 
-def doubt(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(chat_id) and ("doubt" in update.message.text or "daud" in update.message.text) :
-        context.bot.send_animation(
-            chat_id=chat_id, animation=open('../resources/i_daut_it.gif', 'rb'))
+        if messages:
+            context.bot.send_message(chat_id=chat_id,
+                                     text=messages,
+                                     parse_mode=ParseMode.HTML)
 
+def lastgame(update: Update, context: CallbackContext):
+    if update.effective_chat.id == int(chat_id):
+        time = dota_api.get_lastgame()
+        
+        if time:
+            context.bot.send_message(chat_id=chat_id,
+                                     text=time,
+                                     parse_mode=ParseMode.HTML)
+
+def stopbot(update: Update, context: CallbackContext):
+    if (update.effective_chat.id == int(chat_id) and updater.running):
+        updater.stop() 
+
+def message_handler(update: Update, context: CallbackContext):
+    if update.effective_chat.id == int(chat_id):
+        message_text = update.message.text.lower()
+        if ("doubt" in message_text or "daud" in message_text or "daut" in message_text) :
+            context.bot.send_animation(chat_id=chat_id, animation=open('resources/i_daut_it.gif', 'rb'))                 
 
 def main():
-
-    updater = Updater(token)
     dispatcher = updater.dispatcher
     job_queue = updater.job_queue
 
     dispatcher.add_handler(CommandHandler('dodo', dodo))
     dispatcher.add_handler(CommandHandler('crawl', crawl))
+    dispatcher.add_handler(CommandHandler('playerinfos', playerinfos))
+    dispatcher.add_handler(CommandHandler('lastgame', lastgame))
+    dispatcher.add_handler(CommandHandler('stopbot', stopbot))
     dispatcher.add_handler(MessageHandler(
-        Filters.text & (~Filters.command), doubt))
+        Filters.text & (~Filters.command), message_handler))
 
     job_queue.run_repeating(get_dota_matches, interval=600, first=10)
     job_queue.run_daily(poll, time(0, 0, 0), days=(3,))
 
     updater.start_polling()
     updater.idle()
-
 
 if __name__ == '__main__':
     main()

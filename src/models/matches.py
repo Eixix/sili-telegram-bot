@@ -9,6 +9,9 @@ class Matches:
                     level=logging.INFO)
     logger = logging.getLogger(__name__)
 
+    def __init__(self):
+        self.matches = []
+
     def add_result(self, match_result, heroes, account_name):
         match_id = match_result['match_id']
         kills = match_result['kills']
