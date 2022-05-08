@@ -86,8 +86,19 @@ class Message:
         return None
 
     def _reset_used_verbs(self, cat = None):
-        # TODO: reset only specific categories
-        self.used_verbs = {key: [] for key in self.verb_numbers.keys()}
+        if cat is None:
+            self.used_verbs = {key: [] for key in self.verb_numbers.keys()}
+        else:
+            if type(cat) is str:
+                if not cat in self.meme_const_cats:
+                    raise(f"'{cat}' is no a valid category.")
+                self.used_verbs[cat] = []
+            elif type(cat) is list:
+                # FIXME: make the error say which categories are invalid
+                if not all([x in self.meme_const_cats for x in cat]):
+                    raise(f"'{cat}' contains invalid categories.")
+                for cat_i in cat:
+                    self.used_verbs[cat_i] = []
 
         return None
 
