@@ -9,6 +9,7 @@ import logging
 import random
 import os
 from models.message import Message
+from models.voiceline import Voiceline
 
 # Environment variable
 token = os.environ['bot_token']
@@ -50,6 +51,35 @@ def poll(context: CallbackContext) -> None:
         is_anonymous=False,
         allows_multiple_answers=False,
     )
+
+def voiceline(update: Update, context: CallbackContext) -> None:
+    logger.info("Getting voiceline...")
+
+    if len(context.args) < 1:
+        logger.info("... not enough arguments, sending help msg.")
+
+        help_txt = "Not enough arguments, format should be '/voiceline "\
+                    "HERO_NAME: HERO_LINE'..."
+
+        context.bot.send_message(chat_id = chat_id, 
+                                    text = help_txt)
+
+    else:
+        vl = Voiceline("https://dota2.fandom.com/wiki/")
+        
+        # To separate out hero and voice line (both may contain whitespaces),
+        # we first concatenate all args to a string and then split it on the 
+        # colon to get hero and voiceline
+        arg_string = " ".join(context.args)
+
+        hero, line = arg_string.split(": ")
+
+        voice_line = Voiceline.get_line(hero, line)
+
+        context.bot.send_voice(chat_id = chat_id,
+            voice = voice_line)
+
+        logger.info("... voiceline delivered.")
 
 def crawl(update: Update, context: CallbackContext):
     if update.effective_chat.id == int(chat_id):
@@ -97,6 +127,7 @@ def main():
     dispatcher.add_handler(CommandHandler('playerinfos', playerinfos))
     dispatcher.add_handler(CommandHandler('lastgame', lastgame))
     dispatcher.add_handler(CommandHandler('stopbot', stopbot))
+    dispatcher.add_handler(CommandHandler('voiceline', voiceline))
     dispatcher.add_handler(MessageHandler(
         Filters.text & (~Filters.command), message_handler))
 
