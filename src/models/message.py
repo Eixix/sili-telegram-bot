@@ -90,16 +90,31 @@ class Message:
 
     def _generate_verb(self, matchresult):
         verb = ""
-        mc_cat_arr_order = self.meme_const_cats_flt.argsort()
+
+        # In case meme constant categories are not sorted in increasing order,
+        # the index based finding of the appropriate meme constant category will
+        # not work as intended. That is why we first get a lookup array mapping
+        # the orderd array back to the order the categories are provided in the
+        # punlines file. We then get the number giving the nth largest category
+        # and use the lookup array to find out to which index that corresponds.
+        #
+        # All of this could be avoided by converting the category strings to 
+        # floats and back again, but I ran into the trouble that naive 
+        # conversion left trailing zeroes in the strings. This meant that the
+        # dict lookup didnt work. 
+        mc_cat_lookup = self.meme_const_cats_flt.argsort()
+
         order_idx_arr = np.where(np.sort(self.meme_const_cats_flt) > matchresult.meme_constant)[0]
+        mc_cat_idx = mc_cat_lookup[order_idx_arr[0]]
 
-        if order_idx_arr.size == 0:
-            cat = self.meme_const_cats[self.meme_const_cats_flt.size - 1]
-        else:
-            mc_cat_idx = mc_cat_arr_order[order_idx_arr[0]]
-            cat = self.meme_const_cats[mc_cat_idx]
-
+        cat = self.meme_const_cats[mc_cat_idx]
         cat = str(cat)
+
+        # In order to ensure verbs are not used again if necessary, get how
+        # many verbs there are for each category and randomly choose an index
+        # used for selecting each new verb from the punlines dict. These indices
+        # are recorded and are not elegible to be chosen again until the record
+        # is reset.
         cat_verb_n = self.verb_numbers[cat]
 
         if len(self.used_verbs[cat]) >= cat_verb_n:
