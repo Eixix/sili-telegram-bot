@@ -1,9 +1,12 @@
 import requests
-import bs4 as bs
+import bs4
 
 class Voiceline:
     hero = ""
     response_url = ""
+
+    # TODO: Should this be initialised like that?
+    soup = bs4.BeautifulSoup()
 
     def __init__(self, hero_string):
         base_url = "https://dota2.fandom.com/wiki/"
@@ -14,8 +17,34 @@ class Voiceline:
         hero_list = hero_string.split(" ")
         self.hero = "_".join([x.upper() for x in hero_list])
 
-        self.response_url = f"{self.base_url}/{self.hero}/Responses"
+        self.response_url = f"{base_url}/{self.hero}/Responses"
+
+        vl_pg_response = requests.get(self.response_url)
+        self.soup = bs4.BeautifulSoup(vl_pg_response.content, "lxml")
+
+        # On the the wiki page all voiceline links are in tags which can be 
+        # selected using this css selector.
+        # TODO: check if this looks as expected (i.e. has content)
+        self.vl_tags = self.soup.select(".mw-parser-output > ul li")
 
     def get_line(self, line):
-        # TODO: finish this function
+        line_tag = ""
+
+        for tag in self.vl_tags:
+            # Each of the tags contains the audiobutton with the link to the
+            # audiofile as its first child and as its second child the text 
+            # of the voiceline. Here we find the tag containing the link to 
+            # the desired line.
+            if line in tag.contents[1]:
+                line_tag = line
+                break
+
+        # TODO: Handle this properly
+        if not line_tag:
+            raise("Line not found")
+
+        vl_link = line_tag.find("source")["src"]
+
+        print(vl_link)
+
         pass
