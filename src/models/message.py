@@ -12,6 +12,7 @@ class Message:
     verb_numbers = {}
     meme_const_cats = []
     meme_const_cats_arr = []
+    meme_const_cats_sort = []
     used_verbs = {}
     playerinfos = []
 
@@ -28,6 +29,7 @@ class Message:
             self.verb_numbers = {key: len(value) for key, value in punlines['performance_verbs'].items()}
             self.meme_const_cats = [key for key in punlines['performance_verbs'].keys()]
             self.meme_const_cats_flt = np.array([float(mc_cat) for mc_cat in self.meme_const_cats])
+            self.meme_const_cats_sort = np.sort(self.meme_const_cats_flt)
             self._reset_used_verbs()
 
         if not playerinfos is None:
@@ -104,7 +106,7 @@ class Message:
         # dict lookup didnt work. 
         mc_cat_lookup = self.meme_const_cats_flt.argsort()
 
-        order_idx_arr = np.where(np.sort(self.meme_const_cats_flt) > matchresult.meme_constant)[0]
+        order_idx_arr = np.where(self.meme_const_cats_sort > matchresult.meme_constant)[0]
         mc_cat_idx = mc_cat_lookup[order_idx_arr[0]]
 
         cat = self.meme_const_cats[mc_cat_idx]
