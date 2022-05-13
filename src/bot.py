@@ -64,9 +64,7 @@ def voiceline(update: Update, context: CallbackContext) -> None:
         context.bot.send_message(chat_id = chat_id, 
                                     text = help_txt)
 
-    else:
-        vl = Voiceline("https://dota2.fandom.com/wiki/")
-        
+    else:        
         # To separate out hero and voice line (both may contain whitespaces),
         # we first concatenate all args to a string and then split it on the 
         # colon to get hero and voiceline
@@ -74,7 +72,9 @@ def voiceline(update: Update, context: CallbackContext) -> None:
 
         hero, line = arg_string.split(": ")
 
-        voice_line = Voiceline.get_line(hero, line)
+        vl = Voiceline(hero)
+
+        voice_line = vl.get_line(line)
 
         context.bot.send_voice(chat_id = chat_id,
             voice = voice_line)
