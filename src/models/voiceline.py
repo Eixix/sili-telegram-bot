@@ -35,6 +35,9 @@ class Voiceline:
             # audiofile as its first child and as its second child the text 
             # of the voiceline. Here we find the tag containing the link to 
             # the desired line.
+            # Note: Like this it will only perform basic string matching and
+            # stop at the first find. This may not be desirable if different 
+            # lines have the same text (different intonation).
             if line in tag.contents[1]:
                 line_tag = tag
                 break
