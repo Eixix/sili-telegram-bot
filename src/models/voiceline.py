@@ -36,7 +36,7 @@ class Voiceline:
             # of the voiceline. Here we find the tag containing the link to 
             # the desired line.
             if line in tag.contents[1]:
-                line_tag = line
+                line_tag = tag
                 break
 
         # TODO: Handle this properly
