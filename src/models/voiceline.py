@@ -50,4 +50,4 @@ class Voiceline:
 
         print(vl_link)
 
-        pass
+        return vl_link
