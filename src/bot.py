@@ -76,8 +76,8 @@ def voiceline(update: Update, context: CallbackContext) -> None:
 
         voice_line = vl.get_line(line)
 
-        context.bot.send_voice(chat_id = chat_id,
-            voice = voice_line)
+        context.bot.send_message(chat_id = chat_id,
+            text = voice_line)
 
         logger.info("... voiceline delivered.")
 
