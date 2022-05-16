@@ -20,7 +20,8 @@ class Voiceline:
         self.response_url = f"{base_url}/{self.hero}/Responses"
 
         vl_pg_response = requests.get(self.response_url)
-        self.soup = bs4.BeautifulSoup(vl_pg_response.content, "html")
+        self.soup = bs4.BeautifulSoup(vl_pg_response.content,
+                                        features = "html.parser")
 
         # On the the wiki page all voiceline links are in tags which can be 
         # selected using this css selector.
