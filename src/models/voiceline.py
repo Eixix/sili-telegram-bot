@@ -33,7 +33,8 @@ class Voiceline:
     def get_line(self, line):
         line_tag = ""
 
-        line_re = regex.compile(f"(?:{regex.escape(line)}){{e<=2}}",
+        fuzzy_rules = "{e<=2}"
+        line_re = regex.compile(f"(?:{regex.escape(line)}){fuzzy_rules}",
                                 flags=regex.IGNORECASE)
 
         for tag in self.vl_tags:
