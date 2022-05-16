@@ -28,7 +28,7 @@ class Voiceline:
         # On the the wiki page all voiceline links are in tags which can be
         # selected using this css selector.
         # TODO: check if this looks as expected (i.e. has content)
-        self.vl_tags = self.soup.select(".mw-parser-output > ul li")
+        self.vl_tags = self.soup.select("#mw-content-text h2~ ul li")
 
     def get_line(self, line):
         line_tag = ""
