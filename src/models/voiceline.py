@@ -1,5 +1,6 @@
 import requests
 import bs4
+import re
 
 class Voiceline:
     hero = ""
@@ -31,6 +32,8 @@ class Voiceline:
     def get_line(self, line):
         line_tag = ""
 
+        line_re = re.compile(re.escape(line), flags = re.IGNORECASE)
+
         for tag in self.vl_tags:
             # Each of the tags contains the audiobutton with the link to the
             # audiofile as its first child and as its second child the text 
@@ -39,7 +42,7 @@ class Voiceline:
             # Note: Like this it will only perform basic string matching and
             # stop at the first find. This may not be desirable if different 
             # lines have the same text (different intonation).
-            if line in tag.contents[-1]:
+            if re.search(line_re, tag.contents[-1]):
                 line_tag = tag
                 break
 
