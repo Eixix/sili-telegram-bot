@@ -49,6 +49,4 @@ class Voiceline:
 
         vl_link = line_tag.find("source")["src"]
 
-        print(vl_link)
-
         return vl_link
