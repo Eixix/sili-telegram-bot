@@ -70,11 +70,11 @@ def voiceline(update: Update, context: CallbackContext) -> None:
         # colon to get hero and voiceline
         arg_string = " ".join(context.args)
 
-        hero, line = arg_string.split(": ")
+        hero, line = arg_string.split(":")
 
         vl = Voiceline(hero)
 
-        voice_line = vl.get_line(line)
+        voice_line = vl.get_line(line.strip())
 
         context.bot.send_message(chat_id = chat_id,
             text = voice_line)
