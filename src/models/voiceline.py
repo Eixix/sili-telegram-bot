@@ -39,7 +39,7 @@ class Voiceline:
             # Note: Like this it will only perform basic string matching and
             # stop at the first find. This may not be desirable if different 
             # lines have the same text (different intonation).
-            if line in tag.contents[1]:
+            if line in tag.contents[-1]:
                 line_tag = tag
                 break
 
