@@ -33,7 +33,7 @@ class Voiceline:
     def get_line(self, line):
         line_tag = ""
 
-        fuzzy_rules = "{e<=2}"
+        fuzzy_rules = "{e<=1}"
         line_re = regex.compile(f"(?:{regex.escape(line)}){fuzzy_rules}",
                                 flags=regex.IGNORECASE)
 
