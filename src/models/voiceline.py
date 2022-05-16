@@ -1,6 +1,6 @@
 import requests
 import bs4
-import re
+import regex
 
 class Voiceline:
     hero = ""
@@ -32,7 +32,8 @@ class Voiceline:
     def get_line(self, line):
         line_tag = ""
 
-        line_re = re.compile(re.escape(line), flags = re.IGNORECASE)
+        line_re = regex.compile(f"(?:{regex.escape(line)}){{e<=2}}",
+                                flags=regex.IGNORECASE)
 
         for tag in self.vl_tags:
             # Each of the tags contains the audiobutton with the link to the
