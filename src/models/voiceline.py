@@ -43,10 +43,10 @@ class Voiceline:
                 line_tag = tag
                 break
 
-        # TODO: Handle this properly
         if not line_tag:
-            raise("Line not found")
-
+            message = "Sorry, konnte die line nicht finden..."
+        else:
         vl_link = line_tag.find("source")["src"]
+            message = vl_link
 
-        return vl_link
+        return message
