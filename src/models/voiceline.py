@@ -30,7 +30,7 @@ class Voiceline:
         # TODO: check if this looks as expected (i.e. has content)
         self.vl_tags = self.soup.select("#mw-content-text h2~ ul li")
 
-    def get_line(self, line):
+    def get_link(self, line):
         line_tag = ""
 
         fuzzy_rules = "{e<=1}"

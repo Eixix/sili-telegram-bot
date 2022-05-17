@@ -74,7 +74,7 @@ def voiceline(update: Update, context: CallbackContext) -> None:
 
         vl = Voiceline(hero)
 
-        voice_line = vl.get_line(line.strip())
+        voice_line = vl.get_link(line.strip())
 
         context.bot.send_message(chat_id = chat_id,
             text = voice_line)
