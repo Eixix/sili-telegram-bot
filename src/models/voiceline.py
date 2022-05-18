@@ -33,22 +33,35 @@ class Voiceline:
 
     def get_link(self, line):
         line_tag = ""
-
         fuzzy_rules = "{e<=1}"
-        line_re = regex.compile(f"(?:{regex.escape(line)}){fuzzy_rules}",
-                                flags=regex.IGNORECASE)
+
+        if regex.search(r"^\".+\"", line):
+            line = line.strip("\"")
+            line_re = regex.compile(f"(?:^{regex.escape(line)}$){fuzzy_rules}",
+                                    flags=regex.IGNORECASE)
+
+        elif regex.search(r"^\'.+\'", line):
+            line = line.strip("\'")
+            line_re = regex.compile(f"^{line}$")
+
+        else:
+            line_re = regex.compile(f"(?:{regex.escape(line)}){fuzzy_rules}",
+                                    flags=regex.IGNORECASE)
+        
 
         for tag in self.vl_tags:
             # Each of the tags contains the audiobutton with the link to the
             # audiofile as its first child and as its second child the text
             # of the voiceline. Here we find the tag containing the link to
             # the desired line.
+            # TODO: adapt this
             # Note: Like this it will only perform basic string matching and
             # stop at the first find. This may not be desirable if different
             # lines have the same text (different intonation).
-            if regex.search(line_re, tag.contents[-1]):
-                line_tag = tag
-                break
+            if tag.contents[0].name:
+                if regex.search(line_re, tag.contents[-1].text.strip()):
+                    line_tag = tag
+                    break
 
         if not line_tag:
             vl_link = None
