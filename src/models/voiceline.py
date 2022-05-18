@@ -53,11 +53,12 @@ class Voiceline:
             # Each of the tags contains the audiobutton with the link to the
             # audiofile as its first child and as its second child the text
             # of the voiceline. Here we find the tag containing the link to
-            # the desired line.
-            # TODO: adapt this
-            # Note: Like this it will only perform basic string matching and
-            # stop at the first find. This may not be desirable if different
-            # lines have the same text (different intonation).
+            # the desired line. The selector is not perfect so for some heroes
+            # tags that are not voicelines can get read too. The outer if
+            # statement helps against that. The voiceline may contain links, so
+            # extracting all literal text is necessary.
+            #
+            # TODO: add ways to find other occurrences than only the first
             if tag.contents[0].name:
                 if regex.search(line_re, tag.contents[-1].text.strip()):
                     line_tag = tag
