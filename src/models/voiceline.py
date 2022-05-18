@@ -37,12 +37,8 @@ class Voiceline:
 
         if regex.search(r"^\".+\"", line):
             line = line.strip("\"")
-            line_re = regex.compile(f"(?:^{regex.escape(line)}$){fuzzy_rules}",
+            line_re = regex.compile(line,
                                     flags=regex.IGNORECASE)
-
-        elif regex.search(r"^\'.+\'", line):
-            line = line.strip("\'")
-            line_re = regex.compile(f"^{line}$")
 
         else:
             line_re = regex.compile(f"(?:{regex.escape(line)}){fuzzy_rules}",
