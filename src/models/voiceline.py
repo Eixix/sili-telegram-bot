@@ -56,3 +56,24 @@ class Voiceline:
             message = vl_link
 
         return message
+
+
+    def download_mp3(self, link):
+        file_name_match = regex.search(r"[^\/]*.mp3", link)
+        
+        if not file_name_match:
+            raise(f"Could not extract file name from link. Is the link "
+                    + f"correct? {link}")
+
+        file_path = os.path.join("resources", file_name_match.group())
+
+        dl_response = requests.get(link)
+
+        if not dl_response.status_code == 200:
+            raise(f"Could not get a positive response from {link}")
+
+        dl_file_handle = open(file_path, "wb")
+        dl_file_handle.write(dl_response.content)
+
+        return(file_path)
+
