@@ -55,7 +55,7 @@ def poll(context: CallbackContext) -> None:
 def voiceline(update: Update, context: CallbackContext) -> None:
     logger.info("Getting voiceline...")
 
-    if len(context.args) < 1:
+    if len(context.args) <= 1:
         logger.info("... not enough arguments, sending help msg.")
 
         help_txt = "Not enough arguments, format should be '/voiceline " \
