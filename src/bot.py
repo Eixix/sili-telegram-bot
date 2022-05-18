@@ -78,7 +78,9 @@ def voiceline(update: Update, context: CallbackContext) -> None:
 
         if vl_link is None:
             context.bot.send_message(chat_id = chat_id,
-                text = "Sorry konnte die line nicht finden...")
+                text = ("Could not find line... "
+                        "Check here if you typed it right: "
+                        f"{vl.response_url}"))
                         
             logger.info("... delivery failed, could not find voiceline.")
 
