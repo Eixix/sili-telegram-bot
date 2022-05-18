@@ -50,13 +50,11 @@ class Voiceline:
                 break
 
         if not line_tag:
-            message = "Sorry, konnte die line nicht finden..."
+            self.vl_link = None
         else:
-            vl_link = line_tag.find("source")["src"]
-            message = vl_link
+            self.vl_link = line_tag.find("source")["src"]
 
-        return message
-
+        return None
 
     def download_mp3(self, link):
         file_name_match = regex.search(r"[^\/]*.mp3", link)
