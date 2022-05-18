@@ -1,6 +1,7 @@
 import requests
 import bs4
 import regex
+import os
 
 
 class Voiceline:
@@ -50,11 +51,11 @@ class Voiceline:
                 break
 
         if not line_tag:
-            self.vl_link = None
+            vl_link = None
         else:
-            self.vl_link = line_tag.find("source")["src"]
+            vl_link = line_tag.find("source")["src"]
 
-        return None
+        return vl_link
 
     def download_mp3(self, link):
         file_name_match = regex.search(r"[^\/]*.mp3", link)
