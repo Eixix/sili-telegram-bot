@@ -74,12 +74,26 @@ def voiceline(update: Update, context: CallbackContext) -> None:
 
         vl = Voiceline(hero)
 
-        voice_line = vl.get_link(line.strip())
+        vl_link = vl.get_link(line.strip())
 
-        context.bot.send_message(chat_id = chat_id,
-            text = voice_line)
+        if vl_link is None:
+            context.bot.send_message(chat_id = chat_id,
+                text = "Sorry konnte die line nicht finden...")
+                        
+            logger.info("... delivery failed, could not find voiceline.")
 
-        logger.info("... voiceline delivered.")
+        
+        else:
+            vl_file_path = vl.download_mp3(vl_link)
+
+            try:
+                context.bot.send_voice(chat_id = chat_id,
+                    voice = open(vl_file_path, "rb"))
+                        
+                logger.info("... voiceline delivered.")
+
+            finally:
+                os.remove(vl_file_path)            
 
 def crawl(update: Update, context: CallbackContext):
     if update.effective_chat.id == int(chat_id):
