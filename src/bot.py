@@ -58,8 +58,11 @@ def voiceline(update: Update, context: CallbackContext) -> None:
     if len(context.args) < 1:
         logger.info("... not enough arguments, sending help msg.")
 
-        help_txt = "Not enough arguments, format should be '/voiceline "\
-                    "Hero Name: Voice line'..."
+        help_txt = "Not enough arguments, format should be '/voiceline " \
+                    "Hero Name: Voice line'...\n" \
+                    "Enclose line in \"double quotes\" to match the entire " \
+                    "target with error tolerance or in \'single quotes\' to " \
+                    "match without error tolerance."
 
         context.bot.send_message(chat_id = chat_id, 
                                     text = help_txt)
