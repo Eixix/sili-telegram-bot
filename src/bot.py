@@ -59,7 +59,7 @@ def voiceline(update: Update, context: CallbackContext) -> None:
         logger.info("... not enough arguments, sending help msg.")
 
         help_txt = "Not enough arguments, format should be '/voiceline "\
-                    "HERO_NAME: HERO_LINE'..."
+                    "Hero Name: Voice line'..."
 
         context.bot.send_message(chat_id = chat_id, 
                                     text = help_txt)
