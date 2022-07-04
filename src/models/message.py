@@ -71,7 +71,9 @@ class Message:
 
         self._reset_used_verbs()
 
-        return '\n\n'.join(messages)
+        # Only send messages with more than 1 player from sili
+        if len(messages > 1):
+            return '\n\n'.join(messages)
 
     def _reset_used_verbs(self, cat = None):
         if cat is None:
