@@ -10,7 +10,12 @@
             "Ja, solange keine Ruskis mit im Team sind!",
             "Die morgige Kackographie hat ja gesagt!",
             "Selbstverfreilich!",
-            "Ja, ich möchte gerne mit Cand. Dr. rer. nat. Jonas Matthes spielen"
+            "Ja, ich möchte gerne mit Cand. Dr. rer. nat. Jonas Matthes spielen",
+            "JAA, der DoDo muss wieder aufleben!",
+            "Ja weil ich SiLi liebe <3",
+            "Ja bitte, ich habe wieder voll Bock zu feeden!",
+            "Ja und wenn ich gewinne darf ich bei meiner Freundin wieder ran!!!",
+            "я возбужден!"
             ],
         "nein": [
             "Nein, weil ich stinke!",
@@ -23,19 +28,40 @@
             "Muss erst duschen! Kann danach aber auch nicht...",
             "Ne, der Downstream ist durch Pornos komplett belegt!",
             "Bin leider ein Kacknoob und schiebs auf meine Mates",
-            "Nein, Doktoranden sind doof!"
+            "Nein, Doktoranden sind doof!",
+            "Nein, Malte muss es mir erst rechtlich erlauben!",
+            "Ne muss überstunden schieben damit ich halb so viel wie Fabi verdiene!",
+            "Не Тобиас воняет"
         ]
     },
     "match_outcome": {
         "win": [
             "Gewonnen!!! Sili hats den Gegnern mal wieder gezeigt!",
             "Wir haben lange Penise",
-            "Ez Game Ez Life"
+            "Ez Game Ez Life",
+            "RASIERT!!11!1elf",
+            "Als Behlohnung gibts erst mal ein Gummibärchen!",
+            "SIEG!! Da hat wohl Max nicht sein monatliches Spiel gehabt!",
+            "Da hat wenigstens einer Topson nachgemacht",
+            "Mal wieder erfolgreich DPC Strats ausprobiert",
+            "Oh wow endlich eine anständige Team-Comp gehabt? Das geht bei SiLi?",
+            "Sehr gut gemacht, jetzt kurze Pipi-Pause und dann wieder feeden!"
         ],
         "lose": [
             "Ob Sili gut gespielt hat? I daud it!",
+            "Besseres Matchmaking wäre nice!",
             "Nene das war nix",
-            "Verloren - da hat wohl Fitchi mitgespielt"
+            "Verloren - da hat wohl Muspel mitgespielt",
+            "Da muss SiLi am DoDo wohl mehr üben...",
+            "Liest das hier überhaupt wer?",
+            "Da darf wohl wer auf dem Sofa heute Nacht schlafen!",
+            "Jeder 2€ in die SiLi Kasse! JETZT!!!",
+            "Schon wieder mit Pos4 carrien wollen?",
+            "Dieses Spiel wurde erfunden, es hat nicht stattgefunden!",
+            "Zum Glück kommt jetzt erst das erste Spiel für den Abend",
+            "Kann jetzt nochmal wer qualifiziertes kommen! BITTE?!?!",
+            "Wo ist Malte mit seinem Gyro? Er hat gefehlt!",
+            "Michi war Firstblood, oder?"
         ]
     },
     "performance_verbs": {
@@ -59,7 +85,14 @@
             "sich dieses Fragezeichen verdient: ?",
             "sie alle gecatcht und ist jetzt der Allerbeste",
             "nach dem neuen Patch ein Camp gestack",
-            "vor dem Spiel noch das Ladysdiplom gemacht"
+            "vor dem Spiel noch das Ladysdiplom gemacht",
+            "sich besseres Matchmaking gewünscht",
+            "sich zu sehr von seiner Freundin ablenken lassen",
+            "nicht gefrühstückt",
+            "noch keinen Kaffe gehabt und schlief fast das ganze Game über",
+            "zu sehr auf die Brüste von QoP und CM geschaut",
+            "länger zum farmen gebraucht als Jonny beim Wäsche aufhängen",
+            "die längste Deathtime gehabt"
         ],
         "1": [
             "schlecht, aber nicht absolut erbärmlich gespielt",
@@ -79,7 +112,8 @@
             "mehr gethrowed als Tiny",
             "mehr als Tobi aufm Pot abgestunken",
             "nicht schlecht gespielt. ich sags wies Is.",
-            "länger zum farmen gebraucht als Cand. Dr. rer. nat. Jonas Matthes zu seinem Abschluss"
+            "länger zum farmen gebraucht als Cand. Dr. rer. nat. Jonas Matthes zu seinem Abschluss",
+            "bei der psychologischen Kriegsführung das falsche Team aufgeregt"
         ],
         "2": [
             "immerhin neutral oder leicht besser gespielt",
@@ -97,7 +131,9 @@
             "Roshan zu oft ein High-Five gegeben",
             "immerhin 0,374 Sekunden im gegnerischen Fountain überlebt",
             "sich mal wieder carrien lassen",
-            "sich blendend als laufenden Ward gemacht"
+            "sich blendend als laufenden Ward gemacht",
+            "Anwesenheit gezeigt",
+            "den anderen beim Kämpfen zugeschaut"
         ],
         "5": [
             "mehr impact gehabt als erwartet, da kann man nicht meckern",
@@ -107,7 +143,8 @@
             "nicht nur die eigenen Camps geblockt",
             "die Gegner outplayed",
             "mehr Erfolg im Spiel als Cand. Dr. rer. nat. Jonas Matthes beim Ladysdiplom gehabt",
-            "sich zur richtigen Zeit am richtigen Ort befunden"
+            "sich zur richtigen Zeit am richtigen Ort befunden",
+            "bewiesen das er definitiv keine Schwanzverlängerung braucht"
         ],
         "10": [
             "total rasiert",
@@ -124,7 +161,9 @@
             "gute Calls gemacht",
             "anscheinend gecheatet, oder sollen wir das wirklich glauben?!",
             "den Segen Gabens gehabt",
-            "Gegner gekillt wie Sgt Fitch Wards kauft"
+            "Gegner gekillt wie Sgt Fitch Wards kauft",
+            "sein Team hart gecarried",
+            "hat zum Glück den Platz von Felix eingenommen und es den Gegnern gezeigt"
         ],
         "inf": [
             "absolut gottartig gespielt und darf hier nicht mehr angezweifelt werden",
@@ -135,7 +174,8 @@
             "sein absolut bestes Spiel gespielt - er sollte jetzt aufhören - ",
             "volle Punktzahl erreicht",
             "Dota durchgespielt",
-            "die Note 1 mit Sternchen für das Spiel bekommen"
+            "sich für diese Leistung 2000 BP Level verdient",
+            "seinen neuen Lieblingshelden gefunden"
         ]
     }
 }
