@@ -35,6 +35,7 @@ def get_dota_matches(context: CallbackContext) -> None:
                                      text=m,
                                      parse_mode=ParseMode.HTML)
 
+
 def poll(context: CallbackContext) -> None:
     logger.info(f"DODO")
 
@@ -52,6 +53,7 @@ def poll(context: CallbackContext) -> None:
         allows_multiple_answers=False,
     )
 
+
 def voiceline(update: Update, context: CallbackContext) -> None:
     logger.info("Getting voiceline...")
 
@@ -63,12 +65,12 @@ def voiceline(update: Update, context: CallbackContext) -> None:
             "Enclose line in \"double quotes\" to use regex as described in " \
             "the `regex` module."
 
-        context.bot.send_message(chat_id = chat_id, 
-                                    text = help_txt)
+        context.bot.send_message(chat_id=chat_id,
+                                 text=help_txt)
 
-    else:        
+    else:
         # To separate out hero and voice line (both may contain whitespaces),
-        # we first concatenate all args to a string and then split it on the 
+        # we first concatenate all args to a string and then split it on the
         # colon to get hero and voiceline
         arg_string = " ".join(context.args)
 
@@ -79,33 +81,40 @@ def voiceline(update: Update, context: CallbackContext) -> None:
         vl_link = vl.get_link(line.strip())
 
         if vl_link is None:
-            context.bot.send_message(chat_id = chat_id,
-                text = ("Could not find line... "
-                        "Check here if you typed it right: "
-                        f"{vl.response_url}"))
-                        
+            context.bot.send_message(chat_id=chat_id,
+                                     text=("Could not find line... "
+                                           "Check here if you typed it right: "
+                                           f"{vl.response_url}"))
+
             logger.info("... delivery failed, could not find voiceline.")
 
-        
         else:
             vl_file_path = vl.download_mp3(vl_link)
 
             try:
-                context.bot.send_voice(chat_id = chat_id,
-                    voice = open(vl_file_path, "rb"))
-                        
+                # Delete /voiceline to make conversation more seamless
+                context.bot.delete_message(
+                    chat_id=chat_id, message_id=update.message.message_id)
+                context.bot.send_message(chat_id=chat_id,
+                                         text=update.message.chat.username + ":")
+                context.bot.send_voice(chat_id=chat_id,
+                                       voice=open(vl_file_path, "rb"))
+
                 logger.info("... voiceline delivered.")
 
             finally:
-                os.remove(vl_file_path)            
+                os.remove(vl_file_path)
+
 
 def crawl(update: Update, context: CallbackContext):
     if update.effective_chat.id == int(chat_id):
         get_dota_matches(context)
 
+
 def dodo(update: Update, context: CallbackContext):
     if update.effective_chat.id == int(chat_id):
         poll(context)
+
 
 def playerinfos(update: Update, context: CallbackContext):
     if update.effective_chat.id == int(chat_id):
@@ -117,24 +126,29 @@ def playerinfos(update: Update, context: CallbackContext):
                                      text=messages,
                                      parse_mode=ParseMode.HTML)
 
+
 def lastgame(update: Update, context: CallbackContext):
     if update.effective_chat.id == int(chat_id):
         time = dota_api.get_lastgame()
-        
+
         if time:
             context.bot.send_message(chat_id=chat_id,
                                      text=time,
                                      parse_mode=ParseMode.HTML)
 
+
 def stopbot(update: Update, context: CallbackContext):
     if (update.effective_chat.id == int(chat_id) and updater.running):
-        updater.stop() 
+        updater.stop()
+
 
 def message_handler(update: Update, context: CallbackContext):
     if update.effective_chat.id == int(chat_id):
         message_text = update.message.text.lower()
-        if ("doubt" in message_text or "daud" in message_text or "daut" in message_text) :
-            context.bot.send_animation(chat_id=chat_id, animation=open('resources/i_daut_it.gif', 'rb'))                 
+        if ("doubt" in message_text or "daud" in message_text or "daut" in message_text):
+            context.bot.send_animation(
+                chat_id=chat_id, animation=open('resources/i_daut_it.gif', 'rb'))
+
 
 def main():
     dispatcher = updater.dispatcher
@@ -154,6 +168,7 @@ def main():
 
     updater.start_polling()
     updater.idle()
+
 
 if __name__ == '__main__':
     main()
