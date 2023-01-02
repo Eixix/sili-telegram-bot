@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from datetime import time
+import datetime
 from telegram import Update, ParseMode
 from telegram.ext import CallbackContext, CommandHandler, Filters, MessageHandler, Updater
 import dota_api
@@ -36,6 +36,24 @@ def get_dota_matches(context: CallbackContext) -> None:
                                      parse_mode=ParseMode.HTML)
 
 
+def _weekdaynumber_to_weekday(weekdaynumber: int) -> str:
+    match weekdaynumber:
+        case 0:
+            return "Mo"
+        case 1:
+            return "Di"
+        case 2:
+            return "Mi"
+        case 3:
+            return "Do"
+        case 4:
+            return "Fr"
+        case 5:
+            return "Sa"
+        case 6:
+            return "So"
+
+
 def poll(context: CallbackContext) -> None:
     logger.info(f"DODO")
 
@@ -45,9 +63,11 @@ def poll(context: CallbackContext) -> None:
     context.bot.send_voice(chat_id=chat_id, voice=open(
         'resources/lets_dota.mpeg', 'rb'))
 
+    weekday = _weekdaynumber_to_weekday(datetime.datetime.today().weekday())
+
     context.bot.send_poll(
         chat_id,
-        "DoDo?",
+        f"Do{weekday}",
         questions,
         is_anonymous=False,
         allows_multiple_answers=False,
@@ -164,7 +184,7 @@ def main():
         Filters.text & (~Filters.command), message_handler))
 
     job_queue.run_repeating(get_dota_matches, interval=600, first=10)
-    job_queue.run_daily(poll, time(0, 0, 0), days=(3,))
+    job_queue.run_daily(poll, datetime.time(0, 0, 0), days=(3,))
 
     updater.start_polling()
     updater.idle()
