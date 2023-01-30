@@ -10,6 +10,7 @@ import random
 import os
 from models.message import Message
 from models.voiceline import Voiceline
+from models.birthdays import Birthdays
 
 # Environment variable
 token = os.environ['bot_token']
@@ -21,7 +22,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 punlines = {}
-with open("resources/punlines.json", 'r') as f:
+with open("resources/punlines.json", 'r', encoding="utf8") as f:
     punlines = json.load(f)
 
 
@@ -156,11 +157,29 @@ def lastgame(update: Update, context: CallbackContext):
                                      text=time,
                                      parse_mode=ParseMode.HTML)
 
+def birthdays(update: Update, context: CallbackContext):
+     if update.effective_chat.id == int(chat_id): 
+        context.bot.send_message(chat_id=chat_id,
+                                 text=Birthdays().GetBirthdays(),
+                                 parse_mode=ParseMode.HTML)
+
+def upcomingBirthdays(context: CallbackContext):
+    upcomingBirthdays = Birthdays().GetUpcomingBirthdays()
+    if upcomingBirthdays != None:
+        context.bot.send_message(chat_id=chat_id,
+                            text=upcomingBirthdays,
+                            parse_mode=ParseMode.HTML)
+
+def todayBirthdays(context: CallbackContext):
+    todayBirthdays = Birthdays().GetTodayBirthdays()
+    if todayBirthdays != None and todayBirthdays != "":
+        context.bot.send_message(chat_id=chat_id,
+                            text=todayBirthdays,
+                            parse_mode=ParseMode.HTML)
 
 def stopbot(update: Update, context: CallbackContext):
     if (update.effective_chat.id == int(chat_id) and updater.running):
         updater.stop()
-
 
 def message_handler(update: Update, context: CallbackContext):
     if update.effective_chat.id == int(chat_id):
@@ -178,6 +197,7 @@ def main():
     dispatcher.add_handler(CommandHandler('crawl', crawl))
     dispatcher.add_handler(CommandHandler('playerinfos', playerinfos))
     dispatcher.add_handler(CommandHandler('lastgame', lastgame))
+    dispatcher.add_handler(CommandHandler('birthdays', birthdays))
     dispatcher.add_handler(CommandHandler('stopbot', stopbot))
     dispatcher.add_handler(CommandHandler('voiceline', voiceline))
     dispatcher.add_handler(MessageHandler(
@@ -185,6 +205,9 @@ def main():
 
     job_queue.run_repeating(get_dota_matches, interval=600, first=10)
     job_queue.run_daily(poll, datetime.time(0, 0, 0), days=(3,))
+
+    job_queue.run_daily(upcomingBirthdays, datetime.time(0, 0, 0))
+    job_queue.run_daily(todayBirthdays, datetime.time(0, 0, 0))
 
     updater.start_polling()
     updater.idle()
