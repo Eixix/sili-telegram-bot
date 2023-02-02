@@ -2,11 +2,12 @@ from models.match import Match
 import logging
 from models.matchresult import MatchResult
 
+
 class Matches:
     matches = []
 
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+                        level=logging.INFO)
     logger = logging.getLogger(__name__)
 
     def __init__(self):
@@ -28,17 +29,15 @@ class Matches:
         except IndexError:
             hero_name = f"Unbekannter Held Nr. {hero_id}"
 
-        existing_match = next((m for m in self.matches if m.id == match_id), None)
-        matchresult = MatchResult(account_name, kills, assists, deaths, hero_name)
+        existing_match = next(
+            (m for m in self.matches if m.id == match_id), None)
+        matchresult = MatchResult(
+            account_name, kills, assists, deaths, hero_name)
 
         if existing_match:
             existing_match.add_matchresult(matchresult)
         else:
-            self.matches.append(Match(match_id,win,matchresult))
+            self.matches.append(Match(match_id, win, matchresult))
 
     def get_matches(self):
         return self.matches
-        
-
-
-

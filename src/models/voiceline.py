@@ -43,7 +43,6 @@ class Voiceline:
         else:
             line_re = regex.compile(f"(?:{regex.escape(line)}){fuzzy_rules}",
                                     flags=regex.IGNORECASE)
-        
 
         for tag in self.vl_tags:
             # Each of the tags contains the audiobutton with the link to the
@@ -69,10 +68,10 @@ class Voiceline:
 
     def download_mp3(self, link):
         file_name_match = regex.search(r"[^\/]*.mp3", link)
-        
+
         if not file_name_match:
             raise(f"Could not extract file name from link. Is the link "
-                    + f"correct? {link}")
+                  + f"correct? {link}")
 
         file_path = os.path.join("resources", file_name_match.group())
 
@@ -85,4 +84,3 @@ class Voiceline:
         dl_file_handle.write(dl_response.content)
 
         return(file_path)
-

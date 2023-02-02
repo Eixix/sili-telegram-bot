@@ -157,29 +157,34 @@ def lastgame(update: Update, context: CallbackContext):
                                      text=time,
                                      parse_mode=ParseMode.HTML)
 
+
 def birthdays(update: Update, context: CallbackContext):
-     if update.effective_chat.id == int(chat_id): 
+    if update.effective_chat.id == int(chat_id):
         context.bot.send_message(chat_id=chat_id,
                                  text=Birthdays().GetBirthdays(),
                                  parse_mode=ParseMode.HTML)
+
 
 def upcomingBirthdays(context: CallbackContext):
     upcomingBirthdays = Birthdays().GetUpcomingBirthdays()
     if upcomingBirthdays != None:
         context.bot.send_message(chat_id=chat_id,
-                            text=upcomingBirthdays,
-                            parse_mode=ParseMode.HTML)
+                                 text=upcomingBirthdays,
+                                 parse_mode=ParseMode.HTML)
+
 
 def todayBirthdays(context: CallbackContext):
     todayBirthdays = Birthdays().GetTodayBirthdays()
     if todayBirthdays != None and todayBirthdays != "":
         context.bot.send_message(chat_id=chat_id,
-                            text=todayBirthdays,
-                            parse_mode=ParseMode.HTML)
+                                 text=todayBirthdays,
+                                 parse_mode=ParseMode.HTML)
+
 
 def stopbot(update: Update, context: CallbackContext):
     if (update.effective_chat.id == int(chat_id) and updater.running):
         updater.stop()
+
 
 def message_handler(update: Update, context: CallbackContext):
     if update.effective_chat.id == int(chat_id):
