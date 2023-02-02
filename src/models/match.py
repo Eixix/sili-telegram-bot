@@ -8,6 +8,6 @@ class Match:
         self.win = win
         self.matchresults = []
         self.matchresults.append(matchresult)
-    
+
     def add_matchresult(self, matchresult):
         self.matchresults.append(matchresult)

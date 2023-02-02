@@ -6,6 +6,7 @@ from models.match import Match
 from models.playerinfo import Playerinfo
 import pytz
 
+
 class Message:
     matches = Matches
     punlines = {}
@@ -17,7 +18,7 @@ class Message:
     playerinfos = []
 
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+                        level=logging.INFO)
     logger = logging.getLogger(__name__)
 
     def __init__(self, matches, punlines, playerinfos):
@@ -26,15 +27,18 @@ class Message:
 
         if not punlines is None:
             self.punlines = punlines
-            self.verb_numbers = {key: len(value) for key, value in punlines['performance_verbs'].items()}
-            self.meme_const_cats = [key for key in punlines['performance_verbs'].keys()]
-            self.meme_const_cats_flt = np.array([float(mc_cat) for mc_cat in self.meme_const_cats])
+            self.verb_numbers = {
+                key: len(value) for key, value in punlines['performance_verbs'].items()}
+            self.meme_const_cats = [
+                key for key in punlines['performance_verbs'].keys()]
+            self.meme_const_cats_flt = np.array(
+                [float(mc_cat) for mc_cat in self.meme_const_cats])
             self.meme_const_cats_sort = np.sort(self.meme_const_cats_flt)
             self._reset_used_verbs()
 
         if not playerinfos is None:
             self.playerinfos = playerinfos
-        
+
     def get_messages_for_matches(self):
         messages = []
         for match in self.matches.get_matches():
@@ -57,25 +61,29 @@ class Message:
         messages.append(f"Siege: {playerinfo.wins}")
         messages.append(f"Niederlagen: {playerinfo.loses}")
         messages.append(f"Win rate: {playerinfo.win_rate}")
-        messages.append(f"Letztes Spiel: {playerinfo.last_game.strftime('%d.%m.%Y %H:%M:%S')} ({playerinfo.days_since_last_game} Tag(e) vergangen)")
+        messages.append(
+            f"Letztes Spiel: {playerinfo.last_game.strftime('%d.%m.%Y %H:%M:%S')} ({playerinfo.days_since_last_game} Tag(e) vergangen)")
         return '\n'.join(messages)
 
     def _create_message_for_match(self, match: Match):
         messages = []
 
         if match.win:
-            messages.append(f"<b>W: {random.choice(self.punlines['match_outcome']['win'])}</b>")
+            messages.append(
+                f"<b>W: {random.choice(self.punlines['match_outcome']['win'])}</b>")
         else:
-            messages.append(f"<b>L: {random.choice(self.punlines['match_outcome']['lose'])}</b>")
+            messages.append(
+                f"<b>L: {random.choice(self.punlines['match_outcome']['lose'])}</b>")
 
         for matchresult in match.matchresults:
-            messages.append(f"{matchresult.name} hat mit {matchresult.hero} {self._generate_verb(matchresult)} mit {matchresult.kills} Kills, {matchresult.deaths} Toden und {matchresult.assists} Assists")
+            messages.append(
+                f"{matchresult.name} hat mit {matchresult.hero} {self._generate_verb(matchresult)} mit {matchresult.kills} Kills, {matchresult.deaths} Toden und {matchresult.assists} Assists")
 
         self._reset_used_verbs()
 
         return '\n\n'.join(messages)
 
-    def _reset_used_verbs(self, cat = None):
+    def _reset_used_verbs(self, cat=None):
         if cat is None:
             self.used_verbs = {key: [] for key in self.verb_numbers.keys()}
         else:
@@ -102,13 +110,14 @@ class Message:
         # punlines file. We then get the number giving the nth largest category
         # and use the lookup array to find out to which index that corresponds.
         #
-        # All of this could be avoided by converting the category strings to 
-        # floats and back again, but I ran into the trouble that naive 
+        # All of this could be avoided by converting the category strings to
+        # floats and back again, but I ran into the trouble that naive
         # conversion left trailing zeroes in the strings. This meant that the
-        # dict lookup didnt work. 
+        # dict lookup didnt work.
         mc_cat_lookup = self.meme_const_cats_flt.argsort()
 
-        order_idx_arr = np.where(self.meme_const_cats_sort > matchresult.meme_constant)[0]
+        order_idx_arr = np.where(
+            self.meme_const_cats_sort > matchresult.meme_constant)[0]
         mc_cat_idx = mc_cat_lookup[order_idx_arr[0]]
 
         cat = self.meme_const_cats[mc_cat_idx]
@@ -123,7 +132,7 @@ class Message:
 
         if len(self.used_verbs[cat]) >= cat_verb_n:
             self.logger.info(f"Out of unique verbs for category {cat}, "
-                                "resetting list of used verbs...")
+                             "resetting list of used verbs...")
             self._reset_used_verbs(cat)
 
         verb_idx_list = [* range(0, cat_verb_n)]
