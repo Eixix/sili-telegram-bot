@@ -9,6 +9,7 @@ import logging
 import random
 import os
 from models.message import Message
+from models.patch_checker import PatchChecker
 from models.voiceline import Voiceline
 from models.birthdays import Birthdays
 
@@ -22,6 +23,8 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 punlines = {}
+patch_checker = PatchChecker()
+
 with open("resources/punlines.json", 'r', encoding="utf8") as f:
     punlines = json.load(f)
 
@@ -194,6 +197,13 @@ def message_handler(update: Update, context: CallbackContext):
                 chat_id=chat_id, animation=open('resources/i_daut_it.gif', 'rb'))
 
 
+def get_if_new_patch(context: CallbackContext) -> None:
+    if patch_checker.get_if_new_patch():
+        context.bot.send_message(chat_id=chat_id,
+                                 text="Es gibt ein neues Dota2 Update!",
+                                 parse_mode=ParseMode.HTML)
+
+
 def main():
     dispatcher = updater.dispatcher
     job_queue = updater.job_queue
@@ -209,6 +219,7 @@ def main():
         Filters.text & (~Filters.command), message_handler))
 
     job_queue.run_repeating(get_dota_matches, interval=600, first=10)
+    job_queue.run_repeating(get_if_new_patch, interval=10, first=10)
     job_queue.run_daily(poll, datetime.time(0, 0, 0), days=(3,))
 
     job_queue.run_daily(upcomingBirthdays, datetime.time(0, 0, 0))
