@@ -198,9 +198,10 @@ def message_handler(update: Update, context: CallbackContext):
 
 
 def get_if_new_patch(context: CallbackContext) -> None:
-    if patch_checker.get_if_new_patch():
+    new_patch_exists, new_patch_number = patch_checker.get_if_new_patch()
+    if new_patch_exists:
         context.bot.send_message(chat_id=chat_id,
-                                 text="Es gibt ein neues Dota2 Update!",
+                                 text=f"Es gibt ein neues Dota2 Update! Gameplay Update {new_patch_number}",
                                  parse_mode=ParseMode.HTML)
 
 
@@ -219,7 +220,7 @@ def main():
         Filters.text & (~Filters.command), message_handler))
 
     job_queue.run_repeating(get_dota_matches, interval=600, first=10)
-    job_queue.run_repeating(get_if_new_patch, interval=600, first=10)
+    job_queue.run_repeating(get_if_new_patch, interval=10, first=10)
     job_queue.run_daily(poll, datetime.time(0, 0, 0), days=(3,))
 
     job_queue.run_daily(upcomingBirthdays, datetime.time(0, 0, 0))
