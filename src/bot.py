@@ -201,7 +201,7 @@ def get_if_new_patch(context: CallbackContext) -> None:
     new_patch_exists, new_patch_number = patch_checker.get_if_new_patch()
     if new_patch_exists:
         context.bot.send_message(chat_id=chat_id,
-                                 text=f"Es gibt ein neues Dota2 Update! Gameplay Update {new_patch_number}",
+                                 text=f"Es gibt ein neues Dota2 Update! Gameplay Update {new_patch_number} \n https://www.dota2.com/patches/{new_patch_number}",
                                  parse_mode=ParseMode.HTML)
 
 
