@@ -2,7 +2,11 @@
 
 import datetime
 from telegram import Update, ParseMode
-from telegram.ext import CallbackContext, CommandHandler, Filters, MessageHandler, Updater
+from telegram.ext import (CallbackContext,
+                          CommandHandler,
+                          Filters,
+                          MessageHandler,
+                          Updater)
 import dota_api
 import json
 import logging
@@ -29,7 +33,7 @@ with open("resources/punlines.json", 'r', encoding="utf8") as f:
     punlines = json.load(f)
 
 
-def get_dota_matches(context: CallbackContext) -> None:
+def send_dota_matches(context: CallbackContext) -> None:
     message = Message(dota_api.api_crawl(), punlines, None)
     messages = message.get_messages_for_matches()
 
@@ -59,7 +63,7 @@ def _weekdaynumber_to_weekday(weekdaynumber: int) -> str:
 
 
 def poll(context: CallbackContext) -> None:
-    logger.info(f"DODO")
+    logger.info("DODO")
 
     questions = [random.choice(punlines["dodo_poll"]["ja"]),
                  random.choice(punlines["dodo_poll"]["nein"])]
@@ -130,17 +134,17 @@ def voiceline(update: Update, context: CallbackContext) -> None:
                 os.remove(vl_file_path)
 
 
-def crawl(update: Update, context: CallbackContext):
+def crawl(update: Update, context: CallbackContext) -> None:
     if update.effective_chat.id == int(chat_id):
-        get_dota_matches(context)
+        send_dota_matches(context)
 
 
-def dodo(update: Update, context: CallbackContext):
+def dodo(update: Update, context: CallbackContext) -> None:
     if update.effective_chat.id == int(chat_id):
         poll(context)
 
 
-def playerinfos(update: Update, context: CallbackContext):
+def player_infos(update: Update, context: CallbackContext) -> None:
     if update.effective_chat.id == int(chat_id):
         message = Message(None, None, dota_api.get_playerinfos())
         messages = message.get_message_for_playerinfos()
@@ -151,7 +155,7 @@ def playerinfos(update: Update, context: CallbackContext):
                                      parse_mode=ParseMode.HTML)
 
 
-def lastgame(update: Update, context: CallbackContext):
+def last_game(update: Update, context: CallbackContext) -> None:
     if update.effective_chat.id == int(chat_id):
         time = dota_api.get_lastgame()
 
@@ -161,38 +165,38 @@ def lastgame(update: Update, context: CallbackContext):
                                      parse_mode=ParseMode.HTML)
 
 
-def birthdays(update: Update, context: CallbackContext):
+def all_birthdays(update: Update, context: CallbackContext) -> None:
     if update.effective_chat.id == int(chat_id):
         context.bot.send_message(chat_id=chat_id,
                                  text=Birthdays().GetBirthdays(),
                                  parse_mode=ParseMode.HTML)
 
 
-def upcomingBirthdays(context: CallbackContext):
-    upcomingBirthdays = Birthdays().GetUpcomingBirthdays()
-    if upcomingBirthdays != None:
+def upcoming_birthdays(context: CallbackContext) -> None:
+    birthdays = Birthdays().GetUpcomingBirthdays()
+    if birthdays is not None:
         context.bot.send_message(chat_id=chat_id,
-                                 text=upcomingBirthdays,
+                                 text=birthdays,
                                  parse_mode=ParseMode.HTML)
 
 
-def todayBirthdays(context: CallbackContext):
-    todayBirthdays = Birthdays().GetTodayBirthdays()
-    if todayBirthdays != None and todayBirthdays != "":
+def today_birthdays(context: CallbackContext) -> None:
+    birthdays = Birthdays().GetTodayBirthdays()
+    if birthdays is not None and birthdays != "":
         context.bot.send_message(chat_id=chat_id,
-                                 text=todayBirthdays,
+                                 text=birthdays,
                                  parse_mode=ParseMode.HTML)
 
 
-def stopbot(update: Update, context: CallbackContext):
-    if (update.effective_chat.id == int(chat_id) and updater.running):
+def stop_bot(update: Update, context: CallbackContext) -> None:
+    if update.effective_chat.id == int(chat_id) and updater.running:
         updater.stop()
 
 
-def message_handler(update: Update, context: CallbackContext):
+def message_handler(update: Update, context: CallbackContext) -> None:
     if update.effective_chat.id == int(chat_id):
         message_text = update.message.text.lower()
-        if ("doubt" in message_text or "daud" in message_text or "daut" in message_text):
+        if "doubt" in message_text or "daud" in message_text or "daut" in message_text:
             context.bot.send_animation(
                 chat_id=chat_id, animation=open('resources/i_daut_it.gif', 'rb'))
 
@@ -201,32 +205,33 @@ def get_if_new_patch(context: CallbackContext) -> None:
     new_patch_exists, new_patch_number = patch_checker.get_if_new_patch()
     if new_patch_exists:
         context.bot.send_message(chat_id=chat_id,
-                                 text=f"Es gibt ein neues Dota2 Update! Gameplay Update {new_patch_number} \n https://www.dota2.com/patches/{new_patch_number}",
+                                 text=f"Es gibt ein neues Dota2 Update! Gameplay Update {new_patch_number} "
+                                      f"\n https://www.dota2.com/patches/{new_patch_number}",
                                  parse_mode=ParseMode.HTML)
 
 
-def main():
+def main() -> None:
     dispatcher = updater.dispatcher
     job_queue = updater.job_queue
 
     dispatcher.add_handler(CommandHandler('dodo', dodo))
     dispatcher.add_handler(CommandHandler('crawl', crawl))
-    dispatcher.add_handler(CommandHandler('playerinfos', playerinfos))
-    dispatcher.add_handler(CommandHandler('lastgame', lastgame))
-    dispatcher.add_handler(CommandHandler('birthdays', birthdays))
-    dispatcher.add_handler(CommandHandler('stopbot', stopbot))
+    dispatcher.add_handler(CommandHandler('playerinfos', player_infos))
+    dispatcher.add_handler(CommandHandler('lastgame', last_game))
+    dispatcher.add_handler(CommandHandler('birthdays', all_birthdays))
+    dispatcher.add_handler(CommandHandler('stopbot', stop_bot))
     dispatcher.add_handler(CommandHandler('voiceline', voiceline))
     dispatcher.add_handler(MessageHandler(
         Filters.text & (~Filters.command), message_handler))
 
-    job_queue.run_repeating(get_dota_matches, interval=600, first=10)
+    job_queue.run_repeating(send_dota_matches, interval=600, first=10)
 
     # Reduced the interval heavily, as cloudflare caching should prevent bans completely according to @maakep
     job_queue.run_repeating(get_if_new_patch, interval=30, first=10)
     job_queue.run_daily(poll, datetime.time(0, 0, 0), days=(3,))
 
-    job_queue.run_daily(upcomingBirthdays, datetime.time(0, 0, 0))
-    job_queue.run_daily(todayBirthdays, datetime.time(0, 0, 0))
+    job_queue.run_daily(upcoming_birthdays, datetime.time(0, 0, 0))
+    job_queue.run_daily(today_birthdays, datetime.time(0, 0, 0))
 
     updater.start_polling()
     updater.idle()

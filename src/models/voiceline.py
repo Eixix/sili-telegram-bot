@@ -11,7 +11,7 @@ class Voiceline:
     # TODO: Should this be initialised like that?
     soup = bs4.BeautifulSoup()
 
-    def __init__(self, hero_string):
+    def __init__(self, hero_string: str) -> None:
         base_url = "https://dota2.fandom.com/wiki"
 
         # On the fandom wiki the pages for heroes follow the pattern of
@@ -31,7 +31,7 @@ class Voiceline:
         # TODO: check if this looks as expected (i.e. has content)
         self.vl_tags = self.soup.select("#mw-content-text h2~ ul li")
 
-    def get_link(self, line):
+    def get_link(self, line: str) -> str:
         line_tag = ""
         fuzzy_rules = "{e<=1}"
 
@@ -66,21 +66,20 @@ class Voiceline:
 
         return vl_link
 
-    def download_mp3(self, link):
+    def download_mp3(self, link: str) -> str:
         file_name_match = regex.search(r"[^\/]*.mp3", link)
 
         if not file_name_match:
-            raise(f"Could not extract file name from link. Is the link "
-                  + f"correct? {link}")
+            raise f"Could not extract file name from link. Is the link correct? {link}"
 
         file_path = os.path.join("resources", file_name_match.group())
 
         dl_response = requests.get(link)
 
         if not dl_response.status_code == 200:
-            raise(f"Could not get a positive response from {link}")
+            raise f"Could not get a positive response from {link}"
 
         dl_file_handle = open(file_path, "wb")
         dl_file_handle.write(dl_response.content)
 
-        return(file_path)
+        return file_path

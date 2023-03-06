@@ -9,17 +9,17 @@ from models.playerinfo import Playerinfo
 logger = logging.getLogger(__name__)
 
 
-def _get_heroes():
+def _get_heroes() -> list:
     with open("resources/heroes.json", 'r') as f:
         return json.load(f)
 
 
-def _get_accounts():
+def _get_accounts() -> list:
     with open("matchdata/accounts_file.json", 'r') as f:
         return json.load(f)
 
 
-def _get_local_matches(account_id):
+def _get_local_matches(account_id: str) -> list:
     try:
         with open(f"matchdata/{account_id}.json", 'r') as f:
             return json.load(f)
@@ -27,12 +27,12 @@ def _get_local_matches(account_id):
         return []
 
 
-def _get_api_matches(account_id):
+def _get_api_matches(account_id: str) -> str:
     return requests.get(f"https://api.opendota.com/api/players/{account_id}/matches").json()
 
 
-def get_playerinfos():
-    playerinfos = []
+def get_playerinfos() -> list[Playerinfo]:
+    player_infos = []
 
     accounts_file = _get_accounts()
     for account in accounts_file:
@@ -45,31 +45,37 @@ def get_playerinfos():
         wins_loses = requests.get(
             f"https://api.opendota.com/api/players/{account_id}/wl").json()
 
-        playerinfos.append(Playerinfo(account['name'],
-                                      player["profile"]["personaname"],
-                                      wins_loses["win"] + wins_loses["lose"],
-                                      wins_loses["win"],
-                                      wins_loses["lose"],
-                                      round(wins_loses["win"] /
-                                            wins_loses["lose"], 2),
-                                      pytz.utc.localize(datetime.utcfromtimestamp(last_match[0]["start_time"] + last_match[0]["duration"])).astimezone(pytz.timezone('Europe/Berlin'))))
-    return playerinfos
+        player_infos.append(Playerinfo(account['name'],
+                                       player["profile"]["personaname"],
+                                       wins_loses["win"] + wins_loses["lose"],
+                                       wins_loses["win"],
+                                       wins_loses["lose"],
+                                       round(wins_loses["win"] / wins_loses["lose"], 2),
+                                       pytz.utc.localize(
+                                           datetime.utcfromtimestamp(
+                                               last_match[0]["start_time"] + last_match[0]["duration"])).astimezone(
+                                           pytz.timezone('Europe/Berlin'))))
+    return player_infos
 
 
-def get_lastgame():
-    lastgame = 0
+def get_lastgame() -> datetime:
+    last_game = 0
     accounts_file = _get_accounts()
     for account in accounts_file:
         last_match = requests.get(
             f"https://api.opendota.com/api/players/{account['identifier']}/matches?limit=1").json()
         match_end = last_match[0]["start_time"] + last_match[0]["duration"]
-        if (match_end > lastgame):
-            lastgame = match_end
 
-    return pytz.utc.localize(datetime.utcfromtimestamp(lastgame)).astimezone(pytz.timezone('Europe/Berlin')).strftime('%d.%m.%Y %H:%M:%S')
+        last_game = max(last_game, match_end)
+        if match_end > last_game:
+            last_game = match_end
+
+    return pytz.utc.localize(datetime.utcfromtimestamp(last_game)) \
+        .astimezone(pytz.timezone('Europe/Berlin')) \
+        .strftime('%d.%m.%Y %H:%M:%S')
 
 
-def api_crawl():
+def api_crawl() -> Matches:
     heroes = _get_heroes()
     accounts_file = _get_accounts()
 

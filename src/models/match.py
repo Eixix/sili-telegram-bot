@@ -1,13 +1,11 @@
+from src.models.matchresult import MatchResult
+
+
 class Match:
-    id = 0
-    win = True
-    matchresults = []
+    def __init__(self, id: int, win: bool, matchresult: MatchResult) -> None:
+        self.id: int = id
+        self.win: bool = win
+        self.matchresults: list[MatchResult] = [matchresult]
 
-    def __init__(self, id, win, matchresult):
-        self.id = id
-        self.win = win
-        self.matchresults = []
-        self.matchresults.append(matchresult)
-
-    def add_matchresult(self, matchresult):
+    def add_matchresult(self, matchresult: MatchResult) -> None:
         self.matchresults.append(matchresult)

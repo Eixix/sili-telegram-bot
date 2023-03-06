@@ -12,7 +12,7 @@ class Birthdays:
                 self.birthdays.append(
                     Birthday(birthday["name"], birthday["birthday"]))
 
-    def GetBirthdays(self):
+    def GetBirthdays(self) -> str:
         message = "Geburtstage:"
         for birthday in self.birthdays:
             message += '\n' + str(birthday.name) + ": " + \
@@ -21,17 +21,19 @@ class Birthdays:
                 message += " (Happy Birthday!)"
         return message
 
-    def GetUpcomingBirthdays(self):
+    def GetUpcomingBirthdays(self) -> str:
         message = ""
         for birthday in self.birthdays:
             if birthday.date == datetime.date.today() + datetime.timedelta(days=10):
                 if message == "":
-                    message += "Meine Damen und Herren der Sili-Gemeinde, darf ich Sie höflich darauf hinweisen, dass in der nächsten Zeit ein Geburtstag ansteht. Bitte beraten Sie sich zeitnah, um ein adäquates Geschenk bereit zu haben."
+                    message += "Meine Damen und Herren der Sili-Gemeinde, darf ich Sie höflich darauf hinweisen," \
+                               " dass in der nächsten Zeit ein Geburtstag ansteht. " \
+                               "Bitte beraten Sie sich zeitnah, um ein adäquates Geschenk bereit zu haben."
                 message += "\n\nGeburtstagskind: " + birthday. name + \
                     " - " + birthday.date.strftime("%d.%m.%Y")
         return message + "\n\nIhr freundlicher Sili-Bot" if message != "" else None
 
-    def GetTodayBirthdays(self):
+    def GetTodayBirthdays(self) -> str:
         message = ""
         for birthday in self.birthdays:
             if birthday.date == datetime.date.today():

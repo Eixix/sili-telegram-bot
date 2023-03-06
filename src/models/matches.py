@@ -1,6 +1,6 @@
-from models.match import Match
+from match import Match
 import logging
-from models.matchresult import MatchResult
+from matchresult import MatchResult
 
 
 class Matches:
@@ -10,19 +10,20 @@ class Matches:
                         level=logging.INFO)
     logger = logging.getLogger(__name__)
 
-    def __init__(self):
-        self.matches = []
+    def __init__(self) -> None:
+        self.matches: list[Match] = []
 
-    def add_result(self, match_result, heroes, account_name):
-        match_id = match_result['match_id']
-        kills = match_result['kills']
-        assists = match_result['assists']
-        deaths = match_result['deaths']
-        hero_id = match_result['hero_id']
-        hero_name = ""
+    def add_result(self, match_result: dict[str, any], heroes: dict[str, dict[str, any]], account_name: str) -> None:
+        match_id: str = match_result['match_id']
+        kills: int = match_result['kills']
+        assists: int = match_result['assists']
+        deaths: int = match_result['deaths']
+        hero_id: int = match_result['hero_id']
+        hero_name: str = ""
 
         win = False
-        if (match_result['radiant_win'] and match_result['player_slot'] <= 127) or (not match_result['radiant_win'] and not match_result['player_slot'] <= 127):
+        if (match_result['radiant_win'] and match_result['player_slot'] <= 127) or \
+           (not match_result['radiant_win'] and not match_result['player_slot'] <= 127):
             win = True
         try:
             hero_name = heroes[str(hero_id)]['localized_name']
@@ -39,5 +40,5 @@ class Matches:
         else:
             self.matches.append(Match(match_id, win, matchresult))
 
-    def get_matches(self):
+    def get_matches(self) -> list[Match]:
         return self.matches
