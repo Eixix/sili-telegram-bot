@@ -29,4 +29,4 @@ class PatchChecker:
             self.known_patches = website_patches
             self.logger.info(
                 f"No new patches...")
-            return (False,)
+            return (False, "")
