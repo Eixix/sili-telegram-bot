@@ -1,4 +1,3 @@
-import hashlib
 import logging
 import requests
 
@@ -6,29 +5,26 @@ import requests
 class PatchChecker:
     logger = logging.getLogger(__name__)
 
-    URL = "https://www.dota2.com/patches/7.33"
+    URL = "https://www.dota2.com/datafeed/patchnoteslist?language=english"
     HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
                'Pragma': 'no-cache', 'Cache-Control': 'no-cache'}
-    current_hash = ""
+    known_patches = {}
 
     def __init__(self) -> None:
         pass
 
     def get_if_new_patch(self) -> bool:
         self.logger.info("Checking for DOTA2 updates...")
-        response = requests.get(self.URL, self.HEADERS)
-        newHash = hashlib.sha224(response.text.encode()).hexdigest()
+        website_patches = requests.get(self.URL, self.HEADERS).json()
 
-        self.logger.info(
-            f"Reading website with hash {newHash}, old hash is {self.current_hash}")
-
-        # Ask if current hash is empty to prevent unnecessary messages
-        if newHash != self.current_hash and self.current_hash != "":
-            self.current_hash = newHash
-            self.logger.info(f"Update found with hash {newHash}")
-            self.current_hash = newHash
+        if self.known_patches != {} and self.known_patches != website_patches:
+            new_patch = website_patches.difference(self.known_patches)
+            self.logger.info(
+                f"New patch found: {new_patch}")
+            self.known_patches = website_patches
             return True
-
-        self.current_hash = newHash
-        self.logger.info(f"No Update found")
-        return False
+        else:
+            self.known_patches = website_patches
+            self.logger.info(
+                f"No new patches...")
+            return False

@@ -219,7 +219,7 @@ def main():
         Filters.text & (~Filters.command), message_handler))
 
     job_queue.run_repeating(get_dota_matches, interval=600, first=10)
-    job_queue.run_repeating(get_if_new_patch, interval=10, first=10)
+    job_queue.run_repeating(get_if_new_patch, interval=600, first=10)
     job_queue.run_daily(poll, datetime.time(0, 0, 0), days=(3,))
 
     job_queue.run_daily(upcomingBirthdays, datetime.time(0, 0, 0))
