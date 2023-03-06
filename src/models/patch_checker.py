@@ -28,5 +28,5 @@ class PatchChecker:
         else:
             self.known_patches = website_patches
             self.logger.info(
-                f"No new patches...")
+                f"No new patches, latest found patch is {self.known_patches[-1]['patch_name']}")
             return (False, "")
