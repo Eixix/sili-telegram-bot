@@ -19,8 +19,7 @@ class PatchChecker:
             self.URL, self.HEADERS).json()["patches"]
 
         # If emtpy bot just started, so it needs to fill up the patches
-        # and self.known_patches != []:
-        if len(self.known_patches) < len(website_patches):
+        if len(self.known_patches) < len(website_patches) and self.known_patches != []:
             new_patch = website_patches[-1]["patch_name"]
             self.logger.info(
                 f"New patch found: {new_patch}")
