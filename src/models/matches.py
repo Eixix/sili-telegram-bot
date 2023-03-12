@@ -6,8 +6,6 @@ from models.matchresult import MatchResult
 class Matches:
     matches = []
 
-    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                        level=logging.INFO)
     logger = logging.getLogger(__name__)
 
     def __init__(self):
@@ -25,12 +23,9 @@ class Matches:
         if (match_result['radiant_win'] and match_result['player_slot'] <= 127) or (not match_result['radiant_win'] and not match_result['player_slot'] <= 127):
             win = True
         
-            hero_name = heroes[str(hero_id)]['localized_name']
-            hero_name = next((h for h in heroes if h["id"] == hero_id), None)
-            if hero_name is None:
-                hero_name = f"Unbekannter Held Nr. {hero_id}"
-            else:
-                hero_name = hero_name["localized_name"]
+        hero_name = next((h["localized_name"] for h in heroes if h["id"] == hero_id), None)
+        if hero_name is None or hero_name is {}:
+            hero_name = f"Unbekannter Held Nr. {hero_id}"
 
         existing_match = next(
             (m for m in self.matches if m.id == match_id), None)
