@@ -1,6 +1,6 @@
-from match import Match
+from models.match import Match
 import logging
-from matchresult import MatchResult
+from models.matchresult import MatchResult
 
 
 class Matches:

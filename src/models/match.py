@@ -1,4 +1,4 @@
-from src.models.matchresult import MatchResult
+from models.matchresult import MatchResult
 
 
 class Match:

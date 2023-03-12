@@ -1,10 +1,10 @@
 import random
 import numpy as np
 import logging
-from match import Match
-from playerinfo import Playerinfo
-from src.models.matches import Matches
-from src.models.matchresult import MatchResult
+from models.match import Match
+from models.playerinfo import Playerinfo
+from models.matches import Matches
+from models.matchresult import MatchResult
 
 
 class Message:
