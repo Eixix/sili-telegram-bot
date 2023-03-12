@@ -43,7 +43,7 @@ class Message:
         messages = []
         for match in self.matches.get_matches():
             # Only send messages with more than 1 player from sili
-            if len(match.matchresults) > 1:
+            if len(match.matchresults) >= 1:
                 messages.append(self._create_message_for_match(match))
         return messages
 
