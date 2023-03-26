@@ -23,7 +23,7 @@ application = Application.builder().token(TOKEN).build()
 
 def initialize_telegram_bot() -> None:
     _initialize_handler()
-    _initialize_administration_handler
+    _initialize_administration_handler()
     _initialize_jobs()
 
     application.run_polling()

@@ -1,6 +1,6 @@
 import logging
-from datetime import datetime
-from random import random
+import datetime
+import random
 
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes

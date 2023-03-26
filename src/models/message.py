@@ -1,5 +1,6 @@
 import logging
 import random
+from typing import Optional
 
 import numpy as np
 
@@ -15,7 +16,7 @@ class Message:
                         level=logging.INFO)
     logger = logging.getLogger(__name__)
 
-    def __init__(self, matches: Matches, player_infos: Playerinfo) -> None:
+    def __init__(self, matches: Optional[Matches], player_infos: list[Playerinfo]) -> None:
         if matches is not None:
             self.matches: Matches = matches
 
@@ -40,15 +41,15 @@ class Message:
                 messages.append(self._create_message_for_match(match))
         return messages
 
-    def get_message_for_player_infos(self) -> str:
+    def get_message_for_playerinfos(self) -> str:
         messages = []
-        for player_info in self.playerinfos:
-            messages.append(self._create_message_for_playerinfos(player_info))
+        for player_info in self.player_infos:
+            messages.append(self._create_message_for_player_infos(player_info))
         return '\n\n'.join(messages)
 
     def _create_message_for_player_infos(self, playerinfo: Playerinfo) -> str:
         messages = [f"<b>{playerinfo.name}</b>",
-                    f"Steamname: {playerinfo.steamname}",
+                    f"Steamname: {playerinfo.steam_name}",
                     f"Anzahl Spiele: {playerinfo.count_games}",
                     f"Siege: {playerinfo.wins}",
                     f"Niederlagen: {playerinfo.loses}",
