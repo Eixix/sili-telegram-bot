@@ -1,6 +1,7 @@
 [
   {
-    "identifier":"77719203",
-    "name":"Noret"
+    "identifier": "77719203",
+    "name": "Testuser",
+    "birthday": "01 01"
   }
 ]

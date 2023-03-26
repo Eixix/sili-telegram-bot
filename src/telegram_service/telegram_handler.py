@@ -65,12 +65,12 @@ async def voiceline(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def crawl(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if update.effective_chat.id == int(CHAT_ID):
-        send_dota_matches(context)
+        await send_dota_matches(context)
 
 
 async def dodo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if update.effective_chat.id == int(CHAT_ID):
-        poll(context)
+        await poll(context)
 
 
 async def player_infos(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
