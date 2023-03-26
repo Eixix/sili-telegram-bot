@@ -133,3 +133,6 @@ class Message:
         verb = self.punlines["performance_verbs"][cat][verb_idx]
 
         return verb
+
+    def get_message_for_playerinfos(self):
+        pass
