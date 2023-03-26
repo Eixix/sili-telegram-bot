@@ -75,8 +75,8 @@ async def dodo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def player_infos(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if update.effective_chat.id == int(CHAT_ID):
-        message = Message(None, None, dota_api.get_playerinfos())
-        messages = await message.get_message_for_playerinfos()
+        message = Message(None, dota_api.get_playerinfos())
+        messages = message.get_message_for_playerinfos()
 
         if messages:
             await update.message.reply_text(text=messages,
@@ -100,6 +100,6 @@ async def all_birthdays(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if update.effective_chat.id == int(CHAT_ID):
-        message_text = await update.message.text.lower()
+        message_text = update.message.text.lower()
         if "doubt" in message_text or "daud" in message_text or "daut" in message_text:
-            await context.bot.send_animation(animation=open('resources/i_daut_it.gif', 'rb'))
+            await update.message.reply_animation(animation=open('resources/i_daut_it.gif', 'rb'))
