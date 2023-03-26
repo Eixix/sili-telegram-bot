@@ -20,11 +20,12 @@ class Message:
         if matches is not None:
             self.matches: Matches = matches
 
-        self.punlines = get_punlines(punline_type=PunlinesTypes.Performance_Verbs)
+        self.performance_verbs = get_punlines(punline_type=PunlinesTypes.Performance_Verbs)
+        self.match_outcome = get_punlines(punline_type=PunlinesTypes.Match_Outcome)
         self.verb_numbers = {
-            key: len(value) for key, value in self.punlines.items()}
+            key: len(value) for key, value in self.performance_verbs.items()}
         self.meme_const_cats = [
-            key for key in self.punlines.keys()]
+            key for key in self.performance_verbs.keys()]
         self.meme_const_cats_flt = np.array(
             [float(mc_cat) for mc_cat in self.meme_const_cats])
         self.meme_const_cats_sort = np.sort(self.meme_const_cats_flt)
@@ -63,10 +64,10 @@ class Message:
 
         if match.win:
             messages.append(
-                f"<b>W: {random.choice(self.punlines['match_outcome']['win'])}</b>")
+                f"<b>W: {random.choice(self.match_outcome['win'])}</b>")
         else:
             messages.append(
-                f"<b>L: {random.choice(self.punlines['match_outcome']['lose'])}</b>")
+                f"<b>L: {random.choice(self.match_outcome['lose'])}</b>")
 
         for match_result in match.matchresults:
             messages.append(
@@ -133,9 +134,6 @@ class Message:
         verb_idx = random.choice([*verb_idx_set_unused])
         self.used_verbs[cat].append(verb_idx)
 
-        verb = self.punlines["performance_verbs"][cat][verb_idx]
+        verb = self.performance_verbs[cat][verb_idx]
 
         return verb
-
-    def get_message_for_playerinfos(self):
-        pass
