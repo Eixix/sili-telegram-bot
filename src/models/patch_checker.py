@@ -1,4 +1,6 @@
 import logging
+from typing import List
+
 import requests
 
 
@@ -10,10 +12,17 @@ class PatchChecker:
                              'AppleWebKit/537.36 (KHTML, like Gecko) '
                              'Chrome/39.0.2171.95 Safari/537.36',
                'Pragma': 'no-cache', 'Cache-Control': 'no-cache'}
-    known_patches = []
+
+    _instance = None
 
     def __init__(self) -> None:
-        pass
+        self.known_patches: List[str] = []
+
+    @classmethod
+    def get_instance(cls) -> 'PatchChecker':
+        if cls._instance is None:
+            cls._instance = PatchChecker()
+        return cls._instance
 
     def get_if_new_patch(self) -> tuple[bool, int]:
         self.logger.info("Checking for DOTA2 updates...")
@@ -26,9 +35,9 @@ class PatchChecker:
             self.logger.info(
                 f"New patch found: {new_patch}")
             self.known_patches = website_patches
-            return (True, new_patch)
+            return True, new_patch
         else:
             self.known_patches = website_patches
             self.logger.info(
                 f"No new patches, latest found patch is {self.known_patches[-1]['patch_name']}")
-            return (False, "")
+            return False, ""

@@ -1,10 +1,13 @@
-import random
-import numpy as np
 import logging
-from models.match import Match
-from models.playerinfo import Playerinfo
-from models.matches import Matches
-from models.matchresult import MatchResult
+import random
+
+import numpy as np
+
+from src.models.match import Match
+from src.models.matches import Matches
+from src.models.matchresult import MatchResult
+from src.models.playerinfo import Playerinfo
+from src.repositories.punlines import get_punlines, PunlinesTypes
 
 
 class Message:
@@ -12,20 +15,19 @@ class Message:
                         level=logging.INFO)
     logger = logging.getLogger(__name__)
 
-    def __init__(self, matches: Matches, punlines: list[str], player_infos: Playerinfo) -> None:
+    def __init__(self, matches: Matches, player_infos: Playerinfo) -> None:
         if matches is not None:
             self.matches: Matches = matches
 
-        if punlines is not None:
-            self.punlines = punlines
-            self.verb_numbers = {
-                key: len(value) for key, value in punlines['performance_verbs'].items()}
-            self.meme_const_cats = [
-                key for key in punlines['performance_verbs'].keys()]
-            self.meme_const_cats_flt = np.array(
-                [float(mc_cat) for mc_cat in self.meme_const_cats])
-            self.meme_const_cats_sort = np.sort(self.meme_const_cats_flt)
-            self._reset_used_verbs()
+        self.punlines = get_punlines(punline_type=PunlinesTypes.Performance_Verbs)
+        self.verb_numbers = {
+            key: len(value) for key, value in self.punlines.items()}
+        self.meme_const_cats = [
+            key for key in self.punlines.keys()]
+        self.meme_const_cats_flt = np.array(
+            [float(mc_cat) for mc_cat in self.meme_const_cats])
+        self.meme_const_cats_sort = np.sort(self.meme_const_cats_flt)
+        self._reset_used_verbs()
 
         if player_infos is not None:
             self.player_infos = player_infos
@@ -124,10 +126,10 @@ class Message:
                              "resetting list of used verbs...")
             self._reset_used_verbs(cat)
 
-        verb_idx_list = [* range(0, cat_verb_n)]
+        verb_idx_list = [*range(0, cat_verb_n)]
         verb_idx_set_unused = set(verb_idx_list) - set(self.used_verbs[cat])
 
-        verb_idx = random.choice([* verb_idx_set_unused])
+        verb_idx = random.choice([*verb_idx_set_unused])
         self.used_verbs[cat].append(verb_idx)
 
         verb = self.punlines["performance_verbs"][cat][verb_idx]

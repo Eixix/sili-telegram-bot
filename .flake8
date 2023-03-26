@@ -1,3 +1,3 @@
 [flake8]
-ignore = ANN101
+ignore = ANN101, ANN102
 max-line-length = 120
