@@ -16,7 +16,7 @@ class Message:
                         level=logging.INFO)
     logger = logging.getLogger(__name__)
 
-    def __init__(self, matches: Optional[Matches], player_infos: list[Playerinfo]) -> None:
+    def __init__(self, matches: Optional[Matches], player_infos: Optional[list[Playerinfo]]) -> None:
         if matches is not None:
             self.matches: Matches = matches
 
