@@ -15,7 +15,7 @@ from src.telegram_service.telegram_jobs import send_dota_matches, poll
 logger = logging.getLogger(__name__)
 
 
-async def voiceline(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  # List[Tuple[Any, MessageType]]
+async def voice_line(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  # List[Tuple[Any, MessageType]]
     logger.info("Getting voiceline...")
 
     if len(context.args) <= 1:
@@ -31,7 +31,7 @@ async def voiceline(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     else:
         # To separate out hero and voice line (both may contain whitespaces),
         # we first concatenate all args to a string and then split it on the
-        # colon to get hero and voiceline
+        # colon to get hero and voice_line
         arg_string = " ".join(context.args)
 
         hero, line = arg_string.split(":")
@@ -51,13 +51,13 @@ async def voiceline(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             vl_file_path = vl.download_mp3(vl_link)
 
             try:
-                # Delete /voiceline to make conversation more seamless
+                # Delete /voice_line to make conversation more seamless
                 await context.bot.delete_message(
                     chat_id=CHAT_ID, message_id=update.message.message_id)
                 await update.message.reply_text(text=update.message.chat.username + ":")
                 await update.message.reply_voice(voice=open(vl_file_path, "rb"))
 
-                logger.info("... voiceline delivered.")
+                logger.info("... voice line delivered.")
 
             finally:
                 os.remove(vl_file_path)
@@ -85,7 +85,7 @@ async def player_infos(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 async def last_game(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if update.effective_chat.id == int(CHAT_ID):
-        time = dota_api.get_lastgame()
+        time = dota_api.get_last_game()
 
         if time:
             await update.message.reply_text(text=time,

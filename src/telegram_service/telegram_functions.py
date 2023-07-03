@@ -4,8 +4,7 @@ from enum import Enum
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 
 from src.repositories.env_variables import TOKEN
-# src.telegram_service.telegram_administration import stop_bot
-from src.telegram_service.telegram_handler import (voiceline,
+from src.telegram_service.telegram_handler import (voice_line,
                                                    crawl,
                                                    dodo,
                                                    player_infos,
@@ -27,11 +26,10 @@ def initialize_telegram_bot() -> None:
     _initialize_jobs()
 
     application.run_polling()
-    application.idle()
 
 
 def _initialize_handler() -> None:
-    application.add_handler(CommandHandler('voiceline', voiceline))
+    application.add_handler(CommandHandler('voiceline', voice_line))
     application.add_handler(CommandHandler('crawl', crawl))
     application.add_handler(CommandHandler('dodo', dodo))
 

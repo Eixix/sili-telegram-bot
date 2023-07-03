@@ -9,7 +9,7 @@ from models.playerinfo import Playerinfo
 logger = logging.getLogger(__name__)
 
 
-def _get_heroes() -> list:
+def _get_heroes() -> dict:
     with open("resources/heroes.json", 'r') as f:
         return json.load(f)
 
@@ -27,7 +27,7 @@ def _get_local_matches(account_id: str) -> list:
         return []
 
 
-def _get_api_matches(account_id: str) -> str:
+def _get_api_matches(account_id: str) -> list:
     return requests.get(f"https://api.opendota.com/api/players/{account_id}/matches").json()
 
 
@@ -58,7 +58,7 @@ def get_playerinfos() -> list[Playerinfo]:
     return player_infos
 
 
-def get_lastgame() -> datetime:
+def get_last_game() -> str:
     last_game = 0
     accounts_file = _get_accounts()
     for account in accounts_file:
