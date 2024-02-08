@@ -9,7 +9,7 @@ jobs:
     steps:
       - run: sudo apt install wireguard
       - run: echo "${{ secrets.WIREGUARD_CONF }}" > wireguard.conf
-      - run: sudo wg-quick up wireguard.conf
+      - run: sudo wg-quick up wireguard
       - run: sudo wg show
       - run: ping ${{ secrets.SSH_HOST }}
 
