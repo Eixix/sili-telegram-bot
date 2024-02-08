@@ -7,15 +7,13 @@ jobs:
   ssh:
     runs-on: ubuntu-latest
     steps:
-      - name: Set up WireGuard
-        uses: egor-tensin/setup-wireguard@v1
-        with:
-          endpoint: '${{ secrets.HOME_URL }}:51820'
-          endpoint_public_key: '${{ secrets.WIREGUARD_PUBLIC_KEY }}'
-          ips: '192.168.2.3/32'
-          allowed_ips: '192.168.2.1/32,192.168.2.3/32,0.0.0.0/0'
-          private_key: '${{ secrets.WIREGUARD_PRIVATE_KEY }}'
-          preshared_key: ''
+      - run: sudo apt install wireguard
+      - run: echo "${{ secrets.WIREGUARD_PRIVATE_KEY }}" > privatekey
+      - run: sudo ip link add dev wg0 type wireguard
+      - run: sudo ip address add dev wg0 192.168.2.3/32 peer 192.168.2.1
+      - run: sudo wg set wg0 listen-port 48123 private-key privatekey peer ${{ secrets.WIREGUARD_PUBLIC_KEY }} allowed-ips 192.168.2.1/32,192.168.2.3/32,0.0.0.0/0 endpoint ${{ secrets.HOME_URL }}:51820
+      - run: sudo ip link set up dev wg0
+      - run: curl -k -L -i ${{ secrets.SSH_HOST }}
 
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
