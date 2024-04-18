@@ -12,7 +12,7 @@ class Voiceline:
     soup = bs4.BeautifulSoup()
 
     def __init__(self, hero_string):
-        base_url = "https://dota2.fandom.com/wiki"
+        base_url = "https://liquipedia.net/dota2game"
 
         # On the fandom wiki the pages for heroes follow the pattern of
         # "base_url/Capitalized_Hero/subpage", so we need to ensure the hero
