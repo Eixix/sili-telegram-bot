@@ -79,71 +79,74 @@ def poll(context: CallbackContext) -> None:
 
 
 def voiceline(update: Update, context: CallbackContext) -> None:
-    logger.info("Getting voiceline...")
+    if update.effective_chat.id == int(chat_id):
+        logger.info("Getting voiceline...")
 
-    if len(context.args) <= 1:
-        logger.info("... not enough arguments, sending help msg.")
+        if len(context.args) <= 1:
+            logger.info("... not enough arguments, sending help msg.")
 
-        help_txt = (
-            "Not enough arguments, format should be '/voiceline "
-            "Hero Name: Voice line'...\n"
-            'Enclose line in "double quotes" to use regex as described in '
-            "the `regex` module."
-        )
-
-        context.bot.send_message(chat_id=chat_id, text=help_txt)
-
-    else:
-        # To separate out hero and voice line (both may contain whitespaces),
-        # we first concatenate all args to a string and then split it on the
-        # colon to get hero and voiceline
-        arg_string = " ".join(context.args)
-
-        hero, line = arg_string.split(":")
-
-        vl = Voiceline(hero)
-
-        vl_link = vl.get_link(line.strip())
-
-        if vl_link is None:
-            context.bot.send_message(
-                chat_id=chat_id,
-                text=(
-                    "Could not find line... "
-                    "Check here if you typed it right: "
-                    f"{vl.response_url}"
-                ),
+            help_txt = (
+                "Not enough arguments, format should be '/voiceline "
+                "Hero Name: Voice line'...\n"
+                'Enclose line in "double quotes" to use regex as described in '
+                "the `regex` module."
             )
 
-            logger.info("... delivery failed, could not find voiceline.")
+            context.bot.send_message(chat_id=chat_id, text=help_txt)
 
         else:
-            vl_file_path = vl.download_mp3(vl_link)
+            # To separate out hero and voice line (both may contain whitespaces),
+            # we first concatenate all args to a string and then split it on the
+            # colon to get hero and voiceline
+            arg_string = " ".join(context.args)
 
-            try:
-                # Delete /voiceline to make conversation more seamless
-                try:
-                    context.bot.delete_message(
-                        chat_id=chat_id, message_id=update.message.message_id
-                    )
-                except error.BadRequest as e:
-                    logger.warning(
-                        f"Error attempting to delete message: {e}. Likely insufficient "
-                        f"permissions for the bot in this chat. Try giving it the "
-                        f"`can_delete_messages` permission. See "
-                        f"<https://docs.python-telegram-bot.org/en/stable/telegram.bot.html#telegram.Bot.delete_message> "
-                        f"for more info."
-                    )
+            hero, line = arg_string.split(":")
 
+            vl = Voiceline(hero)
+
+            vl_link = vl.get_link(line.strip())
+
+            if vl_link is None:
                 context.bot.send_message(
-                    chat_id=chat_id, text=update.message.from_user.username + ":"
+                    chat_id=chat_id,
+                    text=(
+                        "Could not find line... "
+                        "Check here if you typed it right: "
+                        f"{vl.response_url}"
+                    ),
                 )
-                context.bot.send_voice(chat_id=chat_id, voice=open(vl_file_path, "rb"))
 
-                logger.info("... voiceline delivered.")
+                logger.info("... delivery failed, could not find voiceline.")
 
-            finally:
-                os.remove(vl_file_path)
+            else:
+                vl_file_path = vl.download_mp3(vl_link)
+
+                try:
+                    # Delete /voiceline to make conversation more seamless
+                    try:
+                        context.bot.delete_message(
+                            chat_id=chat_id, message_id=update.message.message_id
+                        )
+                    except error.BadRequest as e:
+                        logger.warning(
+                            f"Error attempting to delete message: {e}. Likely "
+                            f"insufficient permissions for the bot in this chat. Try "
+                            f"giving it the `can_delete_messages` permission. See "
+                            f"<https://docs.python-telegram-bot.org/en/stable/telegram.bot.html#telegram.Bot.delete_message> "
+                            f"for more info."
+                        )
+
+                    context.bot.send_message(
+                        chat_id=chat_id, text=update.message.from_user.username + ":"
+                    )
+                    context.bot.send_voice(
+                        chat_id=chat_id, voice=open(vl_file_path, "rb")
+                    )
+
+                    logger.info("... voiceline delivered.")
+
+                finally:
+                    os.remove(vl_file_path)
 
 
 def crawl(update: Update, context: CallbackContext):
