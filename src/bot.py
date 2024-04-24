@@ -84,13 +84,14 @@ def voiceline(update: Update, context: CallbackContext) -> None:
     if len(context.args) <= 1:
         logger.info("... not enough arguments, sending help msg.")
 
-        help_txt = "Not enough arguments, format should be '/voiceline " \
-            "Hero Name: Voice line'...\n" \
-            "Enclose line in \"double quotes\" to use regex as described in " \
+        help_txt = (
+            "Not enough arguments, format should be '/voiceline "
+            "Hero Name: Voice line'...\n"
+            'Enclose line in "double quotes" to use regex as described in '
             "the `regex` module."
+        )
 
-        context.bot.send_message(chat_id=chat_id,
-                                 text=help_txt)
+        context.bot.send_message(chat_id=chat_id, text=help_txt)
 
     else:
         # To separate out hero and voice line (both may contain whitespaces),
@@ -105,10 +106,14 @@ def voiceline(update: Update, context: CallbackContext) -> None:
         vl_link = vl.get_link(line.strip())
 
         if vl_link is None:
-            context.bot.send_message(chat_id=chat_id,
-                                     text=("Could not find line... "
-                                           "Check here if you typed it right: "
-                                           f"{vl.response_url}"))
+            context.bot.send_message(
+                chat_id=chat_id,
+                text=(
+                    "Could not find line... "
+                    "Check here if you typed it right: "
+                    f"{vl.response_url}"
+                ),
+            )
 
             logger.info("... delivery failed, could not find voiceline.")
 
@@ -119,7 +124,8 @@ def voiceline(update: Update, context: CallbackContext) -> None:
                 # Delete /voiceline to make conversation more seamless
                 try:
                     context.bot.delete_message(
-                        chat_id=chat_id, message_id=update.message.message_id)
+                        chat_id=chat_id, message_id=update.message.message_id
+                    )
                 except error.BadRequest as e:
                     logger.warning(
                         f"Error attempting to delete message: {e}. Likely insufficient "
@@ -129,10 +135,10 @@ def voiceline(update: Update, context: CallbackContext) -> None:
                         f"for more info."
                     )
 
-                context.bot.send_message(chat_id=chat_id,
-                                         text=update.message.from_user.username + ":")
-                context.bot.send_voice(chat_id=chat_id,
-                                       voice=open(vl_file_path, "rb"))
+                context.bot.send_message(
+                    chat_id=chat_id, text=update.message.from_user.username + ":"
+                )
+                context.bot.send_voice(chat_id=chat_id, voice=open(vl_file_path, "rb"))
 
                 logger.info("... voiceline delivered.")
 
