@@ -120,7 +120,7 @@ def voiceline(update: Update, context: CallbackContext) -> None:
                 context.bot.delete_message(
                     chat_id=chat_id, message_id=update.message.message_id)
                 context.bot.send_message(chat_id=chat_id,
-                                         text=update.message.chat.username + ":")
+                                         text=update.message.from_user.username + ":")
                 context.bot.send_voice(chat_id=chat_id,
                                        voice=open(vl_file_path, "rb"))
 
