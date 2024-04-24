@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import datetime
-from telegram import Update, ParseMode
+from telegram import Update, ParseMode, error
 from telegram.ext import CallbackContext, CommandHandler, Filters, MessageHandler, Updater
 import dota_api
 import json
@@ -117,8 +117,18 @@ def voiceline(update: Update, context: CallbackContext) -> None:
 
             try:
                 # Delete /voiceline to make conversation more seamless
-                context.bot.delete_message(
-                    chat_id=chat_id, message_id=update.message.message_id)
+                try:
+                    context.bot.delete_message(
+                        chat_id=chat_id, message_id=update.message.message_id)
+                except error.BadRequest as e:
+                    logger.warning(
+                        f"Error attempting to delete message: {e}. Likely insufficient "
+                        f"permissions for the bot in this chat. Try giving it the "
+                        f"`can_delete_messages` permission. See "
+                        f"<https://docs.python-telegram-bot.org/en/stable/telegram.bot.html#telegram.Bot.delete_message> "
+                        f"for more info."
+                    )
+
                 context.bot.send_message(chat_id=chat_id,
                                          text=update.message.from_user.username + ":")
                 context.bot.send_voice(chat_id=chat_id,
