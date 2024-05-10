@@ -167,8 +167,10 @@ def voiceline(update: Update, context: CallbackContext) -> None:
                             f"for more info."
                         )
 
+                    sender_name = user_to_representation(update.message.from_user)
+
                     context.bot.send_message(
-                        chat_id=chat_id, text=update.message.from_user.username + ":"
+                        chat_id=chat_id, text=sender_name + ":"
                     )
                     context.bot.send_voice(
                         chat_id=chat_id, voice=open(vl_file_path, "rb")
