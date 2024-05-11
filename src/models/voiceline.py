@@ -47,7 +47,8 @@ class Voiceline:
         for tag in self.vl_tags:
             # Each of the tags contains the audiobutton with the link to the
             # audiofile as its first child and as its second child the text
-            # of the voiceline. Here we find the tag containing the link to
+            # of the voiceline (possibly broken up by link tags). Here we find
+            # the tag containing the link to
             # the desired line. The selector is not perfect so for some heroes
             # tags that are not voicelines can get read too. The outer if
             # statement helps against that. The voiceline may contain links, so
@@ -55,7 +56,8 @@ class Voiceline:
             #
             # TODO: add ways to find other occurrences than only the first
             if tag.contents[0].name:
-                if regex.search(line_re, tag.contents[-1].text.strip()):
+                tag_text = "".join([*map(lambda content: content.text, tag.contents)])
+                if regex.search(line_re, tag_text.strip()):
                     line_tag = tag
                     break
 
