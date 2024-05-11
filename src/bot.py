@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import datetime
-from telegram import Update, ParseMode, error
+from telegram import Update, ParseMode, error, user
 from telegram.ext import CallbackContext, CommandHandler, Filters, MessageHandler, Updater
 import dota_api
 import json
@@ -78,6 +78,37 @@ def poll(context: CallbackContext) -> None:
     )
 
 
+def user_to_representation(user: user.User):
+    """
+    Generate *some* string identifying a telegram user based on what information is
+    available.
+
+    username > first name (maybe last name, if available) > User ID > "Unknown User"
+    """
+    # All the fields we need for this
+    id_field_names = ["username", "first_name", "last_name", "id"]
+    user_dict = user.to_dict()
+
+    representation_dict = {
+        key: value for key, value in user_dict.items() if key in id_field_names
+    }
+
+    if len(representation_dict) == 0:
+        return "Unknown user"
+    
+    else:
+        if "username" in representation_dict:
+            return representation_dict["username"]
+        elif "first_name" in representation_dict:
+            name = representation_dict["first_name"]
+            if "last_name" in representation_dict:
+                name += representation_dict["last_name"]
+
+            return name
+        elif "id" in representation_dict:
+            return str(representation_dict["id"])
+
+
 def voiceline(update: Update, context: CallbackContext) -> None:
     if update.effective_chat.id == int(chat_id):
         logger.info("Getting voiceline...")
@@ -136,8 +167,10 @@ def voiceline(update: Update, context: CallbackContext) -> None:
                             f"for more info."
                         )
 
+                    sender_name = user_to_representation(update.message.from_user)
+
                     context.bot.send_message(
-                        chat_id=chat_id, text=update.message.from_user.username + ":"
+                        chat_id=chat_id, text=sender_name + ":"
                     )
                     context.bot.send_voice(
                         chat_id=chat_id, voice=open(vl_file_path, "rb")
