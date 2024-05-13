@@ -1,5 +1,6 @@
 import requests
 import bs4
+import json
 import regex
 import os
 
@@ -11,14 +12,32 @@ class Voiceline:
     # TODO: Should this be initialised like that?
     soup = bs4.BeautifulSoup()
 
-    def __init__(self, hero_string):
+    def __init__(self, hero_string: str) -> None:
         base_url = "https://liquipedia.net/dota2game"
+
+        with open("resources/heroes.json", "r") as f:
+            known_heroes = json.load(f)
+
+        # For comparing the input hero name to known heroes, we throw away
+        # capitalization, allowing for some fuzzyness in the input.
+        hero_lookup_string = hero_string.lower()
+
+        hero_name_lookup = {
+            hero["localized_name"].lower(): hero["localized_name"]
+            for hero in known_heroes
+        }
+
+        if not hero_lookup_string in hero_name_lookup:
+            all_hero_url = base_url + "/Heroes"
+            raise ValueError(
+                f"Unknown hero {hero_string}. "
+                f"(Check the hero name against the hero list at {all_hero_url})"
+            )
 
         # On the fandom wiki the pages for heroes follow the pattern of
         # "base_url/Capitalized_Hero/subpage", so we need to ensure the hero
         # name follows that pattern
-        hero_list = hero_string.split(" ")
-        self.hero = "_".join([x.capitalize() for x in hero_list])
+        self.hero = hero_name_lookup[hero_lookup_string].replace(" ", "_")
 
         self.response_url = f"{base_url}/{self.hero}/Responses"
 
