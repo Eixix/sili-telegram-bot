@@ -1,0 +1,9 @@
+[tool.pytest.ini_options]
+# Ensure modules to be tested can be found until have a proper package.
+pythonpath = "src"
+testpaths = ["tests"]
+markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')", """\
+    duplication: marks tests as being a duplication of something, usually \
+    an element of another exhaustive test \
+    (deselect with '-m \"not duplication\"')
+    """]
