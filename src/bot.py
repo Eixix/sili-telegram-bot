@@ -133,7 +133,17 @@ def voiceline(update: Update, context: CallbackContext) -> None:
 
             hero, line = arg_string.split(":")
 
-            vl = Voiceline(hero)
+            try:
+                vl = Voiceline(hero)
+            except ValueError as e:
+                logger.error(f"Error while attempting to get voiceline for {hero}: {e}")
+
+                context.bot.send_message(
+                    chat_id=chat_id,
+                    text=str(e),
+                )
+
+
 
             vl_link = vl.get_link(line.strip())
 
