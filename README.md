@@ -37,3 +37,5 @@ docker rm sili-bot
 docker build -t sili-bot --build-arg bot_token="<BOT_TOKEN>" --build-arg chat_id="<CHAT_ID>" .
 docker run --name sili-bot sili-bot
 ```
+
+## WIP: Port to Rust
