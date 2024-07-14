@@ -33,14 +33,25 @@ def parse_response_table(table: bs4.element, base_url: str) -> dict:
     }
 
 
-base_url = "https://liquipedia.net"
-navbar_path = "/dota2game/Template:VoiceNavSidebar"
-navbar_response = requests.get(base_url + navbar_path)
-response_soup = bs4.BeautifulSoup(navbar_response.content, features="html.parser")
-url_table = response_soup.find(class_="nowraplinks")
+def scrape_voiceline_urls(
+    output_file: str = "resources/entity_responses.json",
+    base_url: str = "https://liquipedia.net",
+    navbar_path: str = "/dota2game/Template:VoiceNavSidebar",
+) -> None:
+    """
+    Scrape the URLs for all entities with responses and save to JSON file.
+    """
+    navbar_response = requests.get(base_url + navbar_path)
+    response_soup = bs4.BeautifulSoup(navbar_response.content, features="html.parser")
+    url_table = response_soup.find(class_="nowraplinks")
 
-json.dump(
-    obj=parse_response_table(url_table, base_url=base_url),
-    fp=open("resources/entity_responses.json", "w"),
-    indent=2,
-)
+    json.dump(
+        obj=parse_response_table(url_table, base_url=base_url),
+        fp=open(output_file, "w"),
+        indent=2,
+    )
+
+
+if __name__ == "__main__":
+    # TODO Add argparser for output_dir.
+    scrape_voiceline_urls()
