@@ -1,0 +1,152 @@
+import bs4
+
+
+def str_to_li_tag(x: str) -> bs4.element.Tag:
+    return bs4.BeautifulSoup(
+        x,
+        features="html.parser",
+    ).contents[0]
+
+
+class TestVoicelineScraperCases:
+
+    class TestResponseFromLinkTagCases:
+        def case_basic(self):
+            return (
+                str_to_li_tag(
+                    """<li><span><audio hidden="" class="ext-audiobutton" preload="metadata" data-volume="1">
+                    <source src="https://liquipedia.net/commons/images/8/89/Vo_abaddon_abad_spawn_01.mp3" type="audio/mpeg"><a
+                        href="https://liquipedia.net/commons/images/8/89/Vo_abaddon_abad_spawn_01.mp3">Link</a>
+                </audio><a class="ext-audiobutton" data-state="play" title="Play/Pause"></a></span> Abaddon.</li>"""
+                ),
+                True,
+            )
+
+        def case_basic_with_link(self):
+            return (
+                str_to_li_tag(
+                    """<li><span><audio hidden="" class="ext-audiobutton" preload="metadata" data-volume="1">
+                                <source src="https://liquipedia.net/commons/images/a/a5/Vo_abaddon_abad_begin_02.mp3" type="audio/mpeg"><a
+                                    href="https://liquipedia.net/commons/images/a/a5/Vo_abaddon_abad_begin_02.mp3">Link</a>
+                            </audio><a class="ext-audiobutton" data-state="play" title="Play/Pause"></a></span> The <a
+                            href="/dota2game/Fog_of_war" class="mw-redirect" title="Fog of war">fog of war</a> is no match for the mist of
+                        fate.</li>"""
+                ),
+                True,
+            )
+
+        def case_basic_unused(self):
+            return (
+                str_to_li_tag(
+                    """<li><span><audio hidden="" class="ext-audiobutton" preload="metadata" data-volume="1">
+                            <source src="https://liquipedia.net/commons/images/8/8b/Vo_abaddon_abad_deathcoil_01.mp3" type="audio/mpeg">
+                            <a href="https://liquipedia.net/commons/images/8/8b/Vo_abaddon_abad_deathcoil_01.mp3">Link</a>
+                        </audio><a class="ext-audiobutton" data-state="play" title="Play/Pause"></a></span> <i><small><abbr
+                                title="Unused response">u</abbr></small></i> Deathcoil.</li>"""
+                ),
+                True,
+            )
+
+        def case_basic_non_repeating(self):
+            return (
+                str_to_li_tag(
+                    """<li><span><audio hidden="" class="ext-audiobutton" preload="metadata" data-volume="1">
+                            <source src="https://liquipedia.net/commons/images/3/3c/Vo_abaddon_abad_ally_05.mp3" type="audio/mpeg"><a
+                                href="https://liquipedia.net/commons/images/3/3c/Vo_abaddon_abad_ally_05.mp3">Link</a>
+                        </audio><a class="ext-audiobutton" data-state="play" title="Play/Pause"></a></span> <a href="/dota2game/Dazzle"
+                        title="Dazzle"><img alt=""
+                            src="/commons/images/thumb/8/84/Dazzle_mapicon_dota2_gameasset.png/16px-Dazzle_mapicon_dota2_gameasset.png"
+                            decoding="async" width="16" height="16" class="pixelart"
+                            srcset="/commons/images/thumb/8/84/Dazzle_mapicon_dota2_gameasset.png/24px-Dazzle_mapicon_dota2_gameasset.png 1.5x, /commons/images/8/84/Dazzle_mapicon_dota2_gameasset.png 2x"></a>
+                    <i><small><abbr title="Not-repeating response">r</abbr></small></i> The powers of ill reprieve are joined in us,
+                    Dazzle.</li>"""
+                ),
+                True,
+            )
+
+        def case_basic_with_ability_icon(self):
+            return (
+                str_to_li_tag(
+                    """<li><span><audio hidden="" class="ext-audiobutton" preload="metadata" data-volume="1">
+                            <source src="https://liquipedia.net/commons/images/5/5f/Vo_abaddon_abad_deathcoil_08.mp3" type="audio/mpeg">
+                            <a href="https://liquipedia.net/commons/images/5/5f/Vo_abaddon_abad_deathcoil_08.mp3">Link</a>
+                        </audio><a class="ext-audiobutton" data-state="play" title="Play/Pause"></a></span> <a href="/dota2game/Abaddon"
+                        title="Abaddon"><img alt=""
+                            src="/commons/images/thumb/9/93/Abaddon_mapicon_dota2_gameasset.png/16px-Abaddon_mapicon_dota2_gameasset.png"
+                            decoding="async" width="16" height="16" class="pixelart"
+                            srcset="/commons/images/thumb/9/93/Abaddon_mapicon_dota2_gameasset.png/24px-Abaddon_mapicon_dota2_gameasset.png 1.5x, /commons/images/9/93/Abaddon_mapicon_dota2_gameasset.png 2x"></a>
+                    <a href="/dota2game/Mist_Coil" title="Mist Coil"><img alt=""
+                            src="/commons/images/thumb/b/be/Mist_Coil_abilityicon_dota2_gameasset.png/16px-Mist_Coil_abilityicon_dota2_gameasset.png"
+                            decoding="async" width="16" height="16"
+                            srcset="/commons/images/thumb/b/be/Mist_Coil_abilityicon_dota2_gameasset.png/24px-Mist_Coil_abilityicon_dota2_gameasset.png 1.5x, /commons/images/thumb/b/be/Mist_Coil_abilityicon_dota2_gameasset.png/32px-Mist_Coil_abilityicon_dota2_gameasset.png 2x"></a>
+                    By my right.</li>"""
+                ),
+                True,
+            )
+
+        def case_malformed_vl_li_tag(self):
+            return (
+                str_to_li_tag(
+                    """<li>Infusing Aghanim's Scepter into an ally triggers their "thanks" response.</li>"""
+                ),
+                False,
+            )
+
+        def case_missing_file(self):
+            return (
+                str_to_li_tag(
+                    """<li><a class="ext-audiobutton" data-state="error" title="File not found"></a> Prepare for repairs!</li>"""
+                ),
+                True,
+            )
+
+        def case_basic_with_cooldown(self):
+            return (
+                str_to_li_tag(
+                    """<li><span><audio hidden="" class="ext-audiobutton" preload="metadata" data-volume="1">
+                        <source src="https://liquipedia.net/commons/images/0/03/Vo_abaddon_abad_item_rare_01.mp3" type="audio/mpeg">
+                        <a href="https://liquipedia.net/commons/images/0/03/Vo_abaddon_abad_item_rare_01.mp3">Link</a>
+                    </audio><a class="ext-audiobutton" data-state="play" title="Play/Pause"></a></span> <i><small><abbr
+                            title="300 seconds cooldown">300</abbr></small></i> I claim this prize for the House Avernus.</li>"""
+                ),
+                True,
+            )
+
+        def case_with_arcana(self):
+            return (
+                str_to_li_tag(
+                    """<li class="">
+                    <span>
+                        <audio hidden="" class="ext-audiobutton" preload="metadata" data-volume="1">
+                            <source src="https://liquipedia.net/commons/images/a/ad/Vo_phantom_assassin_phass_win_03.mp3"
+                                type="audio/mpeg">
+                            <a href="https://liquipedia.net/commons/images/a/ad/Vo_phantom_assassin_phass_win_03.mp3">Link</a>
+                        </audio>
+                        <a class="ext-audiobutton" data-state="play" title="Play/Pause"></a>
+                    </span>
+                    <span>
+                        <audio hidden="" class="ext-audiobutton" preload="metadata" data-volume="1">
+                            <source src="https://liquipedia.net/commons/images/6/68/Vo_phantom_assassin_phass_arc_win_03.mp3"
+                                type="audio/mpeg">
+                            <a href="https://liquipedia.net/commons/images/6/68/Vo_phantom_assassin_phass_arc_win_03.mp3">Link</a>
+                        </audio>
+                        <a class="ext-audiobutton" data-state="play" title="Play/Pause"></a>
+                    </span>
+                    Yes.
+                </li>"""
+                ),
+                True,
+            )
+
+        def case_with_arcana_one_file_missing(self):
+            return (
+                str_to_li_tag(
+                    """<li class=""><a class="ext-audiobutton" data-state="error" title="File not found"></a> <span><audio hidden=""
+                            class="ext-audiobutton" preload="metadata" data-volume="1">
+                            <source src="https://liquipedia.net/commons/images/a/a9/Vo_phantom_assassin_phass_arc_move_13.mp3"
+                                type="audio/mpeg"><a
+                                href="https://liquipedia.net/commons/images/a/a9/Vo_phantom_assassin_phass_arc_move_13.mp3">Link</a>
+                        </audio><a class="ext-audiobutton" data-state="play" title="Play/Pause"></a></span> I'm but a shadow.</li>"""
+                ),
+                True,
+            )
