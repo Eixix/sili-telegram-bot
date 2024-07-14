@@ -4,7 +4,7 @@ from pytest_cases import parametrize_with_cases
 
 import test_scrape_voiceline_urls_cases as case_module
 
-from modules.voiceline_scraping import response_from_link_tag
+from modules import voiceline_scraping
 
 
 class TestVoicelineScraper:
@@ -15,7 +15,7 @@ class TestVoicelineScraper:
             cases=case_module.TestVoicelineScraperCases.TestResponseFromLinkTagCases,
         )
         def test_success(self, link_tag: bs4.element.Tag, should_be_dict: bool) -> None:
-            res = response_from_link_tag(link_tag)
+            res = voiceline_scraping.response_from_link_tag(link_tag)
 
             if should_be_dict:
                 assert isinstance(res, dict)
