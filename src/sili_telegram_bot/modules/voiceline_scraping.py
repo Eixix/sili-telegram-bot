@@ -17,7 +17,12 @@ class EntityResponse(TypedDict):
     urls: list[str, None]
 
 
-TEXT_PROCESS_RE = re.compile(r"^(\W*)?(Link\u25B6\W+)+(u\W+)?(r\W+)?(rem\W+)?(\d+\W+)?")
+TEXT_PROCESS_RE_PREFIX = re.compile(
+    r"^(\s*)?((Link(\u25B6.)\s)+)?\s*(u\s)?(r\s)?(rem\s)?(\d+\s)?\s*"
+)
+
+
+TEXT_PROCESS_RE_SUFFIX = re.compile(r"(\s+followup)?$")
 
 
 def parse_link_row(link_row: bs4.element, base_url: str) -> dict:
@@ -36,7 +41,11 @@ def process_response_text(text: str) -> str:
     Process the text related to a voice response to remove unneeded info (Emoji, tool
     tips, etc.).
     """
-    return re.sub(string=text, pattern=TEXT_PROCESS_RE, repl="")
+    de_prefixed_text = re.sub(string=text, pattern=TEXT_PROCESS_RE_PREFIX, repl="")
+    processed_text = re.sub(
+        string=de_prefixed_text, pattern=TEXT_PROCESS_RE_SUFFIX, repl=""
+    )
+    return processed_text
 
 
 def audio_button_has_url(button_tag: bs4.element) -> bool:
