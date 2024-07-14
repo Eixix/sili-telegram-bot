@@ -10,6 +10,49 @@ def str_to_li_tag(x: str) -> bs4.element.Tag:
 
 class TestVoicelineScraperCases:
 
+    class TestProcessResponseTextCases:
+        def case_basic(self):
+            return ("Link▶️ Abaddon.", "Abaddon.")
+
+        def case_unused(self):
+            return ("Link▶️ u Deathcoil.", "Deathcoil.")
+
+        def case_hero_icon(self):
+            return (
+                "Link▶️  You gave up too much for your honor, Dragonus.",
+                "You gave up too much for your honor, Dragonus.",
+            )
+
+        def case_non_repeating(self):
+            return (
+                "Link▶️  r Tell me where to walk and not to walk, Techies.",
+                "Tell me where to walk and not to walk, Techies.",
+            )
+
+        def case_icon_non_repeating(self):
+            return ("Link▶️  r Ah, scepter.", "Ah, scepter.")
+
+        def case_missing_file(self):
+            return (" Prepare for repairs!", "Prepare for repairs!")
+
+        def case_missing_file_unused(self):
+            return (" u Easy mode.", "Easy mode.")
+
+        def case_missing_file_non_repeating(self):
+            return (" r Deathmatch.", "Deathmatch.")
+
+        def case_cooldown(self):
+            return ("Link▶️ 300 Ho!", "Ho!")
+
+        def case_parens(self):
+            return ("Link▶️ (Humming)", "(Humming)")
+
+        def case_removed(self):
+            return ("Link▶️ rem The battle begins!", "The battle begins!")
+
+        def case_followup(self):
+            return ("Link▶️ Welcome to Dota. followup", "Welcome to Dota.")
+
     class TestResponseFromLinkTagCases:
         def case_basic(self):
             return (
