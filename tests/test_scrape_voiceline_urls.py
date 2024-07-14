@@ -9,6 +9,16 @@ from modules import voiceline_scraping
 
 class TestVoicelineScraper:
 
+    class TestProcessResponseText:
+        @parametrize_with_cases(
+            "input,expected",
+            cases=case_module.TestVoicelineScraperCases.TestProcessResponseTextCases,
+        )
+        def test_success(self, input, expected):
+            res = voiceline_scraping.process_response_text(input)
+
+            assert res == expected
+
     class TestResponseFromLinkTag:
         @parametrize_with_cases(
             "link_tag,should_be_dict",
