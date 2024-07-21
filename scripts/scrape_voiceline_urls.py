@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Scrape & parse URL links into a JSON dict for expedient & extensive voiceline retrieval.
 To be run after response additions. Depends on the page layout of the wiki though,
