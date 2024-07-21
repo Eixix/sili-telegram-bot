@@ -8,6 +8,7 @@ import bs4
 import json
 import re
 import requests
+import unicodedata
 
 from typing import TypedDict
 
@@ -42,9 +43,10 @@ def process_response_text(text: str) -> str:
     tips, etc.).
     """
     de_prefixed_text = re.sub(string=text, pattern=TEXT_PROCESS_RE_PREFIX, repl="")
-    processed_text = re.sub(
+    stripped_text = re.sub(
         string=de_prefixed_text, pattern=TEXT_PROCESS_RE_SUFFIX, repl=""
     )
+    processed_text = unicodedata.normalize("NFKD", stripped_text)
     return processed_text
 
 
