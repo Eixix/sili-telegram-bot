@@ -6,11 +6,14 @@ so this will need to be adapted to changes there.
 
 import bs4
 import json
+import logging
 import re
 import requests
 import unicodedata
 
 from typing import TypedDict
+
+logger = logging.getLogger(__name__)
 
 
 class EntityResponse(TypedDict):
@@ -128,7 +131,9 @@ def scrape_response_url_dict(
     out = {}
 
     for entity, response_url in response_dict.items():
+        logger.info(f"Scraping response URLs for {entity}...")
         out[entity] = scrape_entity_response_urls(response_url)
+        logger.info(f"... done with {entity}.")
 
     return out
 
