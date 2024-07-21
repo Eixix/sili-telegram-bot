@@ -53,6 +53,9 @@ class TestVoicelineScraperCases:
         def case_followup(self):
             return ("Link▶️ Welcome to Dota. followup", "Welcome to Dota.")
 
+        def case_ellipsis(self):
+            return ("Link▶️ Uh…ah…a chilling assault!", "Uh...ah...a chilling assault!")
+
     class TestResponseFromLinkTagCases:
         def case_basic(self):
             return (
