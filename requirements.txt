@@ -13,7 +13,7 @@ regex==2022.4.24
 requests==2.31.0
 six==1.16.0
 soupsieve==2.3.2.post1
-tornado==6.4
+tornado==6.4.1
 tzdata==2022.1
 tzlocal==4.2
 urllib3==2.2.2
