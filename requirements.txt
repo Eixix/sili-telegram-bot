@@ -4,7 +4,7 @@ bs4==0.0.1
 cachetools==4.2.2
 certifi==2024.7.4
 charset-normalizer==2.0.12
-idna==3.3
+idna==3.7
 numpy==1.22.3
 python-telegram-bot==13.11
 pytz==2022.1
