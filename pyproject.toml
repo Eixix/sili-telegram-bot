@@ -29,3 +29,6 @@ build-backend = "setuptools.build_meta"
 
 [project.optional-dependencies]
 dev = ["black"]
+
+[project.scripts]
+run_bot = "sili_telegram_bot.bot:main"
