@@ -13,7 +13,7 @@ COPY resources resources
 COPY matchdata/accounts_file.json matchdata/accounts_file.json
 
 VOLUME [ "/app/matchdata" ]
-RUN pip install -r requirements.txt
+RUN pip install .
 
 WORKDIR /bot
 ENTRYPOINT [ "src/bot.py" ]

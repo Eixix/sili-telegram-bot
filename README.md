@@ -16,14 +16,14 @@ Change the two variables `bot_token` and `chat_id` in `bot.py` accordingly. Inst
 ### For Linux 🐧
 
 ```bash
-pip install -r requirements.txt
+pip install .
 bot_token="<bot_token>" chat_id="<chat_id>" src/bot.py
 ```
 
 ### For Windows 💩
 
 ```powershell
-pip install -r requirements.txt
+pip install .
 cd src
 set bot_token="<bot_token>"
 set chat_id="<chat_id>"
