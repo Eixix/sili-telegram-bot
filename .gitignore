@@ -134,3 +134,6 @@ matchdata/*.json
 secrets.txt
 
 .idea/
+
+# config
+config.json
