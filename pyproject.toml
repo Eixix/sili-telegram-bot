@@ -1,0 +1,31 @@
+[project]
+name = "sili-telegram-bot"
+version = "0.0.1"
+description = """
+A telegram bot that evaluates DOTA2 matches of people and notifies about their
+results.
+"""
+readme = "README.md"
+requires-python = ">=3.10.2"
+license = { file = "./LICENCE" }
+authors = [{ name = "Eixix", email = "tobiasbetz@hotmail.de" }]
+
+dependencies = [
+    "beautifulsoup4==4.11.1",
+    # TODO Use just beautifulsoup4, this is not the official package.
+    # See <https://pypi.org/project/bs4/0.0.1/#description>.
+    "bs4==0.0.1",
+    "numpy==1.22.3",
+    "python-telegram-bot==13.11",
+    "pytz-deprecation-shim==0.1.0.post0",
+    "regex==2022.4.24",
+    "requests==2.31.0",
+    # Not directly used, pinned for security reasons.
+    "certifi==2024.7.4",
+    "urllib3==2.2.2",
+]
+
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
