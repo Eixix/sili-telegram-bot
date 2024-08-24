@@ -1,0 +1,19 @@
+{
+    "metaconfig": {
+        "user_config_file": "./config.json",
+        "env_variables": {
+            "bot_token": [
+                "secrets",
+                "bot_token"
+            ],
+            "chat_id": [
+                "secrets",
+                "chat_id"
+            ]
+        }
+    },
+    "secrets": {
+        "bot_token": null,
+        "chat_id": null
+    }
+}
