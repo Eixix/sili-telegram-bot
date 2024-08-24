@@ -7,7 +7,6 @@ so this will need to be adapted to changes there.
 import bs4
 import json
 import re
-import requests
 import unicodedata
 
 from typing import TypedDict
@@ -124,33 +123,6 @@ def extract_entity_response_urls(entity_page_html: str) -> list[EntityResponse]:
     return responses
 
 
-def scrape_entity_response_urls(entity_base_response_url: str) -> list[EntityResponse]:
-    """
-    Scrape all response urls (to audio files) of an entity and return them as a dict of
-    lists. The first item will (almost) always be the basic voiceline URL, but if the
-    entity has an altered voice (i.e. an arcana) the second item of the list will be for
-    that. The list may contain None in the case of missing files.
-    """
-    entity_url_resp = requests.get(entity_base_response_url)
-    entity_soup = bs4.BeautifulSoup(entity_url_resp.content, features="html.parser")
-
-    # All li tags in bullet points.
-    bullet_li_tags = entity_soup.select("#mw-content-text h2~ ul li")
-
-    # Li tags inside tables (found in Announcers.)
-    table_li_tags = entity_soup.select(".wikitable li")
-    response_tags = bullet_li_tags + table_li_tags
-
-    responses = []
-
-    for tag in response_tags:
-        optional_response = response_from_link_tag(tag)
-        if optional_response:
-            responses.append(optional_response)
-
-    return responses
-
-
 def extract_response_urls_from_titles(
     page_titles: list[str],
 ) -> dict[str, list[EntityResponse]]:
@@ -166,41 +138,6 @@ def extract_response_urls_from_titles(
     return out
 
 
-def scrape_response_url_dict(
-    response_dict: dict[str, str]
-) -> dict[str, list[EntityResponse]]:
-    """
-    Scrape the response urls for all entities in a dict.
-    """
-    out = {}
-
-    for entity, response_url in response_dict.items():
-        out[entity] = scrape_entity_response_urls(response_url)
-
-    return out
-
-
-def parse_response_table(table: bs4.element, base_url: str) -> dict:
-    """
-    Parse out URLs for inidividual response entities (hero, arcana, etc.) from
-    table html.
-    """
-    table_headers = [tag.string.strip() for tag in table.find_all(class_="navbox-odd")]
-    path_tag_list = [tag.find_all("a") for tag in table.find_all(class_="navbox-even")]
-    entity_base_dicts = [
-        parse_link_row(path_tags, base_url) for path_tags in path_tag_list
-    ]
-
-    full_dict = [
-        scrape_response_url_dict(entity_base_dict)
-        for entity_base_dict in entity_base_dicts
-    ]
-
-    return {
-        header: entity_dict for header, entity_dict in zip(table_headers, full_dict)
-    }
-
-
 def extract_voiceline_urls(
     output_file: str = "resources/entity_responses.json",
 ) -> None:
@@ -212,25 +149,6 @@ def extract_voiceline_urls(
 
     json.dump(
         obj=entity_resp_dict,
-        fp=open(output_file, "w"),
-        indent=2,
-    )
-
-
-def scrape_voiceline_urls(
-    output_file: str = "resources/entity_responses.json",
-    base_url: str = VL_CONFIG["base_url"],
-    navbar_path: str = "/dota2game/Template:VoiceNavSidebar",
-) -> None:
-    """
-    Scrape the URLs for all entities with responses and save to JSON file.
-    """
-    navbar_response = requests.get(base_url + navbar_path)
-    response_soup = bs4.BeautifulSoup(navbar_response.content, features="html.parser")
-    url_table = response_soup.find(class_="nowraplinks")
-
-    json.dump(
-        obj=parse_response_table(url_table, base_url=base_url),
         fp=open(output_file, "w"),
         indent=2,
     )
