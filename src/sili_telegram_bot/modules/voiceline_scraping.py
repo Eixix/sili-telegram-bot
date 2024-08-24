@@ -13,6 +13,7 @@ import unicodedata
 from typing import TypedDict
 
 from sili_telegram_bot.modules.config import config
+from sili_telegram_bot.modules.mediawiki_api import mediawiki_api
 
 VL_CONFIG = config["voicelines"]
 
@@ -96,6 +97,33 @@ def response_from_link_tag(link_tag: bs4.element) -> EntityResponse | None:
         return None
 
 
+def extract_entity_response_urls(entity_page_html: str) -> list[EntityResponse]:
+    """
+    Extract all response urls (to audio files) of an entity from the html of its
+    responses pageand return them as a dict oflists. The first item will (almost)
+    always be the basic voiceline URL, but if the entity has an altered voice
+    (i.e. an arcana) the second item of the list will be for that. The list may
+    contain None in the case of missing files.
+    """
+    entity_soup = bs4.BeautifulSoup(entity_page_html, features="html.parser")
+
+    # All li tags in bullet points.
+    bullet_li_tags = entity_soup.select(".mw-parser-output > ul li")
+
+    # Li tags inside tables (found in Announcers.)
+    table_li_tags = entity_soup.select(".wikitable li")
+    response_tags = bullet_li_tags + table_li_tags
+
+    responses = []
+
+    for tag in response_tags:
+        optional_response = response_from_link_tag(tag)
+        if optional_response:
+            responses.append(optional_response)
+
+    return responses
+
+
 def scrape_entity_response_urls(entity_base_response_url: str) -> list[EntityResponse]:
     """
     Scrape all response urls (to audio files) of an entity and return them as a dict of
@@ -121,6 +149,21 @@ def scrape_entity_response_urls(entity_base_response_url: str) -> list[EntityRes
             responses.append(optional_response)
 
     return responses
+
+
+def extract_response_urls_from_titles(
+    page_titles: list[str],
+) -> dict[str, list[EntityResponse]]:
+    """
+    Retrieve page html and extract response urls for a list of page titles.
+    """
+    out = {}
+
+    for page_title in page_titles:
+        page_html = mediawiki_api.page(page_title, auto_suggest=False).html
+        out[page_title] = extract_entity_response_urls(page_html)
+
+    return out
 
 
 def scrape_response_url_dict(
@@ -156,6 +199,22 @@ def parse_response_table(table: bs4.element, base_url: str) -> dict:
     return {
         header: entity_dict for header, entity_dict in zip(table_headers, full_dict)
     }
+
+
+def extract_voiceline_urls(
+    output_file: str = "resources/entity_responses.json",
+) -> None:
+    """
+    Extract the URLs for all entities with responses and save to JSON file.
+    """
+    response_titles = mediawiki_api.categorymembers("Responses", results=None)[0]
+    entity_resp_dict = extract_response_urls_from_titles(response_titles)
+
+    json.dump(
+        obj=entity_resp_dict,
+        fp=open(output_file, "w"),
+        indent=2,
+    )
 
 
 def scrape_voiceline_urls(
