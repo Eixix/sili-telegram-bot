@@ -14,7 +14,6 @@ dependencies = [
     "beautifulsoup4==4.11.1",
     "numpy==1.22.3",
     "python-telegram-bot==13.11",
-    "pytz-deprecation-shim==0.1.0.post0",
     "regex==2022.4.24",
     "requests==2.31.0",
     # Not directly used, pinned for security reasons.
