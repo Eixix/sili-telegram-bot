@@ -16,5 +16,5 @@ VOLUME [ "/app/matchdata" ]
 RUN pip install .
 
 WORKDIR /bot
-ENTRYPOINT [ "src/bot.py" ]
+ENTRYPOINT [ "src/sili_telegram_bot/bot.py" ]
 

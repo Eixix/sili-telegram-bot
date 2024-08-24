@@ -1,9 +1,9 @@
-from models.matches import Matches
+from sili_telegram_bot.models.matches import Matches
 import random
 import numpy as np
 import logging
-from models.match import Match
-from models.playerinfo import Playerinfo
+from sili_telegram_bot.models.match import Match
+from sili_telegram_bot.models.playerinfo import Playerinfo
 import pytz
 
 

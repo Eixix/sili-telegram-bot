@@ -1,4 +1,4 @@
-from models.birthday import Birthday
+from sili_telegram_bot.models.birthday import Birthday
 import datetime
 import json
 

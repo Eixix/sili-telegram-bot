@@ -1,6 +1,6 @@
-from models.match import Match
+from sili_telegram_bot.models.match import Match
 import logging
-from models.matchresult import MatchResult
+from sili_telegram_bot.models.matchresult import MatchResult
 
 
 class Matches:

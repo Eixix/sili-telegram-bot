@@ -3,15 +3,16 @@
 import datetime
 from telegram import Update, ParseMode, error, user
 from telegram.ext import CallbackContext, CommandHandler, Filters, MessageHandler, Updater
-import dota_api
+import sili_telegram_bot.dota_api as dota_api
 import json
 import logging
 import random
 import os
-from models.message import Message
-from models.patch_checker import PatchChecker
-from models.voiceline import Voiceline
-from models.birthdays import Birthdays
+
+from sili_telegram_bot.models.message import Message
+from sili_telegram_bot.models.patch_checker import PatchChecker
+from sili_telegram_bot.models.voiceline import Voiceline
+from sili_telegram_bot.models.birthdays import Birthdays
 
 # Environment variable
 token = os.environ['bot_token']

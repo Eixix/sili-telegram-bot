@@ -3,8 +3,8 @@ import requests
 import logging
 import pytz
 from datetime import datetime
-from models.matches import Matches
-from models.playerinfo import Playerinfo
+from sili_telegram_bot.models.matches import Matches
+from sili_telegram_bot.models.playerinfo import Playerinfo
 
 logger = logging.getLogger(__name__)
 
