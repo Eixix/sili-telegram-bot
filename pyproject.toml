@@ -13,6 +13,7 @@ authors = [{ name = "Eixix", email = "tobiasbetz@hotmail.de" }]
 dependencies = [
     "beautifulsoup4<=4.11",
     "numpy<=1.22",
+    "pymediawiki<=0.7",
     "python-telegram-bot<=13.11",
     "regex<=2022.4",
     "requests<=2.31",
