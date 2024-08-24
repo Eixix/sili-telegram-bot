@@ -21,4 +21,7 @@ class Playerinfo:
         self.win_rate = win_rate
         self.last_game = last_game
         self.days_since_last_game = abs(
-            (last_game.date() - datetime.now(pytz.timezone('Europe/Berlin')).date()).days)
+            (
+                last_game.date() - datetime.now(pytz.timezone("Europe/Berlin")).date()
+            ).days
+        )

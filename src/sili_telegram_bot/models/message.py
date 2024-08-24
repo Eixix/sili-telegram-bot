@@ -17,8 +17,10 @@ class Message:
     used_verbs = {}
     playerinfos = []
 
-    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                        level=logging.INFO)
+    logging.basicConfig(
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        level=logging.INFO,
+    )
     logger = logging.getLogger(__name__)
 
     def __init__(self, matches, punlines, playerinfos):
@@ -28,11 +30,12 @@ class Message:
         if not punlines is None:
             self.punlines = punlines
             self.verb_numbers = {
-                key: len(value) for key, value in punlines['performance_verbs'].items()}
-            self.meme_const_cats = [
-                key for key in punlines['performance_verbs'].keys()]
+                key: len(value) for key, value in punlines["performance_verbs"].items()
+            }
+            self.meme_const_cats = [key for key in punlines["performance_verbs"].keys()]
             self.meme_const_cats_flt = np.array(
-                [float(mc_cat) for mc_cat in self.meme_const_cats])
+                [float(mc_cat) for mc_cat in self.meme_const_cats]
+            )
             self.meme_const_cats_sort = np.sort(self.meme_const_cats_flt)
             self._reset_used_verbs()
 
@@ -51,7 +54,7 @@ class Message:
         messages = []
         for playerinfo in self.playerinfos:
             messages.append(self._create_message_for_playerinfos(playerinfo))
-        return '\n\n'.join(messages)
+        return "\n\n".join(messages)
 
     def _create_message_for_playerinfos(self, playerinfo: Playerinfo):
         messages = []
@@ -62,26 +65,30 @@ class Message:
         messages.append(f"Niederlagen: {playerinfo.loses}")
         messages.append(f"Win rate: {playerinfo.win_rate}")
         messages.append(
-            f"Letztes Spiel: {playerinfo.last_game.strftime('%d.%m.%Y %H:%M:%S')} ({playerinfo.days_since_last_game} Tag(e) vergangen)")
-        return '\n'.join(messages)
+            f"Letztes Spiel: {playerinfo.last_game.strftime('%d.%m.%Y %H:%M:%S')} ({playerinfo.days_since_last_game} Tag(e) vergangen)"
+        )
+        return "\n".join(messages)
 
     def _create_message_for_match(self, match: Match):
         messages = []
 
         if match.win:
             messages.append(
-                f"<b>W: {random.choice(self.punlines['match_outcome']['win'])}</b>")
+                f"<b>W: {random.choice(self.punlines['match_outcome']['win'])}</b>"
+            )
         else:
             messages.append(
-                f"<b>L: {random.choice(self.punlines['match_outcome']['lose'])}</b>")
+                f"<b>L: {random.choice(self.punlines['match_outcome']['lose'])}</b>"
+            )
 
         for matchresult in match.matchresults:
             messages.append(
-                f"{matchresult.name} hat mit {matchresult.hero} {self._generate_verb(matchresult)} mit {matchresult.kills} Kills, {matchresult.deaths} Toden und {matchresult.assists} Assists")
+                f"{matchresult.name} hat mit {matchresult.hero} {self._generate_verb(matchresult)} mit {matchresult.kills} Kills, {matchresult.deaths} Toden und {matchresult.assists} Assists"
+            )
 
         self._reset_used_verbs()
 
-        return '\n\n'.join(messages)
+        return "\n\n".join(messages)
 
     def _reset_used_verbs(self, cat=None):
         if cat is None:
@@ -89,12 +96,12 @@ class Message:
         else:
             if type(cat) is str:
                 if not cat in self.meme_const_cats:
-                    raise(f"'{cat}' is no a valid category.")
+                    raise (f"'{cat}' is no a valid category.")
                 self.used_verbs[cat] = []
             elif type(cat) is list:
                 # FIXME: make the error say which categories are invalid
                 if not all([x in self.meme_const_cats for x in cat]):
-                    raise(f"'{cat}' contains invalid categories.")
+                    raise (f"'{cat}' contains invalid categories.")
                 for cat_i in cat:
                     self.used_verbs[cat_i] = []
 
@@ -116,8 +123,9 @@ class Message:
         # dict lookup didnt work.
         mc_cat_lookup = self.meme_const_cats_flt.argsort()
 
-        order_idx_arr = np.where(
-            self.meme_const_cats_sort > matchresult.meme_constant)[0]
+        order_idx_arr = np.where(self.meme_const_cats_sort > matchresult.meme_constant)[
+            0
+        ]
         mc_cat_idx = mc_cat_lookup[order_idx_arr[0]]
 
         cat = self.meme_const_cats[mc_cat_idx]
@@ -131,14 +139,16 @@ class Message:
         cat_verb_n = self.verb_numbers[cat]
 
         if len(self.used_verbs[cat]) >= cat_verb_n:
-            self.logger.info(f"Out of unique verbs for category {cat}, "
-                             "resetting list of used verbs...")
+            self.logger.info(
+                f"Out of unique verbs for category {cat}, "
+                "resetting list of used verbs..."
+            )
             self._reset_used_verbs(cat)
 
-        verb_idx_list = [* range(0, cat_verb_n)]
+        verb_idx_list = [*range(0, cat_verb_n)]
         verb_idx_set_unused = set(verb_idx_list) - set(self.used_verbs[cat])
 
-        verb_idx = random.choice([* verb_idx_set_unused])
+        verb_idx = random.choice([*verb_idx_set_unused])
         self.used_verbs[cat].append(verb_idx)
 
         verb = self.punlines["performance_verbs"][cat][verb_idx]

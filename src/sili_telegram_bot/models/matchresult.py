@@ -12,7 +12,7 @@ class MatchResult:
         self.assists = assists
         self.deaths = deaths
         if self.deaths == 0:
-            self.meme_constant = (int(kills) + int(assists))
+            self.meme_constant = int(kills) + int(assists)
         else:
             self.meme_constant = (int(kills) + int(assists)) / int(deaths)
         self.hero = hero
