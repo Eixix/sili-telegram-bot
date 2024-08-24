@@ -8,4 +8,4 @@ from sili_telegram_bot.modules.voiceline_scraping import scrape_voiceline_urls
 
 if __name__ == "__main__":
     # TODO Add argparser for output_dir.
-    scrape_voiceline_urls()
+    extract_voiceline_urls()
