@@ -12,6 +12,10 @@ import unicodedata
 
 from typing import TypedDict
 
+from sili_telegram_bot.modules.config import config
+
+VL_CONFIG = config["voicelines"]
+
 
 class EntityResponse(TypedDict):
     text: str
@@ -156,7 +160,7 @@ def parse_response_table(table: bs4.element, base_url: str) -> dict:
 
 def scrape_voiceline_urls(
     output_file: str = "resources/entity_responses.json",
-    base_url: str = "https://liquipedia.net",
+    base_url: str = VL_CONFIG["base_url"],
     navbar_path: str = "/dota2game/Template:VoiceNavSidebar",
 ) -> None:
     """
