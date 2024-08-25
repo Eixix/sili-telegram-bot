@@ -22,6 +22,12 @@ class EntityResponse(TypedDict):
     urls: list[str, None]
 
 
+class EntityData(TypedDict):
+    name: str
+    title: str
+    url: str
+
+
 TEXT_PROCESS_RE_PREFIX = re.compile(
     r"^(\s*)?((Link(\u25B6.)\s)+)?\s*(u\s)?(r\s)?(rem\s)?(\d+\s)?\s*"
 )
