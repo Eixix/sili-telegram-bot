@@ -186,11 +186,11 @@ def save_entity_table(
     """
     entity_table = extract_entity_table(*args, **kwargs)
     with open(output_file, "w") as outfile:
-        json.dump(entity_table, indent=4)
+        json.dump(entity_table, outfile, indent=4)
 
 
 def extract_voiceline_urls(
-    output_file: str = "resources/entity_responses.json",
+    output_file: str = VL_CONFIG["resource_file"],
 ) -> None:
     """
     Extract the URLs for all entities with responses and save to JSON file.
