@@ -6,6 +6,7 @@ so this will need to be adapted to changes there.
 
 import bs4
 import json
+import logging
 import re
 import unicodedata
 
@@ -15,6 +16,8 @@ from sili_telegram_bot.modules.config import config
 from sili_telegram_bot.modules.mediawiki_api import mediawiki_api
 
 VL_CONFIG = config["voicelines"]
+
+LOGGER = logging.getLogger(__name__)
 
 
 class EntityResponse(TypedDict):
@@ -147,6 +150,7 @@ def extract_response_urls_from_titles(
     out = {}
 
     for page_title in page_titles:
+        LOGGER.info(f"Getting responses for page '{page_title}'...")
         page_html = mediawiki_api.page(page_title, auto_suggest=False).html
         out[page_title] = extract_entity_response_urls(page_html)
 
@@ -184,6 +188,7 @@ def save_entity_table(
     """
     Get table with response entity data and save to output_file.
     """
+    LOGGER.info(f"Getting response entity data, will be saved to '{output_file}'.")
     entity_table = extract_entity_table(*args, **kwargs)
     with open(output_file, "w") as outfile:
         json.dump(entity_table, outfile, indent=4)
@@ -203,6 +208,7 @@ def save_resource(
     """
     Get table with response entity data and save to output_file.
     """
+    LOGGER.info(f"Getting responses, will be saved to '{output_file}'.")
     entity_resp_dict = extract_voiceline_urls()
 
     with open(output_file, "w") as outfile:
@@ -217,5 +223,6 @@ def get_response_data() -> None:
     """
     Retrieve data on responses and save to configured paths.
     """
+    LOGGER.info("Getting response data...")
     save_entity_table(output_file=VL_CONFIG["entity_data_file"])
     save_resource(output_file=VL_CONFIG["resource_file"])
