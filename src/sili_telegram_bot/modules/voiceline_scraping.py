@@ -189,17 +189,25 @@ def save_entity_table(
         json.dump(entity_table, outfile, indent=4)
 
 
-def extract_voiceline_urls(
-    output_file: str = VL_CONFIG["resource_file"],
-) -> None:
+def extract_voiceline_urls() -> dict[str, list[EntityData]]:
     """
     Extract the URLs for all entities with responses and save to JSON file.
     """
     response_titles = mediawiki_api.categorymembers("Responses", results=None)[0]
-    entity_resp_dict = extract_response_urls_from_titles(response_titles)
+    return extract_response_urls_from_titles(response_titles)
 
-    json.dump(
-        obj=entity_resp_dict,
-        fp=open(output_file, "w"),
-        indent=2,
-    )
+
+def save_resource(
+    output_file: str = VL_CONFIG["resource_file"],
+) -> None:
+    """
+    Get table with response entity data and save to output_file.
+    """
+    entity_resp_dict = extract_voiceline_urls()
+
+    with open(output_file, "w") as outfile:
+        json.dump(
+            obj=entity_resp_dict,
+            fp=outfile,
+            indent=2,
+        )
