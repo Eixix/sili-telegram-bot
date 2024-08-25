@@ -155,7 +155,7 @@ def extract_response_urls_from_titles(
 
 def extract_entity_table(
     navbar_title: str = "Template:VoiceNavSidebar",
-):
+) -> dict[str, list[EntityData]]:
     """
     Parse data for every response entity from the responses navbar on the wiki.
     """
@@ -173,13 +173,13 @@ def extract_entity_table(
     entity_data_lists = [parse_link_row(link_row) for link_row in path_tag_list]
 
     return {
-        table_header: path_tag
-        for table_header, path_tag in zip(table_headers, entity_data_lists)
+        table_header: entity_list
+        for table_header, entity_list in zip(table_headers, entity_data_lists)
     }
 
 
 def save_entity_table(
-    output_file: str = "resources/entity_table.json", *args, **kwargs
+    output_file: str = VL_CONFIG["entity_data_file"], *args, **kwargs
 ):
     """
     Get table with response entity data and save to output_file.
