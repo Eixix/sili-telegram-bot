@@ -211,3 +211,11 @@ def save_resource(
             fp=outfile,
             indent=2,
         )
+
+
+def get_response_data() -> None:
+    """
+    Retrieve data on responses and save to configured paths.
+    """
+    save_entity_table(output_file=VL_CONFIG["entity_data_file"])
+    save_resource(output_file=VL_CONFIG["resource_file"])
