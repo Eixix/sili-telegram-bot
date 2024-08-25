@@ -267,6 +267,13 @@ def get_if_new_patch(context: CallbackContext) -> None:
                                  parse_mode=ParseMode.HTML)
 
 
+def update_heroes(context: CallbackContext) -> None:
+    """
+    Update heroes json with latest version from the opendota api.
+    """
+    dota_api.update_heroes()
+
+
 def main():
     dispatcher = updater.dispatcher
     job_queue = updater.job_queue
@@ -286,6 +293,10 @@ def main():
     # Reduced the interval heavily, as cloudflare caching should prevent bans completely according to @maakep
     job_queue.run_repeating(get_if_new_patch, interval=30, first=10)
     job_queue.run_daily(poll, datetime.time(0, 0, 0), days=(3,))
+
+    # Trying to catch a new patch, assuming it is out on the night from thursday to
+    # friday at 2AM.
+    job_queue.run_daily(update_response_resource, datetime.time(2, 0, 0), days=(4,))
 
     job_queue.run_daily(upcomingBirthdays, datetime.time(0, 0, 0))
     job_queue.run_daily(todayBirthdays, datetime.time(0, 0, 0))
