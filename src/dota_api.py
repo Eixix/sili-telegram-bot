@@ -9,6 +9,19 @@ from models.playerinfo import Playerinfo
 logger = logging.getLogger(__name__)
 
 
+def update_heroes() -> None:
+    """
+    Retrive current hero list from the openDOTA API.
+    """
+    api_root = "https://api.opendota.com/api"
+    heroes_endpoint = "/heroes"
+
+    heroes_json = requests.get(api_root + heroes_endpoint).json()
+
+    with open("resources/heroes.json", "w") as f:
+        json.dump(heroes_json, f, indent=4)
+
+
 def _get_heroes():
     with open("resources/heroes.json", 'r') as f:
         return json.load(f)
