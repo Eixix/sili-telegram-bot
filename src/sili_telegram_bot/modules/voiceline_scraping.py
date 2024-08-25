@@ -36,15 +36,24 @@ TEXT_PROCESS_RE_PREFIX = re.compile(
 TEXT_PROCESS_RE_SUFFIX = re.compile(r"(\s+followup)?$")
 
 
-def parse_link_row(link_row: bs4.element, base_url: str) -> dict:
+def parse_link_row(
+    link_row: bs4.element, base_url: str = VL_CONFIG["base_url"]
+) -> list[EntityData]:
     """
-    Parse out entitiy names & urls from individual table row.
+    Parse out entitiy names, urls, and titles from individual table row.
     """
-    # For some reason, some entity names contain non-breaking spaces (\u00a0),
-    # which we don't want.
-    return {
-        tag.string.replace("\u00a0", " "): base_url + tag["href"] for tag in link_row
-    }
+    entity_data_list = []
+    for tag in link_row:
+        data = EntityData(
+            # For some reason, some entity names contain non-breaking spaces (\u00a0),
+            # which we don't want.
+            name=tag.string.replace("\u00a0", " "),
+            url=base_url + tag["href"],
+            title=tag["title"],
+        )
+        entity_data_list.append(data)
+
+    return entity_data_list
 
 
 def process_response_text(text: str) -> str:
