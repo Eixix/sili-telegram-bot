@@ -30,7 +30,7 @@
         "id": 3,
         "name": "npc_dota_hero_bane",
         "localized_name": "Bane",
-        "primary_attr": "int",
+        "primary_attr": "all",
         "attack_type": "Ranged",
         "roles": [
             "Support",
@@ -111,7 +111,7 @@
         "id": 9,
         "name": "npc_dota_hero_mirana",
         "localized_name": "Mirana",
-        "primary_attr": "agi",
+        "primary_attr": "all",
         "attack_type": "Ranged",
         "roles": [
             "Carry",
@@ -209,7 +209,7 @@
         "id": 16,
         "name": "npc_dota_hero_sand_king",
         "localized_name": "Sand King",
-        "primary_attr": "str",
+        "primary_attr": "all",
         "attack_type": "Melee",
         "roles": [
             "Initiator",
@@ -270,7 +270,7 @@
         "id": 20,
         "name": "npc_dota_hero_vengefulspirit",
         "localized_name": "Vengeful Spirit",
-        "primary_attr": "agi",
+        "primary_attr": "all",
         "attack_type": "Ranged",
         "roles": [
             "Support",
@@ -285,7 +285,7 @@
         "id": 21,
         "name": "npc_dota_hero_windrunner",
         "localized_name": "Windranger",
-        "primary_attr": "int",
+        "primary_attr": "all",
         "attack_type": "Ranged",
         "roles": [
             "Carry",
@@ -439,7 +439,7 @@
         "id": 33,
         "name": "npc_dota_hero_enigma",
         "localized_name": "Enigma",
-        "primary_attr": "int",
+        "primary_attr": "all",
         "attack_type": "Ranged",
         "roles": [
             "Disabler",
@@ -504,7 +504,7 @@
         "id": 38,
         "name": "npc_dota_hero_beastmaster",
         "localized_name": "Beastmaster",
-        "primary_attr": "str",
+        "primary_attr": "all",
         "attack_type": "Melee",
         "roles": [
             "Initiator",
@@ -531,7 +531,7 @@
         "id": 40,
         "name": "npc_dota_hero_venomancer",
         "localized_name": "Venomancer",
-        "primary_attr": "agi",
+        "primary_attr": "all",
         "attack_type": "Ranged",
         "roles": [
             "Support",
@@ -669,7 +669,7 @@
         "id": 50,
         "name": "npc_dota_hero_dazzle",
         "localized_name": "Dazzle",
-        "primary_attr": "int",
+        "primary_attr": "all",
         "attack_type": "Ranged",
         "roles": [
             "Support",
@@ -682,7 +682,7 @@
         "id": 51,
         "name": "npc_dota_hero_rattletrap",
         "localized_name": "Clockwerk",
-        "primary_attr": "str",
+        "primary_attr": "all",
         "attack_type": "Melee",
         "roles": [
             "Initiator",
@@ -739,7 +739,7 @@
         "id": 55,
         "name": "npc_dota_hero_dark_seer",
         "localized_name": "Dark Seer",
-        "primary_attr": "int",
+        "primary_attr": "all",
         "attack_type": "Melee",
         "roles": [
             "Initiator",
@@ -820,7 +820,7 @@
         "id": 61,
         "name": "npc_dota_hero_broodmother",
         "localized_name": "Broodmother",
-        "primary_attr": "agi",
+        "primary_attr": "all",
         "attack_type": "Melee",
         "roles": [
             "Carry",
@@ -872,7 +872,7 @@
         "id": 65,
         "name": "npc_dota_hero_batrider",
         "localized_name": "Batrider",
-        "primary_attr": "int",
+        "primary_attr": "all",
         "attack_type": "Ranged",
         "roles": [
             "Initiator",
@@ -885,7 +885,7 @@
         "id": 66,
         "name": "npc_dota_hero_chen",
         "localized_name": "Chen",
-        "primary_attr": "int",
+        "primary_attr": "all",
         "attack_type": "Ranged",
         "roles": [
             "Support",
@@ -995,7 +995,7 @@
         "id": 74,
         "name": "npc_dota_hero_invoker",
         "localized_name": "Invoker",
-        "primary_attr": "int",
+        "primary_attr": "all",
         "attack_type": "Ranged",
         "roles": [
             "Carry",
@@ -1038,7 +1038,7 @@
         "id": 77,
         "name": "npc_dota_hero_lycan",
         "localized_name": "Lycan",
-        "primary_attr": "str",
+        "primary_attr": "all",
         "attack_type": "Melee",
         "roles": [
             "Carry",
@@ -1052,7 +1052,7 @@
         "id": 78,
         "name": "npc_dota_hero_brewmaster",
         "localized_name": "Brewmaster",
-        "primary_attr": "str",
+        "primary_attr": "all",
         "attack_type": "Melee",
         "roles": [
             "Carry",
@@ -1081,7 +1081,7 @@
         "id": 80,
         "name": "npc_dota_hero_lone_druid",
         "localized_name": "Lone Druid",
-        "primary_attr": "agi",
+        "primary_attr": "all",
         "attack_type": "Ranged",
         "roles": [
             "Carry",
@@ -1140,7 +1140,7 @@
         "id": 84,
         "name": "npc_dota_hero_ogre_magi",
         "localized_name": "Ogre Magi",
-        "primary_attr": "int",
+        "primary_attr": "str",
         "attack_type": "Melee",
         "roles": [
             "Support",
@@ -1196,7 +1196,7 @@
         "id": 88,
         "name": "npc_dota_hero_nyx_assassin",
         "localized_name": "Nyx Assassin",
-        "primary_attr": "agi",
+        "primary_attr": "all",
         "attack_type": "Melee",
         "roles": [
             "Disabler",
@@ -1239,7 +1239,7 @@
         "id": 91,
         "name": "npc_dota_hero_wisp",
         "localized_name": "Io",
-        "primary_attr": "str",
+        "primary_attr": "all",
         "attack_type": "Ranged",
         "roles": [
             "Support",
@@ -1252,7 +1252,7 @@
         "id": 92,
         "name": "npc_dota_hero_visage",
         "localized_name": "Visage",
-        "primary_attr": "int",
+        "primary_attr": "all",
         "attack_type": "Ranged",
         "roles": [
             "Support",
@@ -1323,7 +1323,7 @@
         "id": 97,
         "name": "npc_dota_hero_magnataur",
         "localized_name": "Magnus",
-        "primary_attr": "str",
+        "primary_attr": "all",
         "attack_type": "Melee",
         "roles": [
             "Initiator",
@@ -1390,7 +1390,7 @@
         "id": 102,
         "name": "npc_dota_hero_abaddon",
         "localized_name": "Abaddon",
-        "primary_attr": "str",
+        "primary_attr": "all",
         "attack_type": "Melee",
         "roles": [
             "Support",
@@ -1432,7 +1432,7 @@
         "id": 105,
         "name": "npc_dota_hero_techies",
         "localized_name": "Techies",
-        "primary_attr": "int",
+        "primary_attr": "all",
         "attack_type": "Ranged",
         "roles": [
             "Nuker",
@@ -1502,7 +1502,7 @@
         "id": 110,
         "name": "npc_dota_hero_phoenix",
         "localized_name": "Phoenix",
-        "primary_attr": "str",
+        "primary_attr": "all",
         "attack_type": "Ranged",
         "roles": [
             "Support",
@@ -1525,13 +1525,13 @@
             "Disabler",
             "Escape"
         ],
-        "legs": 0
+        "legs": 2
     },
     {
         "id": 112,
         "name": "npc_dota_hero_winter_wyvern",
         "localized_name": "Winter Wyvern",
-        "primary_attr": "int",
+        "primary_attr": "all",
         "attack_type": "Ranged",
         "roles": [
             "Support",
@@ -1571,7 +1571,7 @@
         "id": 119,
         "name": "npc_dota_hero_dark_willow",
         "localized_name": "Dark Willow",
-        "primary_attr": "int",
+        "primary_attr": "all",
         "attack_type": "Ranged",
         "roles": [
             "Support",
@@ -1585,7 +1585,7 @@
         "id": 120,
         "name": "npc_dota_hero_pangolier",
         "localized_name": "Pangolier",
-        "primary_attr": "agi",
+        "primary_attr": "all",
         "attack_type": "Melee",
         "roles": [
             "Carry",
@@ -1629,7 +1629,7 @@
         "id": 126,
         "name": "npc_dota_hero_void_spirit",
         "localized_name": "Void Spirit",
-        "primary_attr": "int",
+        "primary_attr": "all",
         "attack_type": "Melee",
         "roles": [
             "Carry",
@@ -1643,7 +1643,7 @@
         "id": 128,
         "name": "npc_dota_hero_snapfire",
         "localized_name": "Snapfire",
-        "primary_attr": "str",
+        "primary_attr": "all",
         "attack_type": "Ranged",
         "roles": [
             "Support",
@@ -1668,6 +1668,20 @@
         "legs": 2
     },
     {
+        "id": 131,
+        "name": "npc_dota_hero_ringmaster",
+        "localized_name": "Ringmaster",
+        "primary_attr": "int",
+        "attack_type": "Ranged",
+        "roles": [
+            "Support",
+            "Nuker",
+            "Escape",
+            "Disabler"
+        ],
+        "legs": 2
+    },
+    {
         "id": 135,
         "name": "npc_dota_hero_dawnbreaker",
         "localized_name": "Dawnbreaker",
@@ -1683,7 +1697,7 @@
         "id": 136,
         "name": "npc_dota_hero_marci",
         "localized_name": "Marci",
-        "primary_attr": "str",
+        "primary_attr": "all",
         "attack_type": "Melee",
         "roles": [
             "Support",
