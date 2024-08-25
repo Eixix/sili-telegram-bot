@@ -18,7 +18,7 @@ import os
 from sili_telegram_bot.modules.config import config
 from sili_telegram_bot.models.message import Message
 from sili_telegram_bot.models.patch_checker import PatchChecker
-from sili_telegram_bot.models.voiceline import Voiceline
+from sili_telegram_bot.models.responses import Responses
 from sili_telegram_bot.models.birthdays import Birthdays
 from sili_telegram_bot.modules.voiceline_scraping import extract_voiceline_urls
 
@@ -153,9 +153,9 @@ def voiceline(update: Update, context: CallbackContext) -> None:
             hero, line = arg_string.split(":")
 
             try:
-                vl = Voiceline(hero)
+                responses = Responses()
 
-                vl_link = vl.get_link(line.strip())
+                vl_link = responses.get_link(hero, line.strip())
 
             except Exception as e:
                 logger.error(f"Error while attempting to get voiceline for {hero}: {e}")
@@ -165,51 +165,38 @@ def voiceline(update: Update, context: CallbackContext) -> None:
                     text=str(e),
                 )
 
-            if vl_link is None:
+            vl_file_path = responses.download_mp3(vl_link)
+
+            try:
+                # Delete /voiceline to make conversation more seamless
+                try:
+                    context.bot.delete_message(
+                        chat_id=config["secrets"]["chat_id"],
+                        message_id=update.message.message_id,
+                    )
+                except error.BadRequest as e:
+                    logger.warning(
+                        f"Error attempting to delete message: {e}. Likely "
+                        f"insufficient permissions for the bot in this chat. Try "
+                        f"giving it the `can_delete_messages` permission. See "
+                        f"<https://docs.python-telegram-bot.org/en/stable/telegram.bot.html#telegram.Bot.delete_message> "
+                        f"for more info."
+                    )
+
+                sender_name = user_to_representation(update.message.from_user)
+
                 context.bot.send_message(
+                    chat_id=config["secrets"]["chat_id"], text=sender_name + ":"
+                )
+                context.bot.send_voice(
                     chat_id=config["secrets"]["chat_id"],
-                    text=(
-                        "Could not find line... "
-                        "Check here if you typed it right: "
-                        f"{vl.response_url}"
-                    ),
+                    voice=open(vl_file_path, "rb"),
                 )
 
-                logger.info("... delivery failed, could not find voiceline.")
+                logger.info("... voiceline delivered.")
 
-            else:
-                vl_file_path = vl.download_mp3(vl_link)
-
-                try:
-                    # Delete /voiceline to make conversation more seamless
-                    try:
-                        context.bot.delete_message(
-                            chat_id=config["secrets"]["chat_id"],
-                            message_id=update.message.message_id,
-                        )
-                    except error.BadRequest as e:
-                        logger.warning(
-                            f"Error attempting to delete message: {e}. Likely "
-                            f"insufficient permissions for the bot in this chat. Try "
-                            f"giving it the `can_delete_messages` permission. See "
-                            f"<https://docs.python-telegram-bot.org/en/stable/telegram.bot.html#telegram.Bot.delete_message> "
-                            f"for more info."
-                        )
-
-                    sender_name = user_to_representation(update.message.from_user)
-
-                    context.bot.send_message(
-                        chat_id=config["secrets"]["chat_id"], text=sender_name + ":"
-                    )
-                    context.bot.send_voice(
-                        chat_id=config["secrets"]["chat_id"],
-                        voice=open(vl_file_path, "rb"),
-                    )
-
-                    logger.info("... voiceline delivered.")
-
-                finally:
-                    os.remove(vl_file_path)
+            finally:
+                os.remove(vl_file_path)
 
 
 def crawl(update: Update, context: CallbackContext):
