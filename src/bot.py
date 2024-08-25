@@ -296,7 +296,7 @@ def main():
 
     # Trying to catch a new patch, assuming it is out on the night from thursday to
     # friday at 2AM.
-    job_queue.run_daily(update_response_resource, datetime.time(2, 0, 0), days=(4,))
+    job_queue.run_daily(update_heroes, datetime.time(2, 0, 0), days=(4,))
 
     job_queue.run_daily(upcomingBirthdays, datetime.time(0, 0, 0))
     job_queue.run_daily(todayBirthdays, datetime.time(0, 0, 0))
