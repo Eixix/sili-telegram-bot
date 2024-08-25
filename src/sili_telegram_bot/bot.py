@@ -20,6 +20,7 @@ from sili_telegram_bot.models.message import Message
 from sili_telegram_bot.models.patch_checker import PatchChecker
 from sili_telegram_bot.models.voiceline import Voiceline
 from sili_telegram_bot.models.birthdays import Birthdays
+from sili_telegram_bot.modules.voiceline_scraping import extract_voiceline_urls
 
 updater = Updater(config["secrets"]["bot_token"])
 RESOURCE_CONFIG = config["static_resources"]
@@ -116,6 +117,13 @@ def user_to_representation(user: user.User):
             return name
         elif "id" in representation_dict:
             return str(representation_dict["id"])
+
+
+def update_response_resource(context: CallbackContext) -> None:
+    """
+    Update the JSON file containing all voiceline URLs.
+    """
+    extract_voiceline_urls(output_file=config["voicelines"]["resource_file"])
 
 
 def voiceline(update: Update, context: CallbackContext) -> None:
@@ -325,6 +333,7 @@ def main():
     # Reduced the interval heavily, as cloudflare caching should prevent bans completely according to @maakep
     job_queue.run_repeating(get_if_new_patch, interval=30, first=10)
     job_queue.run_daily(poll, datetime.time(0, 0, 0), days=(3,))
+    job_queue.run_daily(update_response_resource, datetime.time(0, 0, 0), days=(6,))
 
     # Trying to catch a new patch, assuming it is out on the night from thursday to
     # friday at 2AM.
