@@ -1668,6 +1668,20 @@
         "legs": 2
     },
     {
+        "id": 131,
+        "name": "npc_dota_hero_ringmaster",
+        "localized_name": "Ringmaster",
+        "primary_attr": "int",
+        "attack_type": "Ranged",
+        "roles": [
+            "Support",
+            "Nuker",
+            "Escape",
+            "Disabler"
+        ],
+        "legs": 2
+    },
+    {
         "id": 135,
         "name": "npc_dota_hero_dawnbreaker",
         "localized_name": "Dawnbreaker",
