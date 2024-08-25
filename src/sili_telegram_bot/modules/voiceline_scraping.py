@@ -178,6 +178,17 @@ def extract_entity_table(
     }
 
 
+def save_entity_table(
+    output_file: str = "resources/entity_table.json", *args, **kwargs
+):
+    """
+    Get table with response entity data and save to output_file.
+    """
+    entity_table = extract_entity_table(*args, **kwargs)
+    with open(output_file, "w") as outfile:
+        json.dump(entity_table, indent=4)
+
+
 def extract_voiceline_urls(
     output_file: str = "resources/entity_responses.json",
 ) -> None:
