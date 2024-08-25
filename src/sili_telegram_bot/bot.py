@@ -25,9 +25,6 @@ updater = Updater(config["secrets"]["bot_token"])
 RESOURCE_CONFIG = config["static_resources"]
 
 
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
 logger = logging.getLogger(__name__)
 
 punlines = {}

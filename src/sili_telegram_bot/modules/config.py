@@ -4,6 +4,7 @@ Much of the behavior is controlled via  default config file's 'metaconfig' field
 """
 
 import json
+import logging
 import os
 import configparser as cfp
 
@@ -60,3 +61,8 @@ def get_accounts() -> list[dict]:
     """
     # FIXME Use some other config library that allows for deeper nesting.
     return literal_eval(config["accounts"]["account_list"])
+
+
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+)
