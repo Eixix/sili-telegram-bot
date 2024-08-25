@@ -153,6 +153,31 @@ def extract_response_urls_from_titles(
     return out
 
 
+def extract_entity_table(
+    navbar_title: str = "Template:VoiceNavSidebar",
+):
+    """
+    Parse data for every response entity from the responses navbar on the wiki.
+    """
+    navbar_page = mediawiki_api.page(navbar_title)
+    navbar_soup = bs4.BeautifulSoup(navbar_page.html, features="html.parser")
+    url_table = navbar_soup.find(class_="nowraplinks")
+
+    table_headers = [
+        tag.string.strip() for tag in url_table.find_all(class_="navbox-odd")
+    ]
+    path_tag_list = [
+        tag.find_all("a") for tag in url_table.find_all(class_="navbox-even")
+    ]
+
+    entity_data_lists = [parse_link_row(link_row) for link_row in path_tag_list]
+
+    return {
+        table_header: path_tag
+        for table_header, path_tag in zip(table_headers, entity_data_lists)
+    }
+
+
 def extract_voiceline_urls(
     output_file: str = "resources/entity_responses.json",
 ) -> None:
