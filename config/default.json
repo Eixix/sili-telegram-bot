@@ -34,7 +34,8 @@
         "user_agent_title": "sili-telegram-bot instance",
         "user_agent_url": "https://github.com/Eixix/sili-telegram-bot",
         "user_agent_email": null,
-        "resource_file": "resources/dynamic/entity_responses.json"
+        "resource_file": "resources/dynamic/entity_responses.json",
+        "entity_data_file": "resources/dynamic/entity_data.json"
     },
     "dynamic_resources": {
         "hero_data_path": "resources/dynamic/heroes.json",
