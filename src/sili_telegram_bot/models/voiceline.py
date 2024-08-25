@@ -101,7 +101,7 @@ class Voiceline:
         if not file_name_match:
             raise (
                 f"Could not extract file name from link. Is the link "
-                + f"correct? {link}"
+                f"correct? {link}"
             )
 
         file_path = os.path.join(
