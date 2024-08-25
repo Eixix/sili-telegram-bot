@@ -32,7 +32,7 @@ dev = ["black", "pytest-cases<=3.8.5", "pytest<=8.3"]
 
 [project.scripts]
 run_bot = "sili_telegram_bot.bot:main"
-get_voiceline_table = "sili_telegram_bot.modules.voiceline_scraping:save_resource"
+get_response_data = "sili_telegram_bot.modules.voiceline_scraping:get_response_data"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
