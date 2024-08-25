@@ -47,12 +47,20 @@ def parse_link_row(
     """
     entity_data_dict = {}
     for tag in link_row:
+        ref_sep = "/"
         entity_name = tag.string.replace("\u00a0", " ")
+
+        # These tags are relative to the root of the entire wiki, so we need to
+        # prune the wiki specifier off of them if we want to glue it onto the base_url.
+        pruned_ref = ref_sep + ref_sep.join(
+            tag["href"].strip(ref_sep).split(ref_sep)[1:]
+        )
+
         data = EntityData(
             # For some reason, some entity names contain non-breaking spaces (\u00a0),
             # which we don't want.
             name=entity_name,
-            url=base_url + tag["href"],
+            url=base_url + pruned_ref,
             title=tag["title"],
         )
         entity_data_dict[entity_name] = data
