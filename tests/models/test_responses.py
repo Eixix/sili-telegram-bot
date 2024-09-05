@@ -10,7 +10,9 @@ class TestResponses:
     Test the Response class.
     """
 
-    @parametrize_with_cases("hero_name", cases=case_module.TestResponsesCases)
+    @parametrize_with_cases(
+        "hero_name", cases=case_module.TestResponsesCases.TestCrummyWizardCases
+    )
     def test_crummy_wizard_success(self, hero_name) -> None:
         """
         Test if the "Crummy wizard" voiceline can be retrieved for a given hero.

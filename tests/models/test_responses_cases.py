@@ -58,16 +58,17 @@ def remaining_voiced_heroes() -> list[str]:
 
 class TestResponsesCases:
 
-    def case_default(self):
-        """
-        Generate a case just for Keeper of the Light as a (almost) random hero.
-        """
-        return default_hero()
+    class TestCrummyWizardCases:
+        def case_default(self):
+            """
+            Generate a case just for Keeper of the Light as a (almost) random hero.
+            """
+            return default_hero()
 
-    @pytest.mark.slow
-    @parametrize("hero_name", remaining_heroes())
-    def case_remaining_heroes(self, hero_name: str):
-        """
-        Generate cases involving all known hero names.
-        """
-        return hero_name
+        @pytest.mark.slow
+        @parametrize("hero_name", remaining_voiced_heroes())
+        def case_remaining_voiced_heroes(self, hero_name: str):
+            """
+            Generate cases involving all known hero names.
+            """
+            return hero_name
