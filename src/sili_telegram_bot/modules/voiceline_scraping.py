@@ -10,25 +10,13 @@ import logging
 import re
 import unicodedata
 
-from typing import TypedDict
-
 from sili_telegram_bot.modules.config import config
 from sili_telegram_bot.modules.mediawiki_api import mediawiki_api
+from sili_telegram_bot.modules.response_types import EntityData, EntityResponse
 
 VL_CONFIG = config["voicelines"]
 
 LOGGER = logging.getLogger(__name__)
-
-
-class EntityResponse(TypedDict):
-    text: str
-    urls: list[str, None]
-
-
-class EntityData(TypedDict):
-    name: str
-    title: str
-    url: str
 
 
 TEXT_PROCESS_RE_PREFIX = re.compile(
