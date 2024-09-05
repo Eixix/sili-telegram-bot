@@ -11,7 +11,7 @@ import re
 import unicodedata
 
 from sili_telegram_bot.modules.config import config
-from sili_telegram_bot.modules.mediawiki_api import mediawiki_api
+from sili_telegram_bot.modules.mediawiki_api import APIWrapper
 from sili_telegram_bot.modules.response_types import EntityData, EntityResponse
 
 VL_CONFIG = config["voicelines"]
@@ -146,6 +146,8 @@ def extract_response_urls_from_titles(
     """
     out = {}
 
+    mediawiki_api = APIWrapper.get_or_create_mediawiki_api()
+
     for page_title in page_titles:
         LOGGER.info(f"Getting responses for page '{page_title}'...")
         page_html = mediawiki_api.page(page_title, auto_suggest=False).html
@@ -160,6 +162,7 @@ def extract_entity_table(
     """
     Parse data for every response entity from the responses navbar on the wiki.
     """
+    mediawiki_api = APIWrapper.get_or_create_mediawiki_api()
     navbar_page = mediawiki_api.page(navbar_title)
     navbar_soup = bs4.BeautifulSoup(navbar_page.html, features="html.parser")
     url_table = navbar_soup.find(class_="nowraplinks")
@@ -195,6 +198,7 @@ def extract_voiceline_urls() -> dict[str, dict[str, EntityData]]:
     """
     Extract the URLs for all entities with responses and save to JSON file.
     """
+    mediawiki_api = APIWrapper.get_or_create_mediawiki_api()
     response_titles = mediawiki_api.categorymembers("Responses", results=None)[0]
     return extract_response_urls_from_titles(response_titles)
 
