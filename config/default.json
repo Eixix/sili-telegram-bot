@@ -26,7 +26,7 @@
         "account_matches_endpoint": "matches"
     },
     "voicelines": {
-        "base_url": "https://liquipedia.net/dota2game",
+        "base_url": "https://liquipedia.net/dota2",
         "all_hero_path": "Heroes",
         "hero_response_path": "Responses",
         "temp_download_dir": "resources",
