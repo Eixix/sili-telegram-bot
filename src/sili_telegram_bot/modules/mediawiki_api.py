@@ -21,6 +21,7 @@ _api_rate_limit_wait = datetime.timedelta(
     seconds=int(vl_config["secs_between_requests"])
 )
 
+# FIXME Handle connection errors & don't intaniate this on module load already.
 mediawiki_api = mediawiki.MediaWiki(
     url=_api_url,
     rate_limit=True,
