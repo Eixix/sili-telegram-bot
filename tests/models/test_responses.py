@@ -11,6 +11,18 @@ class TestResponses:
     """
 
     @parametrize_with_cases(
+        "entity_name,response",
+        cases=case_module.TestResponsesCases.TestFirstVoicelineCases,
+    )
+    def test_first_voiceline(self, entity_name, response) -> None:
+        """
+        Get the first response for any entity.
+        """
+        rsp = Responses()
+        resp_url = rsp.get_link(entity_name, response)
+        assert resp_url is not None
+
+    @parametrize_with_cases(
         "hero_name", cases=case_module.TestResponsesCases.TestCrummyWizardCases
     )
     def test_crummy_wizard_success(self, hero_name) -> None:
