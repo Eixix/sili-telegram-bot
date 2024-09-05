@@ -16,7 +16,7 @@ def all_hero_names() -> list[str]:
     return [hero["localized_name"] for hero in known_heroes]
 
 
-class TestVoicelineCases:
+class TestResponsesCases:
     @pytest.mark.slow
     @parametrize("hero_name", all_hero_names())
     def case_hero_generator(self, hero_name: str):
