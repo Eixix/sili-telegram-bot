@@ -16,6 +16,22 @@ def all_hero_names() -> list[str]:
     return [hero["localized_name"] for hero in known_heroes]
 
 
+def unvoiced_heroes() -> list[str]:
+    """
+    Provide a list of all the heroes that aren't actually voiced.
+    """
+    return ["Io", "Phoenix", "Marci", "Primal Beast"]
+
+
+def voiced_heroes() -> list[str]:
+    """
+    Provide a list of all heroes with actual voicelines.
+    """
+    unvoiced_set = set(unvoiced_heroes())
+    voiced_set = set(all_hero_names()) - unvoiced_set
+    return [*voiced_set]
+
+
 class TestResponsesCases:
     @pytest.mark.slow
     @parametrize("hero_name", all_hero_names())
