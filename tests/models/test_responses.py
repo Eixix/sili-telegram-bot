@@ -15,8 +15,7 @@ class TestResponses:
     )
     def test_crummy_wizard_success(self, hero_name) -> None:
         """
-        Test if the "Crummy wizard" voiceline can be retrieved for a given hero.
-        (That voiceline exists for every hero *so far*.)
+        Test if the "Crummy wizard" voiceline can be retrieved for a given voiced hero.
         """
         rsp = Responses()
         resp_url = rsp.get_link(hero_name, "Crummy wizard")
