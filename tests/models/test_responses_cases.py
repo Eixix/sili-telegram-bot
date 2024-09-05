@@ -32,6 +32,30 @@ def voiced_heroes() -> list[str]:
     return [*voiced_set]
 
 
+def default_hero() -> str:
+    """
+    Provide some default hero_name.
+    """
+    return "Keeper of the Light"
+
+
+def remaining_heroes() -> list[str]:
+    """
+    Provide a list of all the heroes except the default one to avoid duplication.
+    """
+    remaining_set = set(all_hero_names()) - set(default_hero())
+    return [*remaining_set]
+
+
+def remaining_voiced_heroes() -> list[str]:
+    """
+    Provide a list of all the voiced heroes except the default one to avoid duplication.
+    """
+    remaining_voiced_heroes = set(voiced_heroes()) - set(default_hero())
+
+    return [*remaining_voiced_heroes]
+
+
 class TestResponsesCases:
     @pytest.mark.slow
     @parametrize("hero_name", all_hero_names())
