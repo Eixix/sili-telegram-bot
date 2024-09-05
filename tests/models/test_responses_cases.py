@@ -4,7 +4,7 @@ import pytest
 from pytest_cases import parametrize
 
 
-def all_hero_names() -> list[str]:
+def all_hero_names() -> set[str]:
     """
     Provide a list of all known hero names.
     """
@@ -13,23 +13,21 @@ def all_hero_names() -> list[str]:
     with open(hero_info_path, "r") as f:
         known_heroes = json.load(f)
 
-    return [hero["localized_name"] for hero in known_heroes]
+    return {hero["localized_name"] for hero in known_heroes}
 
 
-def unvoiced_heroes() -> list[str]:
+def unvoiced_heroes() -> set[str]:
     """
     Provide a list of all the heroes that aren't actually voiced.
     """
-    return ["Io", "Phoenix", "Marci", "Primal Beast"]
+    return {"Io", "Phoenix", "Marci", "Primal Beast"}
 
 
-def voiced_heroes() -> list[str]:
+def voiced_heroes() -> set[str]:
     """
     Provide a list of all heroes with actual voicelines.
     """
-    unvoiced_set = set(unvoiced_heroes())
-    voiced_set = set(all_hero_names()) - unvoiced_set
-    return [*voiced_set]
+    return set(all_hero_names()) - set(unvoiced_heroes())
 
 
 def default_hero() -> str:
@@ -39,21 +37,19 @@ def default_hero() -> str:
     return "Keeper of the Light"
 
 
-def remaining_heroes() -> list[str]:
+def remaining_heroes() -> set[str]:
     """
     Provide a list of all the heroes except the default one to avoid duplication.
     """
-    remaining_set = set(all_hero_names()) - set(default_hero())
-    return [*remaining_set]
+    return set(all_hero_names()) - set(default_hero())
 
 
-def remaining_voiced_heroes() -> list[str]:
+def remaining_voiced_heroes() -> set[str]:
     """
     Provide a list of all the voiced heroes except the default one to avoid duplication.
     """
-    remaining_voiced_heroes = set(voiced_heroes()) - set(default_hero())
 
-    return [*remaining_voiced_heroes]
+    return set(voiced_heroes()) - set(default_hero())
 
 
 class TestResponsesCases:
