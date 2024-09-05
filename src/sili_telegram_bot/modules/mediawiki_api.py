@@ -21,10 +21,22 @@ _api_rate_limit_wait = datetime.timedelta(
     seconds=int(vl_config["secs_between_requests"])
 )
 
-# FIXME Handle connection errors & don't intaniate this on module load already.
-mediawiki_api = mediawiki.MediaWiki(
-    url=_api_url,
-    rate_limit=True,
-    rate_limit_wait=_api_rate_limit_wait,
-    user_agent=_user_agent,
-)
+
+class APIWrapper:
+    """
+    Singleton wrapper for the mediawiki API.
+    """
+
+    _mediawiki_api = None
+
+    @classmethod
+    def get_or_create_mediawiki_api(cls) -> mediawiki.MediaWiki:
+        if cls._mediawiki_api is None:
+            cls._mediawiki_api = mediawiki.MediaWiki(
+                url=_api_url,
+                rate_limit=True,
+                rate_limit_wait=_api_rate_limit_wait,
+                user_agent=_user_agent,
+            )
+
+        return cls._mediawiki_api
