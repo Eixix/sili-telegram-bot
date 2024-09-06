@@ -28,7 +28,7 @@ TEXT_PROCESS_RE_SUFFIX = re.compile(r"(\s+followup)?$")
 
 
 def parse_link_row(
-    link_row: bs4.element, base_url: str = VL_CONFIG["base_url"]
+    link_row: bs4.element.Tag, base_url: str = VL_CONFIG["base_url"]
 ) -> dict[str, EntityData]:
     """
     Parse out entitiy names, urls, and titles from individual table row.
@@ -69,21 +69,21 @@ def process_response_text(text: str) -> str:
     return processed_text
 
 
-def audio_button_has_url(button_tag: bs4.element) -> bool:
+def audio_button_has_url(button_tag: bs4.element.Tag) -> bool:
     """
     Check if a audio button tag has an associated audio url.
     """
     return button_tag["data-state"] == "play"
 
 
-def get_audio_button_url(button_tag: bs4.element) -> str:
+def get_audio_button_url(button_tag: bs4.element.Tag) -> str:
     """
     Get the associated audio URL from an audio-button by extracing it from its parent.
     """
     return button_tag.parent.source["src"]
 
 
-def response_from_link_tag(link_tag: bs4.element) -> EntityResponse | None:
+def response_from_link_tag(link_tag: bs4.element.Tag) -> EntityResponse | None:
     """
     Extract information on the response contained in a link tag. If no information
     is present, return None.
