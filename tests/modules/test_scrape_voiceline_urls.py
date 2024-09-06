@@ -1,8 +1,10 @@
 import bs4
+import pytest
 
 from pytest_cases import parametrize_with_cases
 
 import test_scrape_voiceline_urls_cases as case_module
+import test_infrastructure.common_case_infra as case_infra
 
 from sili_telegram_bot.modules import voiceline_scraping
 
@@ -34,3 +36,19 @@ class TestVoicelineScraper:
                 assert isinstance(res["urls"][0], str | None)
             else:
                 assert res is None
+
+    class TestExtractResponseUrlsFromTitles:
+
+        @pytest.mark.slow
+        @parametrize_with_cases(
+            "input",
+            cases=case_module.TestVoicelineScraperCases.TestExtractResponseUrlsFromTitlesCases,
+        )
+        def test_success(self, input):
+            """
+            Test basic functionality.
+            """
+            res = voiceline_scraping.extract_response_urls_from_titles(input)
+
+            assert isinstance(res, dict)
+            assert input == [*res.keys()]
