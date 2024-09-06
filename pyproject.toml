@@ -35,5 +35,6 @@ run_bot = "sili_telegram_bot.bot:main"
 get_response_data = "sili_telegram_bot.modules.voiceline_scraping:get_response_data"
 
 [tool.pytest.ini_options]
+pythonpath = "tests/"
 testpaths = ["tests"]
 markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]
