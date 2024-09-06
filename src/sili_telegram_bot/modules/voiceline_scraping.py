@@ -111,6 +111,19 @@ def response_from_link_tag(link_tag: bs4.element.Tag) -> EntityResponse | None:
         return None
 
 
+def response_tags_from_soup(response_soup: bs4.BeautifulSoup) -> list[bs4.element.Tag]:
+    """
+    Get all response link tags from the soup of a response page.
+    """
+    # All li tags in bullet points.
+    bullet_li_tags = response_soup.select(".mw-parser-output > ul li")
+
+    # Li tags inside tables (found in Announcers.)
+    table_li_tags = response_soup.select(".wikitable li")
+
+    return bullet_li_tags + table_li_tags
+
+
 def extract_entity_response_urls(entity_page_html: str) -> list[EntityResponse]:
     """
     Extract all response urls (to audio files) of an entity from the html of its
@@ -121,12 +134,7 @@ def extract_entity_response_urls(entity_page_html: str) -> list[EntityResponse]:
     """
     entity_soup = bs4.BeautifulSoup(entity_page_html, features="html.parser")
 
-    # All li tags in bullet points.
-    bullet_li_tags = entity_soup.select(".mw-parser-output > ul li")
-
-    # Li tags inside tables (found in Announcers.)
-    table_li_tags = entity_soup.select(".wikitable li")
-    response_tags = bullet_li_tags + table_li_tags
+    response_tags = response_tags_from_soup(entity_soup)
 
     responses = []
 
