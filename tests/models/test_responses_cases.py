@@ -112,10 +112,9 @@ class TestResponsesCases:
             # adding the whole lookup logic here seems silly as .
             return (default_hero(), first_voiceline(default_hero() + "/Responses"))
 
-        def case_remaining_heroes(self):
+        @pytest.mark.slow
+        @parametrize("hero_name", remaining_voiced_heroes())
+        def case_remaining_heroes(self, hero_name):
             # FIXME This conversion from hero to entity name is pretty hacky, but
             # adding the whole lookup logic here seems silly.
-            return [
-                (hero_name, first_voiceline(hero_name + "/Responses"))
-                for hero_name in remaining_heroes()
-            ]
+            return (hero_name, first_voiceline(hero_name + "/Responses"))
