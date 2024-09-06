@@ -68,6 +68,15 @@ def remaining_voiced_heroes() -> set[str]:
     return voiced_heroes() - set(default_hero())
 
 
+def hero_name_to_tile(hero_name: str) -> str:
+    """
+    Look up a hero's title in the entity data.
+    """
+    entity_data = VoicelineResource.get_entity_dict()
+
+    return entity_data["Hero responses"][hero_name]["title"]
+
+
 
 def first_voiceline(entity) -> str:
     """
