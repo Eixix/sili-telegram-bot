@@ -118,10 +118,13 @@ def response_tags_from_soup(response_soup: bs4.BeautifulSoup) -> list[bs4.elemen
     # All li tags in bullet points.
     bullet_li_tags = response_soup.select(".mw-parser-output > ul li")
 
+    # Li tags hidden in tabs.
+    tab_content_li_tags = response_soup.select(".tabs-content li")
+
     # Li tags inside tables (found in Announcers.)
     table_li_tags = response_soup.select(".wikitable li")
 
-    return bullet_li_tags + table_li_tags
+    return bullet_li_tags + table_li_tags + tab_content_li_tags
 
 
 def extract_entity_response_urls(entity_page_html: str) -> list[EntityResponse]:
