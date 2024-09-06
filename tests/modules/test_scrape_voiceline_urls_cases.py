@@ -1,4 +1,9 @@
 import bs4
+import pytest
+
+from pytest_cases import parametrize
+
+import test_infrastructure.common_case_infra as case_infra
 
 
 def str_to_li_tag(x: str) -> bs4.element.Tag:
@@ -196,3 +201,28 @@ class TestVoicelineScraperCases:
                 ),
                 True,
             )
+
+    class TestExtractResponseUrlsFromTitlesCases:
+
+        def case_default_hero(self):
+            return [case_infra.hero_name_to_tile(case_infra.default_hero())]
+
+        @pytest.mark.skip(
+            reason=(
+                "I'm not sure pytest is set up to always use just one instance of "
+                "the mediawiki API."
+            )
+        )
+        @parametrize("hero_name", case_infra.remaining_heroes())
+        def case_remaining_heroes(self, hero_name):
+            return [case_infra.hero_name_to_tile(hero_name)]
+
+        @pytest.mark.skip(
+            reason=(
+                "I'm not sure pytest is set up to always use just one instance of "
+                "the mediawiki API."
+            )
+        )
+        @parametrize("entity_title", case_infra.non_hero_entity_page_titles())
+        def case_remaining_heroes(self, entity_title):
+            return [entity_title]

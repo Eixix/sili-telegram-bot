@@ -1,4 +1,5 @@
 import bs4
+import pytest
 
 from pytest_cases import parametrize_with_cases
 
@@ -34,3 +35,19 @@ class TestVoicelineScraper:
                 assert isinstance(res["urls"][0], str | None)
             else:
                 assert res is None
+
+    class TestExtractResponseUrlsFromTitles:
+
+        @pytest.mark.slow
+        @parametrize_with_cases(
+            "input",
+            cases=case_module.TestVoicelineScraperCases.TestExtractResponseUrlsFromTitlesCases,
+        )
+        def test_success(self, input):
+            """
+            Test basic functionality.
+            """
+            res = voiceline_scraping.extract_response_urls_from_titles(input)
+
+            assert isinstance(res, dict)
+            assert input == [*res.keys()]
