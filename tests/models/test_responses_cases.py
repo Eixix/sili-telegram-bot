@@ -24,16 +24,17 @@ class TestResponsesCases:
 
     class TestFirstVoicelineCases:
         def case_default(self):
-            # FIXME This conversion from hero to entity name is pretty hacky, but
-            # adding the whole lookup logic here seems silly as .
             return (
                 case_infra.default_hero(),
-                case_infra.first_voiceline(case_infra.default_hero() + "/Responses"),
+                case_infra.first_voiceline(
+                    case_infra.hero_name_to_tile(case_infra.default_hero())
+                ),
             )
 
         @pytest.mark.slow
         @parametrize("hero_name", case_infra.remaining_voiced_heroes())
         def case_remaining_heroes(self, hero_name):
-            # FIXME This conversion from hero to entity name is pretty hacky, but
-            # adding the whole lookup logic here seems silly.
-            return (hero_name, case_infra.first_voiceline(hero_name + "/Responses"))
+            return (
+                hero_name,
+                case_infra.first_voiceline(case_infra.hero_name_to_tile(hero_name)),
+            )
