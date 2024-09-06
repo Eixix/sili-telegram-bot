@@ -44,7 +44,7 @@ def voiced_heroes() -> set[str]:
     """
     Provide a list of all heroes with actual voicelines.
     """
-    return set(all_hero_names()) - set(unvoiced_heroes())
+    return all_hero_names() - unvoiced_heroes()
 
 
 def default_hero() -> str:
@@ -58,15 +58,15 @@ def remaining_heroes() -> set[str]:
     """
     Provide a list of all the heroes except the default one to avoid duplication.
     """
-    return set(all_hero_names()) - set(default_hero())
+    return all_hero_names() - set(default_hero())
 
 
 def remaining_voiced_heroes() -> set[str]:
     """
     Provide a list of all the voiced heroes except the default one to avoid duplication.
     """
+    return voiced_heroes() - set(default_hero())
 
-    return set(voiced_heroes()) - set(default_hero())
 
 
 def first_voiceline(entity) -> str:
