@@ -9,6 +9,7 @@ class VoicelineResource:
     """
 
     _resource_dict = None
+    _entity_dict = None
 
     @classmethod
     def get_resource_dict(cls) -> dict:
@@ -19,6 +20,16 @@ class VoicelineResource:
                 cls._resource_dict = json.load(f)
 
         return cls._resource_dict
+
+    @classmethod
+    def get_entity_dict(cls) -> dict:
+        if cls._entity_dict is None:
+            entity_data_file = CONFIG["voicelines"]["entity_data_file"]
+
+            with open(entity_data_file, "r") as f:
+                cls._entity_dict = json.load(f)
+
+        return cls._entity_dict
 
 
 def all_hero_names() -> set[str]:
@@ -76,6 +87,48 @@ def hero_name_to_tile(hero_name: str) -> str:
 
     return entity_data["Hero responses"][hero_name]["title"]
 
+
+def non_hero_entity_dict() -> dict:
+    """
+    Provide the entity dict without heroes.
+    """
+    entity_dict = VoicelineResource.get_entity_dict()
+
+    return {
+        name: section
+        for name, section in entity_dict.items()
+        if name != "Hero responses"
+    }
+
+
+def non_hero_entity_page_titles() -> set[str]:
+    """
+    Provide a set of all the wiki page titles of all non-hero response entities.
+    """
+    entity_dict = non_hero_entity_dict()
+
+    page_titles = set()
+
+    for section in entity_dict.values():
+        section_titles = [item["title"] for item in section.values()]
+        page_titles = page_titles.union(set(section_titles))
+
+    return page_titles
+
+
+def non_hero_entity_names() -> set[str]:
+    """
+    Provide the set of names of all non-hero response entities.
+    """
+    entity_dict = non_hero_entity_dict()
+
+    entity_names = set()
+
+    for section in entity_dict.values():
+        section_names = [item["name"] for item in section.values()]
+        entity_names = entity_names.union(set(section_names))
+
+    return entity_names
 
 
 def first_voiceline(entity) -> str:
