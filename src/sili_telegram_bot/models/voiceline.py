@@ -7,6 +7,7 @@ import os
 from sili_telegram_bot.modules.config import config
 
 DYN_RESOURCE_CONFIG = config["dynamic_resources"]
+VL_CONFIG = config["voicelines"]
 
 
 class Voiceline:
@@ -17,7 +18,6 @@ class Voiceline:
     soup = bs4.BeautifulSoup()
 
     def __init__(self, hero_string: str) -> None:
-        base_url = "https://liquipedia.net/dota2game"
 
         with open(DYN_RESOURCE_CONFIG["hero_data_path"], "r") as f:
             known_heroes = json.load(f)
@@ -32,7 +32,10 @@ class Voiceline:
         }
 
         if not hero_lookup_string in hero_name_lookup:
-            all_hero_url = base_url + "/Heroes"
+            base_url = VL_CONFIG["base_url"]
+            all_hero_path = VL_CONFIG["all_hero_path"]
+            all_hero_url = f"{base_url}/{all_hero_path}"
+
             raise ValueError(
                 f"Unknown hero {hero_string}. "
                 f"(Check the hero name against the hero list at {all_hero_url})"
@@ -43,7 +46,9 @@ class Voiceline:
         # name follows that pattern
         self.hero = hero_name_lookup[hero_lookup_string].replace(" ", "_")
 
-        self.response_url = f"{base_url}/{self.hero}/Responses"
+        self.response_url = (
+            f"{VL_CONFIG['base_url']}/{self.hero}/{VL_CONFIG['hero_response_path']}"
+        )
 
         vl_pg_response = requests.get(self.response_url)
         self.soup = bs4.BeautifulSoup(vl_pg_response.content, features="html.parser")
@@ -99,7 +104,9 @@ class Voiceline:
                 + f"correct? {link}"
             )
 
-        file_path = os.path.join("resources", file_name_match.group())
+        file_path = os.path.join(
+            VL_CONFIG["temp_download_dir"], file_name_match.group()
+        )
 
         dl_response = requests.get(link)
 

@@ -22,6 +22,12 @@
         "player_segment": "players",
         "account_matches_endpoint": "matches"
     },
+    "voicelines": {
+        "base_url": "https://liquipedia.net/dota2game",
+        "all_hero_path": "Heroes",
+        "hero_response_path": "Responses",
+        "temp_download_dir": "resources"
+    },
     "dynamic_resources": {
         "hero_data_path": "resources/heroes.json",
         "match_data_dir": "matchdata"
