@@ -45,7 +45,10 @@ class TestResponsesCases:
         @parametrize(
             "entity_name,entity_page_title,entity_type",
             zip(
-                case_infra.non_hero_entity_names(),
+                map(
+                    case_infra.entity_title_to_name,
+                    case_infra.non_hero_entity_page_titles(),
+                ),
                 case_infra.non_hero_entity_page_titles(),
                 map(
                     case_infra.entity_title_to_type,
