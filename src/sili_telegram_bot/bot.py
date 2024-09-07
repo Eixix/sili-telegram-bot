@@ -22,6 +22,8 @@ from sili_telegram_bot.models.voiceline import Voiceline
 from sili_telegram_bot.models.birthdays import Birthdays
 
 updater = Updater(config["secrets"]["bot_token"])
+RESOURCE_CONFIG = config["static_resources"]
+
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -31,7 +33,7 @@ logger = logging.getLogger(__name__)
 punlines = {}
 patch_checker = PatchChecker()
 
-with open("resources/punlines.json", "r", encoding="utf8") as f:
+with open(RESOURCE_CONFIG["punline_path"], "r", encoding="utf8") as f:
     punlines = json.load(f)
 
 
@@ -74,7 +76,7 @@ def poll(context: CallbackContext) -> None:
 
     context.bot.send_voice(
         chat_id=config["secrets"]["chat_id"],
-        voice=open("resources/lets_dota.mpeg", "rb"),
+        voice=open(RESOURCE_CONFIG["dodo_voiceline_path"], "rb"),
     )
 
     weekday = _weekdaynumber_to_weekday(datetime.datetime.today().weekday())
@@ -282,7 +284,7 @@ def message_handler(update: Update, context: CallbackContext):
         if "doubt" in message_text or "daud" in message_text or "daut" in message_text:
             context.bot.send_animation(
                 chat_id=config["secrets"]["chat_id"],
-                animation=open("resources/i_daut_it.gif", "rb"),
+                animation=open(RESOURCE_CONFIG["daut_gif_path"], "rb"),
             )
 
 

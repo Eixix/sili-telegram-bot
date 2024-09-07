@@ -5,6 +5,10 @@ import pytz
 from datetime import datetime
 from sili_telegram_bot.models.matches import Matches
 from sili_telegram_bot.models.playerinfo import Playerinfo
+from sili_telegram_bot.modules.config import config
+
+STC_RESOURCE_CONFIG = config["static_resources"]
+DYN_RESOURCE_CONFIG = config["dynamic_resources"]
 
 logger = logging.getLogger(__name__)
 
@@ -18,23 +22,25 @@ def update_heroes() -> None:
 
     heroes_json = requests.get(api_root + heroes_endpoint).json()
 
-    with open("resources/heroes.json", "w") as f:
+    with open(DYN_RESOURCE_CONFIG["hero_data_path"], "w") as f:
         json.dump(heroes_json, f, indent=4)
 
 
 def _get_heroes():
-    with open("resources/heroes.json", "r") as f:
+    with open(DYN_RESOURCE_CONFIG["hero_data_path"], "r") as f:
         return json.load(f)
 
 
 def _get_accounts():
-    with open("matchdata/accounts_file.json", "r") as f:
+    with open(STC_RESOURCE_CONFIG["account_file_path"], "r") as f:
         return json.load(f)
 
 
 def _get_local_matches(account_id):
     try:
-        with open(f"matchdata/{account_id}.json", "r") as f:
+        with open(
+            f"{DYN_RESOURCE_CONFIG['match_data_dir']}/{account_id}.json", "r"
+        ) as f:
             return json.load(f)
     except FileNotFoundError:
         return []
@@ -119,7 +125,11 @@ def api_crawl():
         # The amount of new games
         diff = len(api_matches) - len(local_matches)
 
-        with open(f"matchdata/{account_id}.json", "w", encoding="utf-8") as f:
+        with open(
+            f"{DYN_RESOURCE_CONFIG['match_data_dir']}/{account_id}.json",
+            "w",
+            encoding="utf-8",
+        ) as f:
             json.dump(api_matches, f, ensure_ascii=False, indent=2)
 
         if diff < 5:

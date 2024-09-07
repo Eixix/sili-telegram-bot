@@ -4,6 +4,10 @@ import json
 import regex
 import os
 
+from sili_telegram_bot.modules.config import config
+
+DYN_RESOURCE_CONFIG = config["dynamic_resources"]
+
 
 class Voiceline:
     hero = ""
@@ -15,7 +19,7 @@ class Voiceline:
     def __init__(self, hero_string: str) -> None:
         base_url = "https://liquipedia.net/dota2game"
 
-        with open("resources/heroes.json", "r") as f:
+        with open(DYN_RESOURCE_CONFIG["hero_data_path"], "r") as f:
             known_heroes = json.load(f)
 
         # For comparing the input hero name to known heroes, we throw away

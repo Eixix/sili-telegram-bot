@@ -15,5 +15,15 @@
     "secrets": {
         "bot_token": null,
         "chat_id": null
+    },
+    "dynamic_resources": {
+        "hero_data_path": "resources/heroes.json",
+        "match_data_dir": "matchdata"
+    },
+    "static_resources": {
+        "dodo_voiceline_path": "resources/lets_dota.mpeg",
+        "punline_path": "resources/punlines.json",
+        "daut_gif_path": "resources/i_daut_it.gif",
+        "account_file_path": "matchdata/accounts_file.json"
     }
 }
