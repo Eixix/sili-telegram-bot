@@ -42,8 +42,7 @@ class Voiceline:
         self.response_url = f"{base_url}/{self.hero}/Responses"
 
         vl_pg_response = requests.get(self.response_url)
-        self.soup = bs4.BeautifulSoup(vl_pg_response.content,
-                                      features="html.parser")
+        self.soup = bs4.BeautifulSoup(vl_pg_response.content, features="html.parser")
 
         # On the the wiki page all voiceline links are in tags which can be
         # selected using this css selector.
@@ -55,13 +54,13 @@ class Voiceline:
         fuzzy_rules = "{e<=1}"
 
         if regex.search(r"^\".+\"", line):
-            line = line.strip("\"")
-            line_re = regex.compile(line,
-                                    flags=regex.IGNORECASE)
+            line = line.strip('"')
+            line_re = regex.compile(line, flags=regex.IGNORECASE)
 
         else:
-            line_re = regex.compile(f"(?:{regex.escape(line)}){fuzzy_rules}",
-                                    flags=regex.IGNORECASE)
+            line_re = regex.compile(
+                f"(?:{regex.escape(line)}){fuzzy_rules}", flags=regex.IGNORECASE
+            )
 
         for tag in self.vl_tags:
             # Each of the tags contains the audiobutton with the link to the
@@ -91,17 +90,19 @@ class Voiceline:
         file_name_match = regex.search(r"[^\/]*.mp3", link)
 
         if not file_name_match:
-            raise(f"Could not extract file name from link. Is the link "
-                  + f"correct? {link}")
+            raise (
+                f"Could not extract file name from link. Is the link "
+                + f"correct? {link}"
+            )
 
         file_path = os.path.join("resources", file_name_match.group())
 
         dl_response = requests.get(link)
 
         if not dl_response.status_code == 200:
-            raise(f"Could not get a positive response from {link}")
+            raise (f"Could not get a positive response from {link}")
 
         dl_file_handle = open(file_path, "wb")
         dl_file_handle.write(dl_response.content)
 
-        return(file_path)
+        return file_path
