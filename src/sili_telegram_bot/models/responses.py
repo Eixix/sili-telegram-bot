@@ -79,16 +79,20 @@ class Responses:
             resp for resp in name_responses if regex.search(re_pattern, resp["text"])
         ]
 
-        if match_responses:
-            # FIXME In the future, return all matched responses and let the user choose
-            # which they want.
-            return match_responses[0]["urls"][level]
-        else:
+        if not match_responses:
             response_url = name_match["url"]
             raise Exception(
                 f"Could not find line for '{name}'. Check the responses page to see "
                 f"if you typed it correctly: {response_url}"
             )
+
+        # FIXME In the future, return all matched responses and let the user choose
+        # which they want.
+        response = match_responses[0]
+
+        response_urls = response["urls"]
+
+        return response_urls[level]
 
     def get_link(self, hero, line):
         fuzzy_rules = "{e<=1}"
