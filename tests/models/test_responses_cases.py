@@ -29,6 +29,7 @@ class TestResponsesCases:
                 case_infra.first_voiceline(
                     case_infra.hero_name_to_tile(case_infra.default_hero())
                 ),
+                "hero",
             )
 
         @pytest.mark.slow
@@ -37,20 +38,25 @@ class TestResponsesCases:
             return (
                 hero_name,
                 case_infra.first_voiceline(case_infra.hero_name_to_tile(hero_name)),
+                "hero",
             )
 
         @pytest.mark.slow
-        @pytest.mark.xfail(reason="Entity line getting not yet implemented.")
         @parametrize(
-            "entity_name,entity_page_title",
+            "entity_name,entity_page_title,entity_type",
             zip(
                 case_infra.non_hero_entity_names(),
                 case_infra.non_hero_entity_page_titles(),
+                map(
+                    case_infra.entity_title_to_type,
+                    case_infra.non_hero_entity_page_titles(),
+                ),
             ),
             ids=lambda input: input[0],
         )
-        def case_remaining_entities(self, entity_name, entity_page_title):
+        def case_remaining_entities(self, entity_name, entity_page_title, entity_type):
             return (
                 entity_name,
                 case_infra.first_voiceline(entity_page_title),
+                entity_type,
             )
