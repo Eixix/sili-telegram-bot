@@ -13,17 +13,17 @@ class TestResponses:
     """
 
     @parametrize_with_cases(
-        "entity_name,response",
+        "entity_name,response,entity_type",
         cases=case_module.TestResponsesCases.TestFirstVoicelineCases,
     )
-    def test_first_voiceline(self, entity_name, response) -> None:
+    def test_first_voiceline(self, entity_name, response, entity_type) -> None:
         """
         Get the first response for any entity.
         """
         rsp = Responses()
 
         try:
-            resp_url = rsp.get_link(entity_name, response)
+            resp_url = rsp.get_link(entity_name, response, type=entity_type)
             assert resp_url is not None
 
         except MissingResponseUrlException:
