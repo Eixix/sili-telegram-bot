@@ -1,5 +1,6 @@
 import json
 
+from sili_telegram_bot.models.responses import Responses
 from sili_telegram_bot.modules.config import config as CONFIG
 
 
@@ -10,6 +11,11 @@ class VoicelineResource:
 
     _resource_dict = None
     _entity_dict = None
+    _type_dict = None
+    _type_lookup = {
+        long_name: short_name
+        for short_name, long_name in Responses.entity_type_lookup.items()
+    }
 
     @classmethod
     def get_resource_dict(cls) -> dict:
@@ -30,6 +36,27 @@ class VoicelineResource:
                 cls._entity_dict = json.load(f)
 
         return cls._entity_dict
+
+    @classmethod
+    def get_type_dict(cls) -> dict:
+        """
+        Get a dict mapping each entity name to its type string.
+        """
+        if cls._type_dict is None:
+            entity_dict = cls.get_entity_dict()
+
+            type_dict = {}
+
+            for type, type_section in entity_dict.items():
+                short_type = cls._type_lookup[type]
+                section_dict = {
+                    entity["title"]: short_type for entity in type_section.values()
+                }
+                type_dict.update(section_dict)
+
+            cls._type_dict = type_dict
+
+        return cls._type_dict
 
 
 def all_hero_names() -> set[str]:
@@ -129,6 +156,15 @@ def non_hero_entity_names() -> set[str]:
         entity_names = entity_names.union(set(section_names))
 
     return entity_names
+
+
+def entity_title_to_type(entity_title: str) -> str:
+    """
+    Translate an entities title to its type.
+    """
+    type_dict = VoicelineResource.get_type_dict()
+
+    return type_dict[entity_title]
 
 
 def first_voiceline(entity) -> str:
