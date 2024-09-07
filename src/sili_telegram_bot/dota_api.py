@@ -9,6 +9,10 @@ from sili_telegram_bot.modules.config import config
 
 STC_RESOURCE_CONFIG = config["static_resources"]
 DYN_RESOURCE_CONFIG = config["dynamic_resources"]
+API_CONFIG = config["opendota_api"]
+PLAYER_SEGMENT_URL = f"{API_CONFIG['api_root']}/{API_CONFIG['player_segment']}"
+MATCHES_ENDPOINT = API_CONFIG["account_matches_endpoint"]
+
 
 logger = logging.getLogger(__name__)
 
@@ -17,10 +21,10 @@ def update_heroes() -> None:
     """
     Retrive current hero list from the openDOTA API.
     """
-    api_root = "https://api.opendota.com/api"
-    heroes_endpoint = "/heroes"
+    api_root = API_CONFIG["api_root"]
+    heroes_endpoint = API_CONFIG["hero_endpoint"]
 
-    heroes_json = requests.get(api_root + heroes_endpoint).json()
+    heroes_json = requests.get(f"{api_root}/{heroes_endpoint}").json()
 
     with open(DYN_RESOURCE_CONFIG["hero_data_path"], "w") as f:
         json.dump(heroes_json, f, indent=4)
@@ -47,9 +51,10 @@ def _get_local_matches(account_id):
 
 
 def _get_api_matches(account_id):
-    return requests.get(
-        f"https://api.opendota.com/api/players/{account_id}/matches"
-    ).json()
+
+    account_match_url = f"{PLAYER_SEGMENT_URL}/{account_id}/{MATCHES_ENDPOINT}"
+
+    return requests.get(account_match_url).json()
 
 
 def get_playerinfos():
@@ -59,15 +64,11 @@ def get_playerinfos():
     for account in accounts_file:
         account_id = account["identifier"]
 
-        player = requests.get(
-            f"https://api.opendota.com/api/players/{account_id}"
-        ).json()
+        player = requests.get(f"{PLAYER_SEGMENT_URL}/{account_id}").json()
         last_match = requests.get(
-            f"https://api.opendota.com/api/players/{account_id}/matches?limit=1"
+            f"{PLAYER_SEGMENT_URL}/{account_id}/{MATCHES_ENDPOINT}?limit=1"
         ).json()
-        wins_loses = requests.get(
-            f"https://api.opendota.com/api/players/{account_id}/wl"
-        ).json()
+        wins_loses = requests.get(f"{PLAYER_SEGMENT_URL}/{account_id}/wl").json()
 
         playerinfos.append(
             Playerinfo(
@@ -92,7 +93,7 @@ def get_lastgame():
     accounts_file = _get_accounts()
     for account in accounts_file:
         last_match = requests.get(
-            f"https://api.opendota.com/api/players/{account['identifier']}/matches?limit=1"
+            f"{PLAYER_SEGMENT_URL}/{account['identifier']}/{MATCHES_ENDPOINT}?limit=1"
         ).json()
         match_end = last_match[0]["start_time"] + last_match[0]["duration"]
         if match_end > lastgame:

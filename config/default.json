@@ -16,6 +16,12 @@
         "bot_token": null,
         "chat_id": null
     },
+    "opendota_api": {
+        "api_root": "https://api.opendota.com/api",
+        "hero_endpoint": "heroes",
+        "player_segment": "players",
+        "account_matches_endpoint": "matches"
+    },
     "dynamic_resources": {
         "hero_data_path": "resources/heroes.json",
         "match_data_dir": "matchdata"
