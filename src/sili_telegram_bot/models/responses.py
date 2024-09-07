@@ -3,6 +3,7 @@ import os
 import regex
 import requests
 
+from sili_telegram_bot.models.exceptions import MissingResponseUrlException
 from sili_telegram_bot.modules.config import config
 
 VL_CONFIG = config["voicelines"]
@@ -91,6 +92,24 @@ class Responses:
         response = match_responses[0]
 
         response_urls = response["urls"]
+
+        if response_urls[level] is None:
+            available_urls = [
+                ": ".join([str(i), url])
+                for i, url in enumerate(response_urls)
+                if url is not None
+            ]
+            exception_text = (
+                f"The requested response URL is not available (missing file on the "
+                f"wiki)."
+            )
+            if available_urls:
+                concat_urls = ", ".join(available_urls)
+                alternative_text = (
+                    f"Alternative response levels are available: {concat_urls}."
+                )
+                exception_text += " " + alternative_text
+            raise MissingResponseUrlException(exception_text)
 
         return response_urls[level]
 
