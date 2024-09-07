@@ -16,6 +16,7 @@ class VoicelineResource:
         long_name: short_name
         for short_name, long_name in Responses.entity_type_lookup.items()
     }
+    _name_lookup = None
 
     @classmethod
     def get_resource_dict(cls) -> dict:
@@ -57,6 +58,23 @@ class VoicelineResource:
             cls._type_dict = type_dict
 
         return cls._type_dict
+
+    @classmethod
+    def get_name_lookup(cls) -> dict:
+        if cls._name_lookup is None:
+            entity_dict = cls.get_entity_dict()
+
+            title_dict = {}
+
+            for type_section in entity_dict.values():
+                section_dict = {
+                    entity["title"]: entity["name"] for entity in type_section.values()
+                }
+                title_dict.update(section_dict)
+
+            cls._name_lookup = title_dict
+
+        return cls._name_lookup
 
 
 def all_hero_names() -> set[str]:
@@ -156,6 +174,15 @@ def non_hero_entity_names() -> set[str]:
         entity_names = entity_names.union(set(section_names))
 
     return entity_names
+
+
+def entity_title_to_name(title) -> str:
+    """
+    Translate an entities title to its name.
+    """
+    name_lookup = VoicelineResource.get_name_lookup()
+
+    return name_lookup[title]
 
 
 def entity_title_to_type(entity_title: str) -> str:
