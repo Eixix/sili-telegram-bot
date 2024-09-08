@@ -20,7 +20,7 @@ from sili_telegram_bot.models.message import Message
 from sili_telegram_bot.models.patch_checker import PatchChecker
 from sili_telegram_bot.models.responses import Responses
 from sili_telegram_bot.models.birthdays import Birthdays
-from sili_telegram_bot.modules.voiceline_scraping import extract_voiceline_urls
+from sili_telegram_bot.modules.voiceline_scraping import get_response_data
 
 updater = Updater(config["secrets"]["bot_token"])
 RESOURCE_CONFIG = config["static_resources"]
@@ -123,7 +123,7 @@ def update_response_resource(context: CallbackContext) -> None:
     """
     Update the JSON file containing all voiceline URLs.
     """
-    extract_voiceline_urls(output_file=config["voicelines"]["resource_file"])
+    get_response_data()
 
 
 def voiceline(update: Update, context: CallbackContext) -> None:
