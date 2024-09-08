@@ -9,7 +9,7 @@ ENV chat_id=${chat_id}
 
 COPY pyproject.toml pyproject.toml
 COPY config config
-COPY src /bot/src
+COPY src src
 COPY resources resources
 COPY config.json config.json
 
