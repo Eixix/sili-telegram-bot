@@ -8,6 +8,7 @@ ENV bot_token=${bot_token}
 ENV chat_id=${chat_id}
 
 COPY pyproject.toml pyproject.toml
+COPY config config
 COPY src /bot/src
 COPY resources resources
 COPY matchdata/accounts_file.json matchdata/accounts_file.json
