@@ -126,77 +126,91 @@ def update_response_resource(context: CallbackContext) -> None:
     get_response_data()
 
 
+def _parse_voiceline_args(args: list[str]) -> dict:
+    """
+    Parse the arguments to a voiceline request into a dict of args to be accepted
+    by `Responses.get_link()`.
+    """
+    if len(args) <= 1:
+        help_txt = (
+            "Not enough arguments, format should be '/voiceline "
+            "Hero Name: Voice line'...\n"
+            'Enclose line in "double quotes" to use regex as described in '
+            "the `regex` module."
+        )
+
+        raise ValueError(help_txt)
+
+    else:
+        # To separate out hero and voice line (both may contain whitespaces),
+        # we first concatenate all args to a string and then split it on the
+        # colon to get hero and voiceline
+        arg_string = " ".join(args)
+
+        hero, line = arg_string.split(":")
+
+    return {"entity": hero, "line": line.strip()}
+
+
 def voiceline(update: Update, context: CallbackContext) -> None:
     if update.effective_chat.id == int(config["secrets"]["chat_id"]):
         logger.info("Getting voiceline...")
 
-        if len(context.args) <= 1:
-            logger.info("... not enough arguments, sending help msg.")
+        try:
+            voiceline_args = _parse_voiceline_args(context.args)
 
-            help_txt = (
-                "Not enough arguments, format should be '/voiceline "
-                "Hero Name: Voice line'...\n"
-                'Enclose line in "double quotes" to use regex as described in '
-                "the `regex` module."
-            )
+        except ValueError as e:
+            logger.warning(f"Error while parsing voiceline args: {str(e)}")
+            context.bot.send_message(chat_id=config["secrets"]["chat_id"], text=str(e))
+
+            return None
+
+        try:
+            responses = Responses()
+
+            vl_link = responses.get_link(**voiceline_args)
+
+        except Exception as e:
+            entity = voiceline_args["entity"]
+            logger.error(f"Error while attempting to get voiceline for {entity}: {e}")
 
             context.bot.send_message(
-                chat_id=config["secrets"]["chat_id"], text=help_txt
+                chat_id=config["secrets"]["chat_id"],
+                text=str(e),
             )
 
-        else:
-            # To separate out hero and voice line (both may contain whitespaces),
-            # we first concatenate all args to a string and then split it on the
-            # colon to get hero and voiceline
-            arg_string = " ".join(context.args)
+        vl_file_path = responses.download_mp3(vl_link)
 
-            hero, line = arg_string.split(":")
-
+        try:
+            # Delete /voiceline to make conversation more seamless
             try:
-                responses = Responses()
-
-                vl_link = responses.get_link(hero, line.strip())
-
-            except Exception as e:
-                logger.error(f"Error while attempting to get voiceline for {hero}: {e}")
-
-                context.bot.send_message(
+                context.bot.delete_message(
                     chat_id=config["secrets"]["chat_id"],
-                    text=str(e),
+                    message_id=update.message.message_id,
+                )
+            except error.BadRequest as e:
+                logger.warning(
+                    f"Error attempting to delete message: {e}. Likely "
+                    f"insufficient permissions for the bot in this chat. Try "
+                    f"giving it the `can_delete_messages` permission. See "
+                    f"<https://docs.python-telegram-bot.org/en/stable/telegram.bot.html#telegram.Bot.delete_message> "
+                    f"for more info."
                 )
 
-            vl_file_path = responses.download_mp3(vl_link)
+            sender_name = user_to_representation(update.message.from_user)
 
-            try:
-                # Delete /voiceline to make conversation more seamless
-                try:
-                    context.bot.delete_message(
-                        chat_id=config["secrets"]["chat_id"],
-                        message_id=update.message.message_id,
-                    )
-                except error.BadRequest as e:
-                    logger.warning(
-                        f"Error attempting to delete message: {e}. Likely "
-                        f"insufficient permissions for the bot in this chat. Try "
-                        f"giving it the `can_delete_messages` permission. See "
-                        f"<https://docs.python-telegram-bot.org/en/stable/telegram.bot.html#telegram.Bot.delete_message> "
-                        f"for more info."
-                    )
+            context.bot.send_message(
+                chat_id=config["secrets"]["chat_id"], text=sender_name + ":"
+            )
+            context.bot.send_voice(
+                chat_id=config["secrets"]["chat_id"],
+                voice=open(vl_file_path, "rb"),
+            )
 
-                sender_name = user_to_representation(update.message.from_user)
+            logger.info("... voiceline delivered.")
 
-                context.bot.send_message(
-                    chat_id=config["secrets"]["chat_id"], text=sender_name + ":"
-                )
-                context.bot.send_voice(
-                    chat_id=config["secrets"]["chat_id"],
-                    voice=open(vl_file_path, "rb"),
-                )
-
-                logger.info("... voiceline delivered.")
-
-            finally:
-                os.remove(vl_file_path)
+        finally:
+            os.remove(vl_file_path)
 
 
 def crawl(update: Update, context: CallbackContext):
