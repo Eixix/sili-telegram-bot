@@ -7,6 +7,8 @@ import json
 import os
 import configparser as cfp
 
+from ast import literal_eval
+
 _default_config_file = "./config/default.json"
 
 
@@ -50,3 +52,11 @@ def _init_config(default_config_file) -> cfp.ConfigParser:
 
 
 config = _init_config(_default_config_file)
+
+
+def get_accounts() -> list[dict]:
+    """
+    De-serialize the string representation of the accounts list.
+    """
+    # FIXME Use some other config library that allows for deeper nesting.
+    return literal_eval(config["accounts"]["account_list"])

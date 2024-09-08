@@ -1,16 +1,14 @@
 from sili_telegram_bot.models.birthday import Birthday
-from sili_telegram_bot.modules.config import config
+from sili_telegram_bot.modules.config import get_accounts
 import datetime
 from ast import literal_eval
-
-ACCOUNTS_CONFIG = config["accounts"]
 
 
 class Birthdays:
     def __init__(self) -> None:
         self.birthdays = []
 
-        accounts = literal_eval(ACCOUNTS_CONFIG["account_list"])
+        accounts = get_accounts()
         for account in accounts:
             self.birthdays.append(Birthday(account["name"], account["birthday"]))
 
