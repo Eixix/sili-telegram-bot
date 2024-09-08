@@ -309,6 +309,9 @@ def main():
     dispatcher = updater.dispatcher
     job_queue = updater.job_queue
 
+    # Right after startup, get all dynamic resources.
+    job_queue.run_once(update_heroes, when=datetime.datetime.now())
+
     dispatcher.add_handler(CommandHandler("dodo", dodo))
     dispatcher.add_handler(CommandHandler("crawl", crawl))
     dispatcher.add_handler(CommandHandler("playerinfos", playerinfos))
