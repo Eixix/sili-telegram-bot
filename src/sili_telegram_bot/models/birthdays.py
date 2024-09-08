@@ -1,15 +1,18 @@
 from sili_telegram_bot.models.birthday import Birthday
+from sili_telegram_bot.modules.config import config
 import datetime
-import json
+from ast import literal_eval
+
+ACCOUNTS_CONFIG = config["accounts"]
 
 
 class Birthdays:
     def __init__(self) -> None:
         self.birthdays = []
-        with open("matchdata/accounts_file.json", "r") as f:
-            birthdays = json.load(f)
-            for birthday in birthdays:
-                self.birthdays.append(Birthday(birthday["name"], birthday["birthday"]))
+
+        accounts = literal_eval(ACCOUNTS_CONFIG["account_list"])
+        for account in accounts:
+            self.birthdays.append(Birthday(account["name"], account["birthday"]))
 
     def GetBirthdays(self):
         message = "Geburtstage:"

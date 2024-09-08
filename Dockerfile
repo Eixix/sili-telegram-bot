@@ -11,7 +11,7 @@ COPY pyproject.toml pyproject.toml
 COPY config config
 COPY src /bot/src
 COPY resources resources
-COPY matchdata/accounts_file.json matchdata/accounts_file.json
+COPY config.json config.json
 
 VOLUME [ "/bot/matchdata" ]
 RUN pip install .

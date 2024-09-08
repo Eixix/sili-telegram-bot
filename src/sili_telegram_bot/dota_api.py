@@ -2,6 +2,7 @@ import json
 import requests
 import logging
 import pytz
+from ast import literal_eval
 from datetime import datetime
 from sili_telegram_bot.models.matches import Matches
 from sili_telegram_bot.models.playerinfo import Playerinfo
@@ -9,6 +10,7 @@ from sili_telegram_bot.modules.config import config
 
 STC_RESOURCE_CONFIG = config["static_resources"]
 DYN_RESOURCE_CONFIG = config["dynamic_resources"]
+ACCOUNTS_CONFIG = config["accounts"]
 API_CONFIG = config["opendota_api"]
 PLAYER_SEGMENT_URL = f"{API_CONFIG['api_root']}/{API_CONFIG['player_segment']}"
 MATCHES_ENDPOINT = API_CONFIG["account_matches_endpoint"]
@@ -36,8 +38,11 @@ def _get_heroes():
 
 
 def _get_accounts():
-    with open(STC_RESOURCE_CONFIG["account_file_path"], "r") as f:
-        return json.load(f)
+    """
+    De-serialize the string representation of the accounts list.
+    """
+    # FIXME Use some other config library that allows for deeper nesting.
+    return literal_eval(ACCOUNTS_CONFIG["account_list"])
 
 
 def _get_local_matches(account_id):
@@ -60,8 +65,8 @@ def _get_api_matches(account_id):
 def get_playerinfos():
     playerinfos = []
 
-    accounts_file = _get_accounts()
-    for account in accounts_file:
+    accounts = _get_accounts()
+    for account in accounts:
         account_id = account["identifier"]
 
         player = requests.get(f"{PLAYER_SEGMENT_URL}/{account_id}").json()
@@ -90,8 +95,8 @@ def get_playerinfos():
 
 def get_lastgame():
     lastgame = 0
-    accounts_file = _get_accounts()
-    for account in accounts_file:
+    accounts = _get_accounts()
+    for account in accounts:
         last_match = requests.get(
             f"{PLAYER_SEGMENT_URL}/{account['identifier']}/{MATCHES_ENDPOINT}?limit=1"
         ).json()
@@ -108,11 +113,11 @@ def get_lastgame():
 
 def api_crawl():
     heroes = _get_heroes()
-    accounts_file = _get_accounts()
+    accounts = _get_accounts()
 
     matches = Matches()
 
-    for account in accounts_file:
+    for account in accounts:
 
         account_id = account["identifier"]
         account_name = account["name"]
