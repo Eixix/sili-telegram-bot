@@ -33,9 +33,9 @@
         "match_data_dir": "matchdata"
     },
     "static_resources": {
-        "dodo_voiceline_path": "resources/lets_dota.mpeg",
-        "punline_path": "resources/punlines.json",
-        "daut_gif_path": "resources/i_daut_it.gif"
+        "dodo_voiceline_path": "resources/static/lets_dota.mpeg",
+        "punline_path": "resources/static/punlines.json",
+        "daut_gif_path": "resources/static/i_daut_it.gif"
     },
     "accounts": {
         "account_list": []
