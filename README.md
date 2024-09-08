@@ -1,17 +1,23 @@
 # sili-telegram-bot 🚀
 
-A telegram bot that evaluates DOTA2 matches of people and notifies about their results.
+A telegram bot that evaluates DOTA2 matches of people and notifies about their
+results.
 
 # Local development 🏗️
 
-- Copy the `accounts_file.json.example` to `matchdata/accounts_file.json`
-- Find your [Steam32 ID with this website and update your name](https://steamid.xyz/) in the `accounts_file.json`
+- Copy the `config.json.example` to `config.json`
+- Find your
+  [Steam32 ID with this website and update your name](https://steamid.xyz/)
 - Create a new bot with the [@botfather](https://t.me/botfather)
-- Find out your corresponding chat ID, e.g. [@userinfobot](https://t.me/userinfobot)
+- Find out your corresponding chat ID, e.g.
+  [@userinfobot](https://t.me/userinfobot)
+- Update `config.json` with all the information.
 
 ## Without docker ⚙️
 
-Change the two variables `bot_token` and `chat_id` in `bot.py` accordingly. Instead of using inline environment variables you can use a `.env` file in VSCode.
+Change the two variables `bot_token` and `chat_id` in `bot.py` accordingly.
+Instead of using inline environment variables you can use a `.env` file in
+VSCode.
 
 ### For Linux 🐧
 

@@ -1,0 +1,20 @@
+{
+    "secrets": {
+        "bot_token": "12345:LoremIpsum",
+        "chat_id": "-123456"
+    },
+    "accounts": {
+        "account_list": [
+            {
+                "identifier": "12345",
+                "name": "Foobert",
+                "birthday": "1.1.1970"
+            },
+            {
+                "identifier": "678910",
+                "name": "Barmeister",
+                "birthday": "1.1.1970"
+            }
+        ]
+    }
+}
