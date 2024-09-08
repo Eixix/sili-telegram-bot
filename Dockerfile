@@ -12,7 +12,7 @@ COPY src /bot/src
 COPY resources resources
 COPY matchdata/accounts_file.json matchdata/accounts_file.json
 
-VOLUME [ "/app/matchdata" ]
+VOLUME [ "/bot/matchdata" ]
 RUN pip install .
 
 WORKDIR /bot
