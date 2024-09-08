@@ -13,7 +13,7 @@ COPY src /bot/src
 COPY resources resources
 COPY config.json config.json
 
-VOLUME [ "/bot/matchdata" ]
+VOLUME [ "/bot/resources/dynamic/matchdata" ]
 RUN pip install .
 
 WORKDIR /bot

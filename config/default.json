@@ -30,7 +30,7 @@
     },
     "dynamic_resources": {
         "hero_data_path": "resources/heroes.json",
-        "match_data_dir": "matchdata"
+        "match_data_dir": "resources/dynamic/matchdata"
     },
     "static_resources": {
         "dodo_voiceline_path": "resources/static/lets_dota.mpeg",

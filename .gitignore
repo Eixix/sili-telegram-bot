@@ -129,7 +129,7 @@ dmypy.json
 .pyre/
 
 # own additions
-matchdata/*.json
+resources/dynamic/matchdata/*.json
 *.priv
 secrets.txt
 
