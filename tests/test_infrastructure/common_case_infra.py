@@ -9,60 +9,63 @@ class VoicelineResource:
     Wrapper for lazy access to the voiceline resource.
     """
 
-    _resource_dict = None
-    _entity_dict = None
-    _type_dict = None
-    _type_lookup = {
-        long_name: short_name
-        for short_name, long_name in Responses.entity_type_lookup.items()
-    }
-    _name_lookup = None
+    def __init__(
+        self,
+        resource_file: str = CONFIG["voicelines"]["resource_file"],
+        entity_data_file: str = CONFIG["voicelines"]["entity_data_file"],
+    ):
+        self._resource_file = resource_file
+        self._entity_data_file = entity_data_file
+        self._resource_dict = None
+        self._entity_dict = None
+        self._type_dict = None
+        self._type_lookup = {
+            long_name: short_name
+            for short_name, long_name in Responses.entity_type_lookup.items()
+        }
+        self._name_lookup = None
 
-    @classmethod
-    def get_resource_dict(cls) -> dict:
-        if cls._resource_dict is None:
-            entity_response_file = CONFIG["voicelines"]["resource_file"]
+    def get_resource_dict(self) -> dict:
+        if self._resource_dict is None:
+            entity_response_file = self._resource_file
 
             with open(entity_response_file, "r") as f:
-                cls._resource_dict = json.load(f)
+                self._resource_dict = json.load(f)
 
-        return cls._resource_dict
+        return self._resource_dict
 
-    @classmethod
-    def get_entity_dict(cls) -> dict:
-        if cls._entity_dict is None:
-            entity_data_file = CONFIG["voicelines"]["entity_data_file"]
+    def get_entity_dict(self) -> dict:
+        if self._entity_dict is None:
+            entity_data_file = self._entity_data_file
 
             with open(entity_data_file, "r") as f:
-                cls._entity_dict = json.load(f)
+                self._entity_dict = json.load(f)
 
-        return cls._entity_dict
+        return self._entity_dict
 
-    @classmethod
-    def get_type_dict(cls) -> dict:
+    def get_type_dict(self) -> dict:
         """
         Get a dict mapping each entity name to its type string.
         """
-        if cls._type_dict is None:
-            entity_dict = cls.get_entity_dict()
+        if self._type_dict is None:
+            entity_dict = self.get_entity_dict()
 
             type_dict = {}
 
             for type, type_section in entity_dict.items():
-                short_type = cls._type_lookup[type]
+                short_type = self._type_lookup[type]
                 section_dict = {
                     entity["title"]: short_type for entity in type_section.values()
                 }
                 type_dict.update(section_dict)
 
-            cls._type_dict = type_dict
+            self._type_dict = type_dict
 
-        return cls._type_dict
+        return self._type_dict
 
-    @classmethod
-    def get_name_lookup(cls) -> dict:
-        if cls._name_lookup is None:
-            entity_dict = cls.get_entity_dict()
+    def get_name_lookup(self) -> dict:
+        if self._name_lookup is None:
+            entity_dict = self.get_entity_dict()
 
             title_dict = {}
 
@@ -72,9 +75,12 @@ class VoicelineResource:
                 }
                 title_dict.update(section_dict)
 
-            cls._name_lookup = title_dict
+            self._name_lookup = title_dict
 
-        return cls._name_lookup
+        return self._name_lookup
+
+
+_VL_RESOURCE = VoicelineResource()
 
 
 def all_hero_names() -> set[str]:
@@ -128,7 +134,7 @@ def hero_name_to_tile(hero_name: str) -> str:
     """
     Look up a hero's title in the entity data.
     """
-    entity_data = VoicelineResource.get_entity_dict()
+    entity_data = _VL_RESOURCE.get_entity_dict()
 
     return entity_data["Hero responses"][hero_name]["title"]
 
@@ -137,7 +143,7 @@ def non_hero_entity_dict() -> dict:
     """
     Provide the entity dict without heroes.
     """
-    entity_dict = VoicelineResource.get_entity_dict()
+    entity_dict = _VL_RESOURCE.get_entity_dict()
 
     return {
         name: section
@@ -180,7 +186,7 @@ def entity_title_to_name(title) -> str:
     """
     Translate an entities title to its name.
     """
-    name_lookup = VoicelineResource.get_name_lookup()
+    name_lookup = _VL_RESOURCE.get_name_lookup()
 
     return name_lookup[title]
 
@@ -189,7 +195,7 @@ def entity_title_to_type(entity_title: str) -> str:
     """
     Translate an entities title to its type.
     """
-    type_dict = VoicelineResource.get_type_dict()
+    type_dict = _VL_RESOURCE.get_type_dict()
 
     return type_dict[entity_title]
 
@@ -198,7 +204,7 @@ def first_voiceline(entity) -> str:
     """
     Retrieve the first voiceline for a given entity.
     """
-    res_dict = VoicelineResource.get_resource_dict()
+    res_dict = _VL_RESOURCE.get_resource_dict()
 
     try:
         voiceline = res_dict[entity][0]["text"]
