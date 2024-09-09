@@ -15,25 +15,22 @@ import logging
 import random
 import os
 
+from sili_telegram_bot.modules.config import config
 from sili_telegram_bot.models.message import Message
 from sili_telegram_bot.models.patch_checker import PatchChecker
 from sili_telegram_bot.models.voiceline import Voiceline
 from sili_telegram_bot.models.birthdays import Birthdays
 
-# Environment variable
-token = os.environ["bot_token"]
-chat_id = os.environ["chat_id"]
-updater = Updater(token)
+updater = Updater(config["secrets"]["bot_token"])
+RESOURCE_CONFIG = config["static_resources"]
 
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
+
 logger = logging.getLogger(__name__)
 
 punlines = {}
 patch_checker = PatchChecker()
 
-with open("resources/punlines.json", "r", encoding="utf8") as f:
+with open(RESOURCE_CONFIG["punline_path"], "r", encoding="utf8") as f:
     punlines = json.load(f)
 
 
@@ -43,7 +40,9 @@ def get_dota_matches(context: CallbackContext) -> None:
 
     if messages:
         for m in messages:
-            context.bot.send_message(chat_id=chat_id, text=m, parse_mode=ParseMode.HTML)
+            context.bot.send_message(
+                chat_id=config["secrets"]["chat_id"], text=m, parse_mode=ParseMode.HTML
+            )
 
 
 def _weekdaynumber_to_weekday(weekdaynumber: int) -> str:
@@ -73,13 +72,14 @@ def poll(context: CallbackContext) -> None:
     ]
 
     context.bot.send_voice(
-        chat_id=chat_id, voice=open("resources/lets_dota.mpeg", "rb")
+        chat_id=config["secrets"]["chat_id"],
+        voice=open(RESOURCE_CONFIG["dodo_voiceline_path"], "rb"),
     )
 
     weekday = _weekdaynumber_to_weekday(datetime.datetime.today().weekday())
 
     context.bot.send_poll(
-        chat_id,
+        config["secrets"]["chat_id"],
         f"Do{weekday}",
         questions,
         is_anonymous=False,
@@ -119,7 +119,7 @@ def user_to_representation(user: user.User):
 
 
 def voiceline(update: Update, context: CallbackContext) -> None:
-    if update.effective_chat.id == int(chat_id):
+    if update.effective_chat.id == int(config["secrets"]["chat_id"]):
         logger.info("Getting voiceline...")
 
         if len(context.args) <= 1:
@@ -132,7 +132,9 @@ def voiceline(update: Update, context: CallbackContext) -> None:
                 "the `regex` module."
             )
 
-            context.bot.send_message(chat_id=chat_id, text=help_txt)
+            context.bot.send_message(
+                chat_id=config["secrets"]["chat_id"], text=help_txt
+            )
 
         else:
             # To separate out hero and voice line (both may contain whitespaces),
@@ -148,7 +150,7 @@ def voiceline(update: Update, context: CallbackContext) -> None:
                 logger.error(f"Error while attempting to get voiceline for {hero}: {e}")
 
                 context.bot.send_message(
-                    chat_id=chat_id,
+                    chat_id=config["secrets"]["chat_id"],
                     text=str(e),
                 )
 
@@ -156,7 +158,7 @@ def voiceline(update: Update, context: CallbackContext) -> None:
 
             if vl_link is None:
                 context.bot.send_message(
-                    chat_id=chat_id,
+                    chat_id=config["secrets"]["chat_id"],
                     text=(
                         "Could not find line... "
                         "Check here if you typed it right: "
@@ -173,7 +175,8 @@ def voiceline(update: Update, context: CallbackContext) -> None:
                     # Delete /voiceline to make conversation more seamless
                     try:
                         context.bot.delete_message(
-                            chat_id=chat_id, message_id=update.message.message_id
+                            chat_id=config["secrets"]["chat_id"],
+                            message_id=update.message.message_id,
                         )
                     except error.BadRequest as e:
                         logger.warning(
@@ -186,9 +189,12 @@ def voiceline(update: Update, context: CallbackContext) -> None:
 
                     sender_name = user_to_representation(update.message.from_user)
 
-                    context.bot.send_message(chat_id=chat_id, text=sender_name + ":")
+                    context.bot.send_message(
+                        chat_id=config["secrets"]["chat_id"], text=sender_name + ":"
+                    )
                     context.bot.send_voice(
-                        chat_id=chat_id, voice=open(vl_file_path, "rb")
+                        chat_id=config["secrets"]["chat_id"],
+                        voice=open(vl_file_path, "rb"),
                     )
 
                     logger.info("... voiceline delivered.")
@@ -198,40 +204,46 @@ def voiceline(update: Update, context: CallbackContext) -> None:
 
 
 def crawl(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(chat_id):
+    if update.effective_chat.id == int(config["secrets"]["chat_id"]):
         get_dota_matches(context)
 
 
 def dodo(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(chat_id):
+    if update.effective_chat.id == int(config["secrets"]["chat_id"]):
         poll(context)
 
 
 def playerinfos(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(chat_id):
+    if update.effective_chat.id == int(config["secrets"]["chat_id"]):
         message = Message(None, None, dota_api.get_playerinfos())
         messages = message.get_message_for_playerinfos()
 
         if messages:
             context.bot.send_message(
-                chat_id=chat_id, text=messages, parse_mode=ParseMode.HTML
+                chat_id=config["secrets"]["chat_id"],
+                text=messages,
+                parse_mode=ParseMode.HTML,
             )
 
 
 def lastgame(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(chat_id):
+    if update.effective_chat.id == int(config["secrets"]["chat_id"]):
         time = dota_api.get_lastgame()
 
         if time:
             context.bot.send_message(
-                chat_id=chat_id, text=time, parse_mode=ParseMode.HTML
+                chat_id=config["secrets"]["chat_id"],
+                text=time,
+                parse_mode=ParseMode.HTML,
             )
 
 
 def birthdays(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(chat_id):
+    if update.effective_chat.id == int(config["secrets"]["chat_id"]):
         context.bot.send_message(
-            chat_id=chat_id, text=Birthdays().GetBirthdays(), parse_mode=ParseMode.HTML
+            chat_id=config["secrets"]["chat_id"],
+            text=Birthdays().GetBirthdays(),
+            parse_mode=ParseMode.HTML,
         )
 
 
@@ -239,7 +251,9 @@ def upcomingBirthdays(context: CallbackContext):
     upcomingBirthdays = Birthdays().GetUpcomingBirthdays()
     if upcomingBirthdays != None:
         context.bot.send_message(
-            chat_id=chat_id, text=upcomingBirthdays, parse_mode=ParseMode.HTML
+            chat_id=config["secrets"]["chat_id"],
+            text=upcomingBirthdays,
+            parse_mode=ParseMode.HTML,
         )
 
 
@@ -247,21 +261,27 @@ def todayBirthdays(context: CallbackContext):
     todayBirthdays = Birthdays().GetTodayBirthdays()
     if todayBirthdays != None and todayBirthdays != "":
         context.bot.send_message(
-            chat_id=chat_id, text=todayBirthdays, parse_mode=ParseMode.HTML
+            chat_id=config["secrets"]["chat_id"],
+            text=todayBirthdays,
+            parse_mode=ParseMode.HTML,
         )
 
 
 def stopbot(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(chat_id) and updater.running:
+    if (
+        update.effective_chat.id == int(config["secrets"]["chat_id"])
+        and updater.running
+    ):
         updater.stop()
 
 
 def message_handler(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(chat_id):
+    if update.effective_chat.id == int(config["secrets"]["chat_id"]):
         message_text = update.message.text.lower()
         if "doubt" in message_text or "daud" in message_text or "daut" in message_text:
             context.bot.send_animation(
-                chat_id=chat_id, animation=open("resources/i_daut_it.gif", "rb")
+                chat_id=config["secrets"]["chat_id"],
+                animation=open(RESOURCE_CONFIG["daut_gif_path"], "rb"),
             )
 
 
@@ -269,7 +289,7 @@ def get_if_new_patch(context: CallbackContext) -> None:
     new_patch_exists, new_patch_number = patch_checker.get_if_new_patch()
     if new_patch_exists:
         context.bot.send_message(
-            chat_id=chat_id,
+            chat_id=config["secrets"]["chat_id"],
             text=f"Es gibt ein neues Dota2 Update! Gameplay Update {new_patch_number} \n https://www.dota2.com/patches/{new_patch_number}",
             parse_mode=ParseMode.HTML,
         )
@@ -285,6 +305,9 @@ def update_heroes(context: CallbackContext) -> None:
 def main():
     dispatcher = updater.dispatcher
     job_queue = updater.job_queue
+
+    # Right after startup, get all dynamic resources.
+    job_queue.run_once(update_heroes, when=datetime.datetime.now())
 
     dispatcher.add_handler(CommandHandler("dodo", dodo))
     dispatcher.add_handler(CommandHandler("crawl", crawl))
