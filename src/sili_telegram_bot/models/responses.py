@@ -21,16 +21,22 @@ class Responses:
         "legacy": "Archived",
         "other": "Other responses",
     }
-    entity_data_file = VL_CONFIG["entity_data_file"]
-    resource_file = VL_CONFIG["resource_file"]
+
     entity_data = {}
     entity_responses = []
 
-    def __init__(self):
-        with open(self.entity_data_file, "r") as infile:
+    def __init__(
+        self,
+        entity_data_file: str = VL_CONFIG["entity_data_file"],
+        resource_file: str = VL_CONFIG["resource_file"],
+    ):
+        self.entity_data_file = entity_data_file
+        self.resource_file = resource_file
+
+        with open(entity_data_file, "r") as infile:
             self.entity_data = json.load(infile)
 
-        with open(self.resource_file, "r") as infile:
+        with open(resource_file, "r") as infile:
             self.entity_responses = json.load(infile)
 
     def _get_type_data(self, entity_type: str):
