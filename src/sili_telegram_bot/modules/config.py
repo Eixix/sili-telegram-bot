@@ -63,6 +63,14 @@ def get_accounts() -> list[dict]:
     return literal_eval(config["accounts"]["account_list"])
 
 
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
+def _config_logging() -> None:
+    """
+    Perform configuration for the logging module.
+    """
+    logging.basicConfig(
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        level=logging.INFO,
+    )
+
+
+_config_logging()
