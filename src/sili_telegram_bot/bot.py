@@ -297,8 +297,8 @@ def main():
     job_queue = sili_bot_app.job_queue
 
     # Right after startup, get all dynamic resources.
-    job_queue.run_once(update_heroes, when=datetime.datetime.now())
-    job_queue.run_once(update_response_resource, when=datetime.datetime.now())
+    job_queue.run_once(update_heroes, when=0)
+    job_queue.run_once(update_response_resource, when=0)
 
     sili_bot_app.add_handler(CommandHandler("dodo", dodo))
     sili_bot_app.add_handler(CommandHandler("crawl", crawl))
