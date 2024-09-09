@@ -113,7 +113,7 @@ class Responses:
 
         return response_urls[level]
 
-    def get_link(self, entity, line, type="hero"):
+    def get_link(self, entity, line, type="hero", level=0):
         fuzzy_rules = "{e<=1}"
 
         if regex.search(r"^\".+\"", line):
@@ -125,7 +125,9 @@ class Responses:
                 f"(?:{regex.escape(line)}){fuzzy_rules}", flags=regex.IGNORECASE
             )
 
-        return self.get_response_url(name=entity, entity_type=type, pattern=line_re)
+        return self.get_response_url(
+            name=entity, entity_type=type, pattern=line_re, level=level
+        )
 
     def download_mp3(self, link):
         file_name_match = regex.search(r"[^\/]*.mp3", link)
