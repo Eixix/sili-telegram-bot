@@ -3,10 +3,20 @@ import os
 import regex
 import requests
 
+from dataclasses import dataclass
+
 from sili_telegram_bot.models.exceptions import MissingResponseUrlException
 from sili_telegram_bot.modules.config import config
 
 VL_CONFIG = config["voicelines"]
+
+
+@dataclass
+class ResponseArgs:
+    entity: str
+    line: str
+    type: str = "hero"
+    level: int = 0
 
 
 class Responses:
