@@ -185,12 +185,23 @@ class Responses:
 
         response_urls = response["urls"]
 
+        available_urls = [
+            ": ".join([str(i), url])
+            for i, url in enumerate(response_urls)
+            if url is not None
+        ]
+
+        if len(response_urls) - 1 < level:
+            exception_text = f"Entity {matched_name} does not have as many levels."
+
+            if available_urls:
+                concat_urls = ", ".join(available_urls)
+                alternative_text = f"Available levels are: {concat_urls}."
+                exception_text += " " + alternative_text
+
+            raise MissingResponseUrlException(exception_text)
+
         if response_urls[level] is None:
-            available_urls = [
-                ": ".join([str(i), url])
-                for i, url in enumerate(response_urls)
-                if url is not None
-            ]
             exception_text = (
                 f"The requested response URL is not available (missing file on the "
                 f"wiki)."
