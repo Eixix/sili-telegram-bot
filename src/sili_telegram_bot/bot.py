@@ -156,6 +156,8 @@ def voiceline(update: Update, context: CallbackContext) -> None:
                 text=str(e),
             )
 
+            return None
+
         vl_file_path = responses.download_mp3(vl_link)
 
         try:
