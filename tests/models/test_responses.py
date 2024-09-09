@@ -1,3 +1,7 @@
+"""
+Test the Response class.
+"""
+
 from pytest_cases import parametrize_with_cases
 
 import test_responses_cases as case_module
@@ -6,19 +10,16 @@ from sili_telegram_bot.models.exceptions import MissingResponseUrlException
 from sili_telegram_bot.models.responses import Responses
 
 
-class TestResponses:
+class TestFirstVoiceline:
     """
-    Test the Response class.
+    Test getting the first response for any entity.
     """
 
     @parametrize_with_cases(
         "entity_name,response,entity_type",
-        cases=case_module.TestResponsesCases.TestFirstVoicelineCases,
+        cases=case_module.TestFirstVoicelineCases,
     )
-    def test_first_voiceline(self, entity_name, response, entity_type) -> None:
-        """
-        Get the first response for any entity.
-        """
+    def test_success(self, entity_name, response, entity_type) -> None:
         rsp = Responses()
 
         try:
@@ -30,10 +31,10 @@ class TestResponses:
             # A missing URL is expected, and so this still counts as a test success.
             pass
 
-    @parametrize_with_cases(
-        "hero_name", cases=case_module.TestResponsesCases.TestCrummyWizardCases
-    )
-    def test_crummy_wizard_success(self, hero_name) -> None:
+
+class TestCrummyWizard:
+    @parametrize_with_cases("hero_name", cases=case_module.TestCrummyWizardCases)
+    def test_success(self, hero_name) -> None:
         """
         Test if the "Crummy wizard" voiceline can be retrieved for a given voiced hero.
         """
