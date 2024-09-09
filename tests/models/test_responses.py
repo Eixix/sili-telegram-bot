@@ -2,6 +2,10 @@ import pytest
 from pytest_cases import parametrize_with_cases
 
 import test_responses_cases as case_module
+from test_infrastructure.common_case_infra import (
+    TEST_ENTITY_DATA_FILE,
+    TEST_RESPONSES_FILE,
+)
 
 from sili_telegram_bot.models.exceptions import MissingResponseUrlException
 from sili_telegram_bot.models.responses import Responses
@@ -20,7 +24,9 @@ class TestResponses:
         """
         Get the first response for any entity.
         """
-        rsp = Responses()
+        rsp = Responses(
+            entity_data_file=TEST_ENTITY_DATA_FILE, resource_file=TEST_RESPONSES_FILE
+        )
 
         try:
             resp_url = rsp.get_link(entity_name, response, type=entity_type)
@@ -38,6 +44,8 @@ class TestResponses:
         """
         Test if the "Crummy wizard" voiceline can be retrieved for a given voiced hero.
         """
-        rsp = Responses()
+        rsp = Responses(
+            entity_data_file=TEST_ENTITY_DATA_FILE, resource_file=TEST_RESPONSES_FILE
+        )
         resp_url = rsp.get_link(hero_name, "Crummy wizard")
         assert resp_url is not None
