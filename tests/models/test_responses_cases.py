@@ -81,13 +81,13 @@ class TestParseVoicelineArgsCases:
 
         def case_basic_with_type_and_level(self):
             return (
-                ["Abaddon", "(hero):", "Abaddon.", "(0)"],
+                ["Abaddon", "(hero):", "Abaddon.", "(1)"],
                 ResponseArgs(entity="Abaddon", line="Abaddon."),
             )
 
         def case_basic_with_non_default_level(self):
             return (
-                ["Abaddon", "(hero):", "Abaddon.", "(1)"],
+                ["Abaddon", "(hero):", "Abaddon.", "(2)"],
                 ResponseArgs(entity="Abaddon", line="Abaddon.", level=1),
             )
 
