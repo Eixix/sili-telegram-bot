@@ -16,10 +16,12 @@ import random
 import regex
 import os
 
+from dataclasses import asdict
+
 from sili_telegram_bot.modules.config import config
 from sili_telegram_bot.models.message import Message
 from sili_telegram_bot.models.patch_checker import PatchChecker
-from sili_telegram_bot.models.responses import Responses
+from sili_telegram_bot.models.responses import Responses, ResponseArgs
 from sili_telegram_bot.models.birthdays import Birthdays
 from sili_telegram_bot.modules.voiceline_scraping import get_response_data
 
@@ -176,18 +178,15 @@ def _parse_voiceline_args(args: list[str]) -> dict:
                 + basic_help_text
             )
 
+        args = {"entity": entity.strip(), "line": line.strip()}
+
         if type:
-            type = type.strip("()")
+            args["type"] = type.strip("()")
 
         if level:
-            level = int(level.strip("()"))
+            args["level"] = int(level.strip("()"))
 
-    return {
-        "entity": entity.strip(),
-        "type": type,
-        "line": line.strip(),
-        "level": level,
-    }
+    return ResponseArgs(**args)
 
 
 def voiceline(update: Update, context: CallbackContext) -> None:
@@ -195,7 +194,7 @@ def voiceline(update: Update, context: CallbackContext) -> None:
         logger.info("Getting voiceline...")
 
         try:
-            voiceline_args = _parse_voiceline_args(context.args)
+            voiceline_args = asdict(_parse_voiceline_args(context.args))
 
         except ValueError as e:
             logger.warning(f"Error while parsing voiceline args: {str(e)}")
