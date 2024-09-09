@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
 import datetime
-from telegram import Update, ParseMode, error, user
+from telegram import Update, User, error
+from telegram.constants import ParseMode
 from telegram.ext import (
+    Application,
     CallbackContext,
     CommandHandler,
-    Filters,
     MessageHandler,
-    Updater,
+    filters,
 )
 import sili_telegram_bot.dota_api as dota_api
 import json
@@ -24,7 +25,7 @@ from sili_telegram_bot.models.responses import parse_voiceline_args, Responses
 from sili_telegram_bot.models.birthdays import Birthdays
 from sili_telegram_bot.modules.voiceline_scraping import get_response_data
 
-updater = Updater(config["secrets"]["bot_token"])
+sili_bot_app = Application.builder().token(config["secrets"]["bot_token"]).build()
 RESOURCE_CONFIG = config["static_resources"]
 
 
@@ -37,7 +38,7 @@ with open(RESOURCE_CONFIG["punline_path"], "r", encoding="utf8") as f:
     punlines = json.load(f)
 
 
-def get_dota_matches(context: CallbackContext) -> None:
+async def get_dota_matches(context: CallbackContext) -> None:
     message = Message(dota_api.api_crawl(), punlines, None)
     messages = message.get_messages_for_matches()
 
@@ -66,7 +67,7 @@ def _weekdaynumber_to_weekday(weekdaynumber: int) -> str:
             return "So"
 
 
-def poll(context: CallbackContext) -> None:
+async def poll(context: CallbackContext) -> None:
     logger.info(f"DODO")
 
     questions = [
@@ -74,14 +75,14 @@ def poll(context: CallbackContext) -> None:
         random.choice(punlines["dodo_poll"]["nein"]),
     ]
 
-    context.bot.send_voice(
+    await context.bot.send_voice(
         chat_id=config["secrets"]["chat_id"],
         voice=open(RESOURCE_CONFIG["dodo_voiceline_path"], "rb"),
     )
 
     weekday = _weekdaynumber_to_weekday(datetime.datetime.today().weekday())
 
-    context.bot.send_poll(
+    await context.bot.send_poll(
         config["secrets"]["chat_id"],
         f"Do{weekday}",
         questions,
@@ -90,7 +91,7 @@ def poll(context: CallbackContext) -> None:
     )
 
 
-def user_to_representation(user: user.User):
+def user_to_representation(user: User):
     """
     Generate *some* string identifying a telegram user based on what information is
     available.
@@ -128,7 +129,7 @@ def update_response_resource(context: CallbackContext) -> None:
     get_response_data()
 
 
-def voiceline(update: Update, context: CallbackContext) -> None:
+async def voiceline(update: Update, context: CallbackContext) -> None:
     if update.effective_chat.id == int(config["secrets"]["chat_id"]):
         logger.info("Getting voiceline...")
 
@@ -137,7 +138,9 @@ def voiceline(update: Update, context: CallbackContext) -> None:
 
         except ValueError as e:
             logger.error(f"Error while parsing voiceline args: {str(e)}")
-            context.bot.send_message(chat_id=config["secrets"]["chat_id"], text=str(e))
+            await context.bot.send_message(
+                chat_id=config["secrets"]["chat_id"], text=str(e)
+            )
 
             return None
 
@@ -150,7 +153,7 @@ def voiceline(update: Update, context: CallbackContext) -> None:
             entity = voiceline_args["entity"]
             logger.error(f"Error while attempting to get voiceline for {entity}: {e}")
 
-            context.bot.send_message(
+            await context.bot.send_message(
                 chat_id=config["secrets"]["chat_id"],
                 text=str(e),
             )
@@ -162,7 +165,7 @@ def voiceline(update: Update, context: CallbackContext) -> None:
         try:
             # Delete /voiceline to make conversation more seamless
             try:
-                context.bot.delete_message(
+                await context.bot.delete_message(
                     chat_id=config["secrets"]["chat_id"],
                     message_id=update.message.message_id,
                 )
@@ -177,10 +180,10 @@ def voiceline(update: Update, context: CallbackContext) -> None:
 
             sender_name = user_to_representation(update.message.from_user)
 
-            context.bot.send_message(
+            await context.bot.send_message(
                 chat_id=config["secrets"]["chat_id"], text=sender_name + ":"
             )
-            context.bot.send_voice(
+            await context.bot.send_voice(
                 chat_id=config["secrets"]["chat_id"],
                 voice=open(vl_file_path, "rb"),
             )
@@ -191,92 +194,92 @@ def voiceline(update: Update, context: CallbackContext) -> None:
             os.remove(vl_file_path)
 
 
-def crawl(update: Update, context: CallbackContext):
+async def crawl(update: Update, context: CallbackContext):
     if update.effective_chat.id == int(config["secrets"]["chat_id"]):
-        get_dota_matches(context)
+        await get_dota_matches(context)
 
 
-def dodo(update: Update, context: CallbackContext):
+async def dodo(update: Update, context: CallbackContext):
     if update.effective_chat.id == int(config["secrets"]["chat_id"]):
-        poll(context)
+        await poll(context)
 
 
-def playerinfos(update: Update, context: CallbackContext):
+async def playerinfos(update: Update, context: CallbackContext):
     if update.effective_chat.id == int(config["secrets"]["chat_id"]):
         message = Message(None, None, dota_api.get_playerinfos())
         messages = message.get_message_for_playerinfos()
 
         if messages:
-            context.bot.send_message(
+            await context.bot.send_message(
                 chat_id=config["secrets"]["chat_id"],
                 text=messages,
                 parse_mode=ParseMode.HTML,
             )
 
 
-def lastgame(update: Update, context: CallbackContext):
+async def lastgame(update: Update, context: CallbackContext):
     if update.effective_chat.id == int(config["secrets"]["chat_id"]):
         time = dota_api.get_lastgame()
 
         if time:
-            context.bot.send_message(
+            await context.bot.send_message(
                 chat_id=config["secrets"]["chat_id"],
                 text=time,
                 parse_mode=ParseMode.HTML,
             )
 
 
-def birthdays(update: Update, context: CallbackContext):
+async def birthdays(update: Update, context: CallbackContext):
     if update.effective_chat.id == int(config["secrets"]["chat_id"]):
-        context.bot.send_message(
+        await context.bot.send_message(
             chat_id=config["secrets"]["chat_id"],
             text=Birthdays().GetBirthdays(),
             parse_mode=ParseMode.HTML,
         )
 
 
-def upcomingBirthdays(context: CallbackContext):
+async def upcomingBirthdays(context: CallbackContext):
     upcomingBirthdays = Birthdays().GetUpcomingBirthdays()
     if upcomingBirthdays != None:
-        context.bot.send_message(
+        await context.bot.send_message(
             chat_id=config["secrets"]["chat_id"],
             text=upcomingBirthdays,
             parse_mode=ParseMode.HTML,
         )
 
 
-def todayBirthdays(context: CallbackContext):
+async def todayBirthdays(context: CallbackContext):
     todayBirthdays = Birthdays().GetTodayBirthdays()
     if todayBirthdays != None and todayBirthdays != "":
-        context.bot.send_message(
+        await context.bot.send_message(
             chat_id=config["secrets"]["chat_id"],
             text=todayBirthdays,
             parse_mode=ParseMode.HTML,
         )
 
 
-def stopbot(update: Update, context: CallbackContext):
+async def stopbot(update: Update, context: CallbackContext):
     if (
         update.effective_chat.id == int(config["secrets"]["chat_id"])
-        and updater.running
+        and sili_bot_app.running
     ):
-        updater.stop()
+        await sili_bot_app.stop()
 
 
-def message_handler(update: Update, context: CallbackContext):
+async def message_handler(update: Update, context: CallbackContext):
     if update.effective_chat.id == int(config["secrets"]["chat_id"]):
         message_text = update.message.text.lower()
         if "doubt" in message_text or "daud" in message_text or "daut" in message_text:
-            context.bot.send_animation(
+            await context.bot.send_animation(
                 chat_id=config["secrets"]["chat_id"],
                 animation=open(RESOURCE_CONFIG["daut_gif_path"], "rb"),
             )
 
 
-def get_if_new_patch(context: CallbackContext) -> None:
+async def get_if_new_patch(context: CallbackContext) -> None:
     new_patch_exists, new_patch_number = patch_checker.get_if_new_patch()
     if new_patch_exists:
-        context.bot.send_message(
+        await context.bot.send_message(
             chat_id=config["secrets"]["chat_id"],
             text=f"Es gibt ein neues Dota2 Update! Gameplay Update {new_patch_number} \n https://www.dota2.com/patches/{new_patch_number}",
             parse_mode=ParseMode.HTML,
@@ -291,22 +294,21 @@ def update_heroes(context: CallbackContext) -> None:
 
 
 def main():
-    dispatcher = updater.dispatcher
-    job_queue = updater.job_queue
+    job_queue = sili_bot_app.job_queue
 
     # Right after startup, get all dynamic resources.
     job_queue.run_once(update_heroes, when=datetime.datetime.now())
     job_queue.run_once(update_response_resource, when=datetime.datetime.now())
 
-    dispatcher.add_handler(CommandHandler("dodo", dodo))
-    dispatcher.add_handler(CommandHandler("crawl", crawl))
-    dispatcher.add_handler(CommandHandler("playerinfos", playerinfos))
-    dispatcher.add_handler(CommandHandler("lastgame", lastgame))
-    dispatcher.add_handler(CommandHandler("birthdays", birthdays))
-    dispatcher.add_handler(CommandHandler("stopbot", stopbot))
-    dispatcher.add_handler(CommandHandler("voiceline", voiceline))
-    dispatcher.add_handler(
-        MessageHandler(Filters.text & (~Filters.command), message_handler)
+    sili_bot_app.add_handler(CommandHandler("dodo", dodo))
+    sili_bot_app.add_handler(CommandHandler("crawl", crawl))
+    sili_bot_app.add_handler(CommandHandler("playerinfos", playerinfos))
+    sili_bot_app.add_handler(CommandHandler("lastgame", lastgame))
+    sili_bot_app.add_handler(CommandHandler("birthdays", birthdays))
+    sili_bot_app.add_handler(CommandHandler("stopbot", stopbot))
+    sili_bot_app.add_handler(CommandHandler("voiceline", voiceline))
+    sili_bot_app.add_handler(
+        MessageHandler(filters.TEXT & (~filters.COMMAND), message_handler)
     )
 
     job_queue.run_repeating(get_dota_matches, interval=600, first=10)
@@ -323,5 +325,5 @@ def main():
     job_queue.run_daily(upcomingBirthdays, datetime.time(0, 0, 0))
     job_queue.run_daily(todayBirthdays, datetime.time(0, 0, 0))
 
-    updater.start_polling()
-    updater.idle()
+    sili_bot_app.run_polling()
+    sili_bot_app.shutdown()
