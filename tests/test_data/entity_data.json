@@ -1,0 +1,122 @@
+{
+    "Hero responses": {
+        "Legion Commander": {
+            "name": "Legion Commander",
+            "url": "https://liquipedia.net/dota2/Legion_Commander/Responses",
+            "title": "Legion Commander/Responses"
+        },
+        "Visage": {
+            "name": "Visage",
+            "url": "https://liquipedia.net/dota2/Visage/Responses",
+            "title": "Visage/Responses"
+        },
+        "Centaur Warrunner": {
+            "name": "Centaur Warrunner",
+            "url": "https://liquipedia.net/dota2/Centaur_Warrunner/Responses",
+            "title": "Centaur Warrunner/Responses"
+        },
+        "Broodmother": {
+            "name": "Broodmother",
+            "url": "https://liquipedia.net/dota2/Broodmother/Responses",
+            "title": "Broodmother/Responses"
+        },
+        "Brewmaster": {
+            "name": "Brewmaster",
+            "url": "https://liquipedia.net/dota2/Brewmaster/Responses",
+            "title": "Brewmaster/Responses"
+        }
+    },
+    "Other responses": {
+        "Default Announcer": {
+            "name": "Default Announcer",
+            "url": "https://liquipedia.net/dota2/Announcer_responses",
+            "title": "Announcer responses"
+        },
+        "Warlock Golem": {
+            "name": "Warlock Golem",
+            "url": "https://liquipedia.net/dota2/Warlock_Golem/Responses",
+            "title": "Warlock Golem/Responses"
+        },
+        "Diretide 2020": {
+            "name": "Diretide 2020",
+            "url": "https://liquipedia.net/dota2/Diretide_2020/Announcer",
+            "title": "Diretide 2020/Announcer"
+        },
+        "Continuum Conundrum": {
+            "name": "Continuum Conundrum",
+            "url": "https://liquipedia.net/dota2/Aghanim%27s_Labyrinth:_The_Continuum_Conundrum/Announcer",
+            "title": "Aghanim's Labyrinth: The Continuum Conundrum/Announcer"
+        },
+        "Primal Beast": {
+            "name": "Primal Beast",
+            "url": "https://liquipedia.net/dota2/Aghanim%27s_Labyrinth:_The_Continuum_Conundrum/Primal_Beast",
+            "title": "Aghanim's Labyrinth: The Continuum Conundrum/Primal Beast"
+        }
+    },
+    "Announcer Packs": {
+        "Diretide": {
+            "name": "Diretide",
+            "url": "https://liquipedia.net/dota2/Mega-Kills:_Diretide",
+            "title": "Mega-Kills: Diretide"
+        },
+        "Kunkka & Tidehunter": {
+            "name": "Kunkka & Tidehunter",
+            "url": "https://liquipedia.net/dota2/Kunkka_%26_Tidehunter_Announcer_Pack",
+            "title": "Kunkka & Tidehunter Announcer Pack"
+        },
+        "The Stanley Parable": {
+            "name": "The Stanley Parable",
+            "url": "https://liquipedia.net/dota2/The_Stanley_Parable_Announcer_Pack",
+            "title": "The Stanley Parable Announcer Pack"
+        },
+        "Pyrion Flax": {
+            "name": "Pyrion Flax",
+            "url": "https://liquipedia.net/dota2/Pyrion_Flax_Announcer_Pack",
+            "title": "Pyrion Flax Announcer Pack"
+        },
+        "Lina": {
+            "name": "Lina",
+            "url": "https://liquipedia.net/dota2/Lina_Announcer_Pack",
+            "title": "Lina Announcer Pack"
+        }
+    },
+    "Voice Packs": {
+        "Dread Retribution (Drow Ranger)": {
+            "name": "Dread Retribution (Drow Ranger)",
+            "url": "https://liquipedia.net/dota2/Dread_Retribution_Bundle/Responses",
+            "title": "Dread Retribution Bundle/Responses"
+        },
+        "Davion of Dragon Hold (Dragon Knight)": {
+            "name": "Davion of Dragon Hold (Dragon Knight)",
+            "url": "https://liquipedia.net/dota2/Davion_of_Dragon_Hold/Responses/Davion",
+            "title": "Davion of Dragon Hold/Responses/Davion"
+        },
+        "The Disciple's Path (Anti-Mage)": {
+            "name": "The Disciple's Path (Anti-Mage)",
+            "url": "https://liquipedia.net/dota2/The_Disciple%27s_Path/Responses",
+            "title": "The Disciple's Path/Responses"
+        },
+        "Voice of Flockheart's Gamble (Ogre Magi)": {
+            "name": "Voice of Flockheart's Gamble (Ogre Magi)",
+            "url": "https://liquipedia.net/dota2/Voice_of_Flockheart%27s_Gamble",
+            "title": "Voice of Flockheart's Gamble"
+        },
+        "Slyrak, the Elder Dragon (Dragon Knight)": {
+            "name": "Slyrak, the Elder Dragon (Dragon Knight)",
+            "url": "https://liquipedia.net/dota2/Davion_of_Dragon_Hold/Responses/Slyrak",
+            "title": "Davion of Dragon Hold/Responses/Slyrak"
+        }
+    },
+    "Archived": {
+        "Skeleton King": {
+            "name": "Skeleton King",
+            "url": "https://liquipedia.net/dota2/Skeleton_King/Responses",
+            "title": "Skeleton King/Responses"
+        },
+        "Enigma Legacy": {
+            "name": "Enigma Legacy",
+            "url": "https://liquipedia.net/dota2/Enigma/Responses/Legacy",
+            "title": "Enigma/Responses/Legacy"
+        }
+    }
+}
