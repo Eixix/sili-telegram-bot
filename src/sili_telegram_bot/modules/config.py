@@ -18,7 +18,7 @@ def _init_config(default_config_file) -> cfp.ConfigParser:
     Initialize the CONFIG object by reading the default config, then the user config,
     and then updating it with pre-defined variables from the environment.
     """
-    with open(_default_config_file, "r") as infile:
+    with open(default_config_file, "r") as infile:
         default_config = json.load(infile)
 
     # Config values to be read from env. Keys represent the env var name, are len 2 lists
