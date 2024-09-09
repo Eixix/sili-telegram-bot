@@ -52,4 +52,14 @@ docker build -t sili-bot .
 docker run --name sili-bot sili-bot
 ```
 
+By default, the container incorporates the state of `resources/dynamic` at
+build time, but does not have persistence. As a consequence, the bot might
+re-send match summaries after a restart. To mitigate this, use a volume
+for the dynamic resources. This decouples the containers state from the build
+repo's and adds persistence:
+
+```bash
+docker run --mount source=silibotvolume,target=/bot/resources/dynamic --name sili-bot -d sili-bot
+```
+
 ## WIP: Port to Rust
