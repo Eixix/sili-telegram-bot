@@ -1,7 +1,11 @@
 import json
 
 from sili_telegram_bot.models.responses import Responses
-from sili_telegram_bot.modules.config import config as CONFIG
+
+
+TEST_DATA_DIR = "tests/test_data"
+TEST_ENTITY_DATA_OUTPUT = f"{TEST_DATA_DIR}/entity_data.json"
+TEST_RESPONSES_OUTPUT = f"{TEST_DATA_DIR}/responses.json"
 
 
 class VoicelineResource:
@@ -11,8 +15,8 @@ class VoicelineResource:
 
     def __init__(
         self,
-        resource_file: str = CONFIG["voicelines"]["resource_file"],
-        entity_data_file: str = CONFIG["voicelines"]["entity_data_file"],
+        resource_file: str = TEST_RESPONSES_OUTPUT,
+        entity_data_file: str = TEST_ENTITY_DATA_OUTPUT,
     ):
         self._resource_file = resource_file
         self._entity_data_file = entity_data_file
@@ -79,6 +83,9 @@ class VoicelineResource:
 
         return self._name_lookup
 
+    def get_type_lookup(self) -> dict:
+        return self._type_lookup
+
 
 _VL_RESOURCE = VoicelineResource()
 
@@ -87,12 +94,10 @@ def all_hero_names() -> set[str]:
     """
     Provide a list of all known hero names.
     """
-    hero_info_path = "resources/dynamic/heroes.json"
+    hero_type = Responses.entity_type_lookup["hero"]
+    hero_data = _VL_RESOURCE.get_entity_dict()[hero_type]
 
-    with open(hero_info_path, "r") as f:
-        known_heroes = json.load(f)
-
-    return {hero["localized_name"] for hero in known_heroes}
+    return {hero["name"] for hero in hero_data.values()}
 
 
 def unvoiced_heroes() -> set[str]:
@@ -113,7 +118,7 @@ def default_hero() -> str:
     """
     Provide some default hero_name.
     """
-    return "Keeper of the Light"
+    return [*all_hero_names()][0]
 
 
 def remaining_heroes() -> set[str]:
