@@ -75,7 +75,8 @@ def parse_voiceline_args(args: list[str]) -> dict:
             args["type"] = type.strip("()")
 
         if level:
-            args["level"] = int(level.strip("()"))
+            # Convert to int, and remove one level to account for zero indexing.
+            args["level"] = int(level.strip("()")) - 1
 
     return ResponseArgs(**args)
 
@@ -178,12 +179,13 @@ class Responses:
         response_urls = response["urls"]
 
         available_urls = [
-            ": ".join([str(i), url])
+            # Convert back to 1 based indexing.
+            ": ".join([str(i + 1), url])
             for i, url in enumerate(response_urls)
             if url is not None
         ]
 
-        if len(response_urls) - 1 < level:
+        if len(response_urls) < level + 1:
             exception_text = f"Entity {matched_name} does not have as many levels."
 
             if available_urls:
