@@ -13,7 +13,6 @@ import sili_telegram_bot.dota_api as dota_api
 import json
 import logging
 import random
-import regex
 import os
 
 from dataclasses import asdict
@@ -21,7 +20,7 @@ from dataclasses import asdict
 from sili_telegram_bot.modules.config import config
 from sili_telegram_bot.models.message import Message
 from sili_telegram_bot.models.patch_checker import PatchChecker
-from sili_telegram_bot.models.responses import Responses, ResponseArgs
+from sili_telegram_bot.models.responses import parse_voiceline_args, Responses
 from sili_telegram_bot.models.birthdays import Birthdays
 from sili_telegram_bot.modules.voiceline_scraping import get_response_data
 
@@ -129,74 +128,12 @@ def update_response_resource(context: CallbackContext) -> None:
     get_response_data()
 
 
-def _parse_voiceline_args(args: list[str]) -> dict:
-    """
-    Parse the arguments to a voiceline request into a dict of args to be accepted
-    by `Responses.get_link()`.
-    """
-    basic_help_text = (
-        "The format should be "
-        "'/voiceline Entity Name (entity_type): Voice line (level)'.\n"
-        'Enclose line in "double quotes" to use regex as described in the `regex` '
-        "module."
-    )
-    if len(args) <= 1:
-        help_txt = "Not enough arguments. " + basic_help_text
-
-        raise ValueError(help_txt)
-
-    else:
-        # To separate out hero and voice line (both may contain whitespaces),
-        # we first concatenate all args to a string and then split it on the
-        # colon to get hero and voiceline
-        arg_string = " ".join(args)
-
-        # pattern for each arg. A continuous string of any character besides parens or
-        # a colon.
-        single_arg_pattern = r"[^():]+"
-        ap = single_arg_pattern
-
-        # Parse out arguments as described in the help text above.
-        arg_pattern = (
-            r"^(" + ap + r")(\(" + ap + r"\))?:\w*(" + ap + r")(\(" + ap + r"\))?"
-        )
-
-        matches = regex.search(arg_pattern, arg_string)
-
-        try:
-            entity, type, line, level = matches.groups()
-        except Exception as e:
-            raise ValueError(f"Could not parse args: {arg_string}. " + basic_help_text)
-
-        if not entity:
-            raise ValueError(
-                f"Could not parse out the name of the entity from '{arg_string}'. "
-                + basic_help_text
-            )
-
-        if not line:
-            raise ValueError(
-                f"Could not parse out the voiceline from '{arg_string}'. "
-                + basic_help_text
-            )
-
-        args = {"entity": entity.strip(), "line": line.strip()}
-
-        if type:
-            args["type"] = type.strip("()")
-
-        if level:
-            args["level"] = int(level.strip("()"))
-
-    return ResponseArgs(**args)
-
-
 def voiceline(update: Update, context: CallbackContext) -> None:
     if update.effective_chat.id == int(config["secrets"]["chat_id"]):
         logger.info("Getting voiceline...")
 
         try:
-            voiceline_args = asdict(_parse_voiceline_args(context.args))
+            voiceline_args = asdict(parse_voiceline_args(context.args))
 
         except ValueError as e:
             logger.warning(f"Error while parsing voiceline args: {str(e)}")

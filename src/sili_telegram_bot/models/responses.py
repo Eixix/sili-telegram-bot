@@ -19,6 +19,68 @@ class ResponseArgs:
     level: int = 0
 
 
+def parse_voiceline_args(args: list[str]) -> dict:
+    """
+    Parse the arguments to a voiceline request into a dict of args to be accepted
+    by `Responses.get_link()`.
+    """
+    basic_help_text = (
+        "The format should be "
+        "'/voiceline Entity Name (entity_type): Voice line (level)'.\n"
+        'Enclose line in "double quotes" to use regex as described in the `regex` '
+        "module."
+    )
+    if len(args) <= 1:
+        help_txt = "Not enough arguments. " + basic_help_text
+
+        raise ValueError(help_txt)
+
+    else:
+        # To separate out hero and voice line (both may contain whitespaces),
+        # we first concatenate all args to a string and then split it on the
+        # colon to get hero and voiceline
+        arg_string = " ".join(args)
+
+        # pattern for each arg. A continuous string of any character besides parens or
+        # a colon.
+        single_arg_pattern = r"[^():]+"
+        ap = single_arg_pattern
+
+        # Parse out arguments as described in the help text above.
+        arg_pattern = (
+            r"^(" + ap + r")(\(" + ap + r"\))?:\w*(" + ap + r")(\(" + ap + r"\))?"
+        )
+
+        matches = regex.search(arg_pattern, arg_string)
+
+        try:
+            entity, type, line, level = matches.groups()
+        except Exception as e:
+            raise ValueError(f"Could not parse args: {arg_string}. " + basic_help_text)
+
+        if not entity:
+            raise ValueError(
+                f"Could not parse out the name of the entity from '{arg_string}'. "
+                + basic_help_text
+            )
+
+        if not line:
+            raise ValueError(
+                f"Could not parse out the voiceline from '{arg_string}'. "
+                + basic_help_text
+            )
+
+        args = {"entity": entity.strip(), "line": line.strip()}
+
+        if type:
+            args["type"] = type.strip("()")
+
+        if level:
+            args["level"] = int(level.strip("()"))
+
+    return ResponseArgs(**args)
+
+
 class Responses:
     """
     Interface with the comprehensive response json to retrieve individual lines.
