@@ -13,6 +13,7 @@ import sili_telegram_bot.dota_api as dota_api
 import json
 import logging
 import random
+import regex
 import os
 
 from sili_telegram_bot.modules.config import config
@@ -131,13 +132,14 @@ def _parse_voiceline_args(args: list[str]) -> dict:
     Parse the arguments to a voiceline request into a dict of args to be accepted
     by `Responses.get_link()`.
     """
+    basic_help_text = (
+        "The format should be "
+        "'/voiceline Entity Name (entity_type): Voice line (level)'.\n"
+        'Enclose line in "double quotes" to use regex as described in the `regex` '
+        "module."
+    )
     if len(args) <= 1:
-        help_txt = (
-            "Not enough arguments, format should be '/voiceline "
-            "Hero Name: Voice line'...\n"
-            'Enclose line in "double quotes" to use regex as described in '
-            "the `regex` module."
-        )
+        help_txt = "Not enough arguments. " + basic_help_text
 
         raise ValueError(help_txt)
 
@@ -147,9 +149,45 @@ def _parse_voiceline_args(args: list[str]) -> dict:
         # colon to get hero and voiceline
         arg_string = " ".join(args)
 
-        hero, line = arg_string.split(":")
+        # pattern for each arg. A continuous string of any character besides parens or
+        # a colon.
+        arg_pattern = r"[^():]+"
+        ap = arg_pattern
 
-    return {"entity": hero, "line": line.strip()}
+        # Parse out arguments as described in the help text above.
+        arg_pattern = f"^({ap})(\({ap}\))?:\w*({ap})(\({ap}\))?"
+
+        matches = regex.search(arg_pattern, arg_string)
+
+        try:
+            entity, type, line, level = matches.groups()
+        except Exception as e:
+            raise ValueError(f"Could not parse args: {arg_string}. " + basic_help_text)
+
+        if not entity:
+            raise ValueError(
+                f"Could not parse out the name of the entity from '{arg_string}'. "
+                + basic_help_text
+            )
+
+        if not line:
+            raise ValueError(
+                f"Could not parse out the voiceline from '{arg_string}'. "
+                + basic_help_text
+            )
+
+        if type:
+            type = type.strip("()")
+
+        if level:
+            level = int(level.strip("()"))
+
+    return {
+        "entity": entity.strip(),
+        "type": type,
+        "line": line.strip(),
+        "level": level,
+    }
 
 
 def voiceline(update: Update, context: CallbackContext) -> None:
