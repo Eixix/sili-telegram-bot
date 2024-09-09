@@ -87,5 +87,8 @@ def _config_logging(level: str = "info") -> None:
         level=log_level,
     )
 
+    # Remove INFO logging for bot requests, they can leak the bot token.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+
 
 _config_logging(level=config["logging"]["level"])
