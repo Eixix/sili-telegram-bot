@@ -14,7 +14,7 @@ dependencies = [
     "beautifulsoup4<=4.11",
     "numpy<=1.22",
     "pymediawiki<=0.7",
-    "python-telegram-bot<=13.11",
+    "python-telegram-bot[job-queue]<=21.5",
     "regex<=2022.4",
     "requests<=2.31",
     # Not directly used, pinned for security reasons.
