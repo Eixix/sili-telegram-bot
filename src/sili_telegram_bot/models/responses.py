@@ -4,6 +4,7 @@ import regex
 import requests
 
 from dataclasses import dataclass
+from difflib import get_close_matches
 
 from sili_telegram_bot.models.exceptions import MissingResponseUrlException
 from sili_telegram_bot.modules.config import config
@@ -115,12 +116,21 @@ class Responses:
 
         return self.entity_data[key]
 
-    def _get_response_list(self, name: str, *args, **kwargs) -> list | None:
+    def _get_response_list(
+        self, name: str, fuzzy_match: bool = False, *args, **kwargs
+    ) -> list | None:
         type_data = self._get_type_data(*args, **kwargs)
 
-        matches = [
-            value for key, value in type_data.items() if key.lower() == name.lower()
-        ]
+        if fuzzy_match:
+            all_names = [entity["name"] for entity in type_data.values()]
+            match_names = get_close_matches(name, all_names, n=int(1e9), cutoff=0.2)
+
+            matches = [type_data[name] for name in match_names]
+
+        else:
+            matches = [
+                value for key, value in type_data.items() if key.lower() == name.lower()
+            ]
 
         if matches:
             # Ignore potential multi-matches for now.
@@ -139,10 +149,14 @@ class Responses:
     ) -> str:
         """Retrieve the response url for a particular response."""
         re_pattern = regex.compile(pattern)
-        name_match = self._get_response_list(name, entity_type=entity_type)
+        name_match = self._get_response_list(
+            name, entity_type=entity_type, fuzzy_match=True
+        )
 
         if not name_match:
             raise Exception(f"Could not find responses for '{name}'")
+
+        matched_name = name_match["name"]
 
         name_responses = self.entity_responses[name_match["title"]]
 
@@ -153,7 +167,7 @@ class Responses:
         if not match_responses:
             response_url = name_match["url"]
             raise Exception(
-                f"Could not find line for '{name}'. Check the responses page to see "
+                f"Could not find line for '{matched_name}'. Check the responses page to see "
                 f"if you typed it correctly: {response_url}"
             )
 
