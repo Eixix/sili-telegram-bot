@@ -3,6 +3,7 @@ import pytest
 from pytest_cases import parametrize
 
 import test_infrastructure.common_case_infra as case_infra
+from sili_telegram_bot.models.responses import ResponseArgs
 
 
 class TestCrummyWizardCases:
@@ -62,3 +63,43 @@ class TestFirstVoicelineCases:
             case_infra.first_voiceline(entity_page_title),
             entity_type,
         )
+
+
+class TestParseVoicelineArgsCases:
+    class TestSuccessCases:
+        def case_basic(self):
+            return (
+                ["Abaddon:", "Abaddon."],
+                ResponseArgs(entity="Abaddon", line="Abaddon."),
+            )
+
+        def case_basic_with_type(self):
+            return (
+                ["Abaddon", "(hero):", "Abaddon."],
+                ResponseArgs(entity="Abaddon", line="Abaddon."),
+            )
+
+        def case_basic_with_type_and_level(self):
+            return (
+                ["Abaddon", "(hero):", "Abaddon.", "(0)"],
+                ResponseArgs(entity="Abaddon", line="Abaddon."),
+            )
+
+        def case_basic_with_non_default_level(self):
+            return (
+                ["Abaddon", "(hero):", "Abaddon.", "(1)"],
+                ResponseArgs(entity="Abaddon", line="Abaddon.", level=1),
+            )
+
+    class TestValueErrorCases:
+        def case_no_colon(self):
+            return ["Abaddon", "Abaddon."]
+
+        def case_non_int_level(self):
+            return ["Abaddon:", "Abaddon.", "(foo)"]
+
+        def case_too_many_parens(self):
+            return ["Abaddon(hero) ():", "Abaddon.", "(foo)"]
+
+        def case_missing_entity(self):
+            return ["():", "Abaddon."]
