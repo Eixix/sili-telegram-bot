@@ -16,6 +16,9 @@
         "bot_token": null,
         "chat_id": null
     },
+    "logging": {
+        "level": "INFO"
+    },
     "opendota_api": {
         "api_root": "https://api.opendota.com/api",
         "hero_endpoint": "heroes",

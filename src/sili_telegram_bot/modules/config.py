@@ -63,14 +63,29 @@ def get_accounts() -> list[dict]:
     return literal_eval(config["accounts"]["account_list"])
 
 
-def _config_logging() -> None:
+def _config_logging(level: str = "info") -> None:
     """
     Perform configuration for the logging module.
     """
+
+    match level.lower():
+        case "critical":
+            log_level = logging.CRITICAL
+        case "error":
+            log_level = logging.ERROR
+        case "warning":
+            log_level = logging.WARNING
+        case "info":
+            log_level = logging.INFO
+        case "debug":
+            log_level = logging.DEBUG
+        case _:
+            raise ValueError(f"Unknown log level: {level}.")
+
     logging.basicConfig(
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        level=logging.INFO,
+        level=log_level,
     )
 
 
-_config_logging()
+_config_logging(level=config["logging"]["level"])
