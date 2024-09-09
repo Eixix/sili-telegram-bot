@@ -137,7 +137,7 @@ def voiceline(update: Update, context: CallbackContext) -> None:
             voiceline_args = asdict(parse_voiceline_args(context.args))
 
         except ValueError as e:
-            logger.warning(f"Error while parsing voiceline args: {str(e)}")
+            logger.error(f"Error while parsing voiceline args: {str(e)}")
             context.bot.send_message(chat_id=config["secrets"]["chat_id"], text=str(e))
 
             return None
@@ -166,7 +166,7 @@ def voiceline(update: Update, context: CallbackContext) -> None:
                     message_id=update.message.message_id,
                 )
             except error.BadRequest as e:
-                logger.warning(
+                logger.error(
                     f"Error attempting to delete message: {e}. Likely "
                     f"insufficient permissions for the bot in this chat. Try "
                     f"giving it the `can_delete_messages` permission. See "
