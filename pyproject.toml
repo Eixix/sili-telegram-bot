@@ -11,6 +11,7 @@ license = { file = "./LICENCE" }
 authors = [{ name = "Eixix", email = "tobiasbetz@hotmail.de" }]
 
 dependencies = [
+    "APScheduler<=3.10",
     "beautifulsoup4<=4.11",
     "numpy<=1.22",
     "pymediawiki<=0.7",
