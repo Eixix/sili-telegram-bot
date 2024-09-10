@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from configparser import ConfigParser
 import datetime
 from telegram import Update, User, error
 from telegram.constants import ParseMode
@@ -25,7 +26,6 @@ from sili_telegram_bot.models.responses import parse_voiceline_args, Responses
 from sili_telegram_bot.models.birthdays import Birthdays
 from sili_telegram_bot.modules.voiceline_scraping import get_response_data
 
-sili_bot_app = Application.builder().token(config["secrets"]["bot_token"]).build()
 RESOURCE_CONFIG = config["static_resources"]
 
 
@@ -36,6 +36,16 @@ patch_checker = PatchChecker()
 
 with open(RESOURCE_CONFIG["punline_path"], "r", encoding="utf8") as f:
     punlines = json.load(f)
+
+
+def get_app(config: ConfigParser) -> Application:
+    """
+    Build and return a telegram Application from config.
+    """
+    return Application.builder().token(config["secrets"]["bot_token"]).build()
+
+
+SILI_BOT_APP = get_app(config)
 
 
 async def get_dota_matches(context: CallbackContext) -> None:
@@ -261,9 +271,9 @@ async def todayBirthdays(context: CallbackContext):
 async def stopbot(update: Update, context: CallbackContext):
     if (
         update.effective_chat.id == int(config["secrets"]["chat_id"])
-        and sili_bot_app.running
+        and SILI_BOT_APP.running
     ):
-        await sili_bot_app.stop()
+        await SILI_BOT_APP.stop()
 
 
 async def message_handler(update: Update, context: CallbackContext):
@@ -294,20 +304,20 @@ def update_heroes(context: CallbackContext) -> None:
 
 
 def main():
-    job_queue = sili_bot_app.job_queue
+    job_queue = SILI_BOT_APP.job_queue
 
     # Right after startup, get all dynamic resources.
     job_queue.run_once(update_heroes, when=0)
     job_queue.run_once(update_response_resource, when=0)
 
-    sili_bot_app.add_handler(CommandHandler("dodo", dodo))
-    sili_bot_app.add_handler(CommandHandler("crawl", crawl))
-    sili_bot_app.add_handler(CommandHandler("playerinfos", playerinfos))
-    sili_bot_app.add_handler(CommandHandler("lastgame", lastgame))
-    sili_bot_app.add_handler(CommandHandler("birthdays", birthdays))
-    sili_bot_app.add_handler(CommandHandler("stopbot", stopbot))
-    sili_bot_app.add_handler(CommandHandler("voiceline", voiceline))
-    sili_bot_app.add_handler(
+    SILI_BOT_APP.add_handler(CommandHandler("dodo", dodo))
+    SILI_BOT_APP.add_handler(CommandHandler("crawl", crawl))
+    SILI_BOT_APP.add_handler(CommandHandler("playerinfos", playerinfos))
+    SILI_BOT_APP.add_handler(CommandHandler("lastgame", lastgame))
+    SILI_BOT_APP.add_handler(CommandHandler("birthdays", birthdays))
+    SILI_BOT_APP.add_handler(CommandHandler("stopbot", stopbot))
+    SILI_BOT_APP.add_handler(CommandHandler("voiceline", voiceline))
+    SILI_BOT_APP.add_handler(
         MessageHandler(filters.TEXT & (~filters.COMMAND), message_handler)
     )
 
@@ -325,5 +335,5 @@ def main():
     job_queue.run_daily(upcomingBirthdays, datetime.time(0, 0, 0))
     job_queue.run_daily(todayBirthdays, datetime.time(0, 0, 0))
 
-    sili_bot_app.run_polling()
-    sili_bot_app.shutdown()
+    SILI_BOT_APP.run_polling()
+    SILI_BOT_APP.shutdown()
