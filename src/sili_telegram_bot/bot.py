@@ -26,6 +26,7 @@ from sili_telegram_bot.models.birthdays import Birthdays
 from sili_telegram_bot.modules.voiceline_scraping import get_response_data
 
 RESOURCE_CONFIG = config["static_resources"]
+SECRETS = config["secrets"]
 
 
 logger = logging.getLogger(__name__)
@@ -49,7 +50,7 @@ def get_punlines(punline_path: str) -> dict:
 
 
 PUNLINES = get_punlines(RESOURCE_CONFIG["punline_path"])
-SILI_BOT_APP = get_app(config["secrets"]["bot_token"])
+SILI_BOT_APP = get_app(SECRETS["bot_token"])
 
 
 async def get_dota_matches(context: CallbackContext) -> None:
@@ -59,7 +60,7 @@ async def get_dota_matches(context: CallbackContext) -> None:
     if messages:
         for m in messages:
             context.bot.send_message(
-                chat_id=config["secrets"]["chat_id"], text=m, parse_mode=ParseMode.HTML
+                chat_id=SECRETS["chat_id"], text=m, parse_mode=ParseMode.HTML
             )
 
 
@@ -90,14 +91,14 @@ async def poll(context: CallbackContext) -> None:
     ]
 
     await context.bot.send_voice(
-        chat_id=config["secrets"]["chat_id"],
+        chat_id=SECRETS["chat_id"],
         voice=open(RESOURCE_CONFIG["dodo_voiceline_path"], "rb"),
     )
 
     weekday = _weekdaynumber_to_weekday(datetime.datetime.today().weekday())
 
     await context.bot.send_poll(
-        config["secrets"]["chat_id"],
+        SECRETS["chat_id"],
         f"Do{weekday}",
         questions,
         is_anonymous=False,
@@ -144,7 +145,7 @@ def update_response_resource(context: CallbackContext) -> None:
 
 
 async def voiceline(update: Update, context: CallbackContext) -> None:
-    if update.effective_chat.id == int(config["secrets"]["chat_id"]):
+    if update.effective_chat.id == int(SECRETS["chat_id"]):
         logger.info("Getting voiceline...")
 
         try:
@@ -152,9 +153,7 @@ async def voiceline(update: Update, context: CallbackContext) -> None:
 
         except ValueError as e:
             logger.error(f"Error while parsing voiceline args: {str(e)}")
-            await context.bot.send_message(
-                chat_id=config["secrets"]["chat_id"], text=str(e)
-            )
+            await context.bot.send_message(chat_id=SECRETS["chat_id"], text=str(e))
 
             return None
 
@@ -168,7 +167,7 @@ async def voiceline(update: Update, context: CallbackContext) -> None:
             logger.error(f"Error while attempting to get voiceline for {entity}: {e}")
 
             await context.bot.send_message(
-                chat_id=config["secrets"]["chat_id"],
+                chat_id=SECRETS["chat_id"],
                 text=str(e),
             )
 
@@ -180,7 +179,7 @@ async def voiceline(update: Update, context: CallbackContext) -> None:
             # Delete /voiceline to make conversation more seamless
             try:
                 await context.bot.delete_message(
-                    chat_id=config["secrets"]["chat_id"],
+                    chat_id=SECRETS["chat_id"],
                     message_id=update.message.message_id,
                 )
             except error.BadRequest as e:
@@ -195,10 +194,10 @@ async def voiceline(update: Update, context: CallbackContext) -> None:
             sender_name = user_to_representation(update.message.from_user)
 
             await context.bot.send_message(
-                chat_id=config["secrets"]["chat_id"], text=sender_name + ":"
+                chat_id=SECRETS["chat_id"], text=sender_name + ":"
             )
             await context.bot.send_voice(
-                chat_id=config["secrets"]["chat_id"],
+                chat_id=SECRETS["chat_id"],
                 voice=open(vl_file_path, "rb"),
             )
 
@@ -209,44 +208,44 @@ async def voiceline(update: Update, context: CallbackContext) -> None:
 
 
 async def crawl(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(config["secrets"]["chat_id"]):
+    if update.effective_chat.id == int(SECRETS["chat_id"]):
         await get_dota_matches(context)
 
 
 async def dodo(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(config["secrets"]["chat_id"]):
+    if update.effective_chat.id == int(SECRETS["chat_id"]):
         await poll(context)
 
 
 async def playerinfos(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(config["secrets"]["chat_id"]):
+    if update.effective_chat.id == int(SECRETS["chat_id"]):
         message = Message(None, None, dota_api.get_playerinfos())
         messages = message.get_message_for_playerinfos()
 
         if messages:
             await context.bot.send_message(
-                chat_id=config["secrets"]["chat_id"],
+                chat_id=SECRETS["chat_id"],
                 text=messages,
                 parse_mode=ParseMode.HTML,
             )
 
 
 async def lastgame(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(config["secrets"]["chat_id"]):
+    if update.effective_chat.id == int(SECRETS["chat_id"]):
         time = dota_api.get_lastgame()
 
         if time:
             await context.bot.send_message(
-                chat_id=config["secrets"]["chat_id"],
+                chat_id=SECRETS["chat_id"],
                 text=time,
                 parse_mode=ParseMode.HTML,
             )
 
 
 async def birthdays(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(config["secrets"]["chat_id"]):
+    if update.effective_chat.id == int(SECRETS["chat_id"]):
         await context.bot.send_message(
-            chat_id=config["secrets"]["chat_id"],
+            chat_id=SECRETS["chat_id"],
             text=Birthdays().GetBirthdays(),
             parse_mode=ParseMode.HTML,
         )
@@ -256,7 +255,7 @@ async def upcomingBirthdays(context: CallbackContext):
     upcomingBirthdays = Birthdays().GetUpcomingBirthdays()
     if upcomingBirthdays != None:
         await context.bot.send_message(
-            chat_id=config["secrets"]["chat_id"],
+            chat_id=SECRETS["chat_id"],
             text=upcomingBirthdays,
             parse_mode=ParseMode.HTML,
         )
@@ -266,26 +265,23 @@ async def todayBirthdays(context: CallbackContext):
     todayBirthdays = Birthdays().GetTodayBirthdays()
     if todayBirthdays != None and todayBirthdays != "":
         await context.bot.send_message(
-            chat_id=config["secrets"]["chat_id"],
+            chat_id=SECRETS["chat_id"],
             text=todayBirthdays,
             parse_mode=ParseMode.HTML,
         )
 
 
 async def stopbot(update: Update, context: CallbackContext):
-    if (
-        update.effective_chat.id == int(config["secrets"]["chat_id"])
-        and SILI_BOT_APP.running
-    ):
+    if update.effective_chat.id == int(SECRETS["chat_id"]) and SILI_BOT_APP.running:
         await SILI_BOT_APP.stop()
 
 
 async def message_handler(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(config["secrets"]["chat_id"]):
+    if update.effective_chat.id == int(SECRETS["chat_id"]):
         message_text = update.message.text.lower()
         if "doubt" in message_text or "daud" in message_text or "daut" in message_text:
             await context.bot.send_animation(
-                chat_id=config["secrets"]["chat_id"],
+                chat_id=SECRETS["chat_id"],
                 animation=open(RESOURCE_CONFIG["daut_gif_path"], "rb"),
             )
 
@@ -294,7 +290,7 @@ async def get_if_new_patch(context: CallbackContext) -> None:
     new_patch_exists, new_patch_number = patch_checker.get_if_new_patch()
     if new_patch_exists:
         await context.bot.send_message(
-            chat_id=config["secrets"]["chat_id"],
+            chat_id=SECRETS["chat_id"],
             text=f"Es gibt ein neues Dota2 Update! Gameplay Update {new_patch_number} \n https://www.dota2.com/patches/{new_patch_number}",
             parse_mode=ParseMode.HTML,
         )
