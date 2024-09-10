@@ -16,6 +16,9 @@ import logging
 import random
 import os
 
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.jobstores.memory import MemoryJobStore
+from apscheduler.triggers import date, interval
 from dataclasses import asdict
 
 from sili_telegram_bot.modules.config import config
@@ -135,13 +138,6 @@ def user_to_representation(user: User):
             return name
         elif "id" in representation_dict:
             return str(representation_dict["id"])
-
-
-def update_response_resource(context: CallbackContext) -> None:
-    """
-    Update the JSON file containing all voiceline URLs.
-    """
-    get_response_data()
 
 
 async def voiceline(update: Update, context: CallbackContext) -> None:
@@ -296,19 +292,39 @@ async def get_if_new_patch(context: CallbackContext) -> None:
         )
 
 
-def update_heroes(context: CallbackContext) -> None:
+def get_and_config_scheduler() -> BackgroundScheduler:
     """
-    Update heroes json with latest version from the opendota api.
+    Initialize Scheduler and add non-telegram jobs.
     """
-    dota_api.update_heroes()
+    scheduler = BackgroundScheduler(jobstores={"non-telegram": MemoryJobStore()})
+
+    # Right after startup, get all dynamic resources.
+    scheduler.add_job(dota_api.update_heroes, trigger=date.DateTrigger())
+    scheduler.add_job(get_response_data, trigger=date.DateTrigger())
+
+    # And repeating, trying to catch a new patch, assuming it is out on the night from
+    # thursday to friday at 2AM.
+    # FIXME Use an event from get_if_new_patch for this?
+    today_weekday = datetime.date.today().isoweekday()
+    thursday_weekday = 4
+    next_thursday = datetime.date.today() + datetime.timedelta(
+        days=(thursday_weekday - today_weekday) % 7
+    )
+
+    scheduler.add_job(
+        dota_api.update_heroes,
+        trigger=interval.IntervalTrigger(weeks=1, start_date=next_thursday),
+    )
+    scheduler.add_job(
+        get_response_data,
+        trigger=interval.IntervalTrigger(weeks=1, start_date=next_thursday),
+    )
+
+    return scheduler
 
 
 def main():
     job_queue = SILI_BOT_APP.job_queue
-
-    # Right after startup, get all dynamic resources.
-    job_queue.run_once(update_heroes, when=0)
-    job_queue.run_once(update_response_resource, when=0)
 
     SILI_BOT_APP.add_handler(CommandHandler("dodo", dodo))
     SILI_BOT_APP.add_handler(CommandHandler("crawl", crawl))
@@ -326,14 +342,13 @@ def main():
     # Reduced the interval heavily, as cloudflare caching should prevent bans completely according to @maakep
     job_queue.run_repeating(get_if_new_patch, interval=30, first=10)
     job_queue.run_daily(poll, datetime.time(0, 0, 0), days=(3,))
-    job_queue.run_daily(update_response_resource, datetime.time(0, 0, 0), days=(6,))
-
-    # Trying to catch a new patch, assuming it is out on the night from thursday to
-    # friday at 2AM.
-    job_queue.run_daily(update_heroes, datetime.time(2, 0, 0), days=(4,))
 
     job_queue.run_daily(upcomingBirthdays, datetime.time(0, 0, 0))
     job_queue.run_daily(todayBirthdays, datetime.time(0, 0, 0))
 
+    non_telegram_scheduler = get_and_config_scheduler()
+    non_telegram_scheduler.start()
+
     SILI_BOT_APP.run_polling()
     SILI_BOT_APP.shutdown()
+    non_telegram_scheduler.shutdown(wait=False)
