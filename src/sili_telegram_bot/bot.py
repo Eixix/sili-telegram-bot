@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from configparser import ConfigParser
 import datetime
 from telegram import Update, User, error
 from telegram.constants import ParseMode
@@ -31,25 +30,30 @@ RESOURCE_CONFIG = config["static_resources"]
 
 logger = logging.getLogger(__name__)
 
-punlines = {}
 patch_checker = PatchChecker()
 
-with open(RESOURCE_CONFIG["punline_path"], "r", encoding="utf8") as f:
-    punlines = json.load(f)
 
-
-def get_app(config: ConfigParser) -> Application:
+def get_app(bot_token: str) -> Application:
     """
-    Build and return a telegram Application from config.
+    Build and return a telegram Application.
     """
-    return Application.builder().token(config["secrets"]["bot_token"]).build()
+    return Application.builder().token(bot_token).build()
 
 
-SILI_BOT_APP = get_app(config)
+def get_punlines(punline_path: str) -> dict:
+    """
+    Load punlines from file described in config.
+    """
+    with open(punline_path, "r", encoding="utf8") as f:
+        return json.load(f)
+
+
+PUNLINES = get_punlines(RESOURCE_CONFIG["punline_path"])
+SILI_BOT_APP = get_app(config["secrets"]["bot_token"])
 
 
 async def get_dota_matches(context: CallbackContext) -> None:
-    message = Message(dota_api.api_crawl(), punlines, None)
+    message = Message(dota_api.api_crawl(), PUNLINES, None)
     messages = message.get_messages_for_matches()
 
     if messages:
@@ -81,8 +85,8 @@ async def poll(context: CallbackContext) -> None:
     logger.info(f"DODO")
 
     questions = [
-        random.choice(punlines["dodo_poll"]["ja"]),
-        random.choice(punlines["dodo_poll"]["nein"]),
+        random.choice(PUNLINES["dodo_poll"]["ja"]),
+        random.choice(PUNLINES["dodo_poll"]["nein"]),
     ]
 
     await context.bot.send_voice(
