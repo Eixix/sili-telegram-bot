@@ -13,6 +13,7 @@ authors = [{ name = "Eixix", email = "tobiasbetz@hotmail.de" }]
 dependencies = [
     "beautifulsoup4<=4.11",
     "numpy<=1.22",
+    "pymediawiki<=0.7",
     "python-telegram-bot<=13.11",
     "regex<=2022.4",
     "requests<=2.31",
@@ -27,7 +28,13 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project.optional-dependencies]
-dev = ["black"]
+dev = ["black", "pytest-cases<=3.8.5", "pytest<=8.3"]
 
 [project.scripts]
 run_bot = "sili_telegram_bot.bot:main"
+get_response_data = "sili_telegram_bot.modules.voiceline_scraping:get_response_data"
+
+[tool.pytest.ini_options]
+pythonpath = "tests/"
+testpaths = ["tests"]
+markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]

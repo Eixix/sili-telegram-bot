@@ -15,11 +15,14 @@ import logging
 import random
 import os
 
+from dataclasses import asdict
+
 from sili_telegram_bot.modules.config import config
 from sili_telegram_bot.models.message import Message
 from sili_telegram_bot.models.patch_checker import PatchChecker
-from sili_telegram_bot.models.voiceline import Voiceline
+from sili_telegram_bot.models.responses import parse_voiceline_args, Responses
 from sili_telegram_bot.models.birthdays import Birthdays
+from sili_telegram_bot.modules.voiceline_scraping import get_response_data
 
 updater = Updater(config["secrets"]["bot_token"])
 RESOURCE_CONFIG = config["static_resources"]
@@ -118,89 +121,74 @@ def user_to_representation(user: user.User):
             return str(representation_dict["id"])
 
 
+def update_response_resource(context: CallbackContext) -> None:
+    """
+    Update the JSON file containing all voiceline URLs.
+    """
+    get_response_data()
+
+
 def voiceline(update: Update, context: CallbackContext) -> None:
     if update.effective_chat.id == int(config["secrets"]["chat_id"]):
         logger.info("Getting voiceline...")
 
-        if len(context.args) <= 1:
-            logger.info("... not enough arguments, sending help msg.")
+        try:
+            voiceline_args = asdict(parse_voiceline_args(context.args))
 
-            help_txt = (
-                "Not enough arguments, format should be '/voiceline "
-                "Hero Name: Voice line'...\n"
-                'Enclose line in "double quotes" to use regex as described in '
-                "the `regex` module."
-            )
+        except ValueError as e:
+            logger.error(f"Error while parsing voiceline args: {str(e)}")
+            context.bot.send_message(chat_id=config["secrets"]["chat_id"], text=str(e))
+
+            return None
+
+        try:
+            responses = Responses()
+
+            vl_link = responses.get_link(**voiceline_args)
+
+        except Exception as e:
+            entity = voiceline_args["entity"]
+            logger.error(f"Error while attempting to get voiceline for {entity}: {e}")
 
             context.bot.send_message(
-                chat_id=config["secrets"]["chat_id"], text=help_txt
+                chat_id=config["secrets"]["chat_id"],
+                text=str(e),
             )
 
-        else:
-            # To separate out hero and voice line (both may contain whitespaces),
-            # we first concatenate all args to a string and then split it on the
-            # colon to get hero and voiceline
-            arg_string = " ".join(context.args)
+            return None
 
-            hero, line = arg_string.split(":")
+        vl_file_path = responses.download_mp3(vl_link)
 
+        try:
+            # Delete /voiceline to make conversation more seamless
             try:
-                vl = Voiceline(hero)
-            except ValueError as e:
-                logger.error(f"Error while attempting to get voiceline for {hero}: {e}")
-
-                context.bot.send_message(
+                context.bot.delete_message(
                     chat_id=config["secrets"]["chat_id"],
-                    text=str(e),
+                    message_id=update.message.message_id,
+                )
+            except error.BadRequest as e:
+                logger.error(
+                    f"Error attempting to delete message: {e}. Likely "
+                    f"insufficient permissions for the bot in this chat. Try "
+                    f"giving it the `can_delete_messages` permission. See "
+                    f"<https://docs.python-telegram-bot.org/en/stable/telegram.bot.html#telegram.Bot.delete_message> "
+                    f"for more info."
                 )
 
-            vl_link = vl.get_link(line.strip())
+            sender_name = user_to_representation(update.message.from_user)
 
-            if vl_link is None:
-                context.bot.send_message(
-                    chat_id=config["secrets"]["chat_id"],
-                    text=(
-                        "Could not find line... "
-                        "Check here if you typed it right: "
-                        f"{vl.response_url}"
-                    ),
-                )
+            context.bot.send_message(
+                chat_id=config["secrets"]["chat_id"], text=sender_name + ":"
+            )
+            context.bot.send_voice(
+                chat_id=config["secrets"]["chat_id"],
+                voice=open(vl_file_path, "rb"),
+            )
 
-                logger.info("... delivery failed, could not find voiceline.")
+            logger.info("... voiceline delivered.")
 
-            else:
-                vl_file_path = vl.download_mp3(vl_link)
-
-                try:
-                    # Delete /voiceline to make conversation more seamless
-                    try:
-                        context.bot.delete_message(
-                            chat_id=config["secrets"]["chat_id"],
-                            message_id=update.message.message_id,
-                        )
-                    except error.BadRequest as e:
-                        logger.warning(
-                            f"Error attempting to delete message: {e}. Likely "
-                            f"insufficient permissions for the bot in this chat. Try "
-                            f"giving it the `can_delete_messages` permission. See "
-                            f"<https://docs.python-telegram-bot.org/en/stable/telegram.bot.html#telegram.Bot.delete_message> "
-                            f"for more info."
-                        )
-
-                    sender_name = user_to_representation(update.message.from_user)
-
-                    context.bot.send_message(
-                        chat_id=config["secrets"]["chat_id"], text=sender_name + ":"
-                    )
-                    context.bot.send_voice(
-                        chat_id=config["secrets"]["chat_id"],
-                        voice=open(vl_file_path, "rb"),
-                    )
-
-                    logger.info("... voiceline delivered.")
-
-                finally:
-                    os.remove(vl_file_path)
+        finally:
+            os.remove(vl_file_path)
 
 
 def crawl(update: Update, context: CallbackContext):
@@ -308,6 +296,7 @@ def main():
 
     # Right after startup, get all dynamic resources.
     job_queue.run_once(update_heroes, when=datetime.datetime.now())
+    job_queue.run_once(update_response_resource, when=datetime.datetime.now())
 
     dispatcher.add_handler(CommandHandler("dodo", dodo))
     dispatcher.add_handler(CommandHandler("crawl", crawl))
@@ -325,6 +314,7 @@ def main():
     # Reduced the interval heavily, as cloudflare caching should prevent bans completely according to @maakep
     job_queue.run_repeating(get_if_new_patch, interval=30, first=10)
     job_queue.run_daily(poll, datetime.time(0, 0, 0), days=(3,))
+    job_queue.run_daily(update_response_resource, datetime.time(0, 0, 0), days=(6,))
 
     # Trying to catch a new patch, assuming it is out on the night from thursday to
     # friday at 2AM.
