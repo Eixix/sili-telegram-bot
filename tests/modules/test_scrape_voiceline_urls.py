@@ -43,11 +43,11 @@ class TestExtractResponseUrlsFromTitles:
         "input",
         cases=case_module.TestExtractResponseUrlsFromTitlesCases,
     )
-    def test_success(self, input):
+    def test_success(self, input, mediawiki_api):
         """
         Test basic functionality.
         """
-        res = voiceline_scraping.extract_response_urls_from_titles(input)
+        res = voiceline_scraping.extract_response_urls_from_titles(input, mediawiki_api)
 
         assert isinstance(res, dict)
         assert input == [*res.keys()]
