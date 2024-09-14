@@ -107,11 +107,27 @@ class Responses:
         self.entity_data_file = entity_data_file
         self.resource_file = resource_file
 
-        with open(entity_data_file, "r") as infile:
-            self.entity_data = json.load(infile)
+        try:
+            with open(entity_data_file, "r") as infile:
+                self.entity_data = json.load(infile)
 
-        with open(resource_file, "r") as infile:
-            self.entity_responses = json.load(infile)
+        except FileNotFoundError as e:
+            raise FileNotFoundError(
+                f"Error when attempting to read entity data file at "
+                f"'{entity_data_file}': {e}. The resources have likely not finished "
+                f"downloading yet."
+            )
+
+        try:
+            with open(resource_file, "r") as infile:
+                self.entity_responses = json.load(infile)
+
+        except FileNotFoundError as e:
+            raise FileNotFoundError(
+                f"Error when attempting to read responses file at "
+                f"'{resource_file}': {e}. The resources have likely not finished "
+                f"downloading yet."
+            )
 
     def _get_type_data(self, entity_type: str):
         """
