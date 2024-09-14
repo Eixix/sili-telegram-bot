@@ -150,14 +150,12 @@ def extract_entity_response_urls(entity_page_html: str) -> list[EntityResponse]:
 
 
 def extract_response_urls_from_titles(
-    page_titles: list[str],
+    page_titles: list[str], mediawiki_api=APIWrapper.get_or_create_mediawiki_api()
 ) -> dict[str, list[EntityResponse]]:
     """
     Retrieve page html and extract response urls for a list of page titles.
     """
     out = {}
-
-    mediawiki_api = APIWrapper.get_or_create_mediawiki_api()
 
     for page_title in page_titles:
         LOGGER.info(f"Getting responses for page '{page_title}'...")
@@ -169,11 +167,11 @@ def extract_response_urls_from_titles(
 
 def extract_entity_table(
     navbar_title: str = "Template:VoiceNavSidebar",
+    mediawiki_api=APIWrapper.get_or_create_mediawiki_api(),
 ) -> dict[str, dict[str, EntityData]]:
     """
     Parse data for every response entity from the responses navbar on the wiki.
     """
-    mediawiki_api = APIWrapper.get_or_create_mediawiki_api()
     navbar_page = mediawiki_api.page(navbar_title)
     navbar_soup = bs4.BeautifulSoup(navbar_page.html, features="html.parser")
     url_table = navbar_soup.find(class_="nowraplinks")
@@ -205,11 +203,12 @@ def save_entity_table(
         json.dump(entity_table, outfile, indent=4)
 
 
-def extract_voiceline_urls() -> dict[str, dict[str, EntityData]]:
+def extract_voiceline_urls(
+    mediawiki_api=APIWrapper.get_or_create_mediawiki_api(),
+) -> dict[str, dict[str, EntityData]]:
     """
     Extract the URLs for all entities with responses and save to JSON file.
     """
-    mediawiki_api = APIWrapper.get_or_create_mediawiki_api()
     response_titles = mediawiki_api.categorymembers("Responses", results=None)[0]
     return extract_response_urls_from_titles(response_titles)
 
