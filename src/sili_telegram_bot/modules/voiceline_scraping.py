@@ -10,8 +10,8 @@ import logging
 import re
 import unicodedata
 
+from sili_telegram_bot.models.mediawiki_api import APIWrapper
 from sili_telegram_bot.modules.config import config
-from sili_telegram_bot.modules.mediawiki_api import APIWrapper
 from sili_telegram_bot.modules.response_types import EntityData, EntityResponse
 
 VL_CONFIG = config["voicelines"]
