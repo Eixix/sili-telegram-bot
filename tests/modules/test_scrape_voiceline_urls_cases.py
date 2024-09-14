@@ -217,12 +217,6 @@ class TestExtractResponseUrlsFromTitlesCases:
     def case_remaining_heroes(self, hero_name):
         return [case_infra.hero_name_to_tile(hero_name)]
 
-    @pytest.mark.skip(
-        reason=(
-            "I'm not sure pytest is set up to always use just one instance of "
-            "the mediawiki API."
-        )
-    )
     @parametrize("entity_title", case_infra.non_hero_entity_page_titles())
     def case_remaining_heroes(self, entity_title):
         return [entity_title]
