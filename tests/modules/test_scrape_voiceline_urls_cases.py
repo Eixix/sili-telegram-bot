@@ -59,6 +59,9 @@ class TestProcessResponseTextCases:
     def case_ellipsis(self):
         return ("Link▶️ Uh…ah…a chilling assault!", "Uh...ah...a chilling assault!")
 
+    def case_broken_file(self):
+        return ("Alliance (broken file)", "Alliance")
+
 
 class TestResponseFromLinkTagCases:
     def case_basic(self):
