@@ -24,7 +24,7 @@ TEXT_PROCESS_RE_PREFIX = re.compile(
 )
 
 
-TEXT_PROCESS_RE_SUFFIX = re.compile(r"(\s+followup)?$")
+TEXT_PROCESS_RE_SUFFIX = re.compile(r"(\s+followup)?(\s+\(broken file\))?$")
 
 
 def parse_link_row(
