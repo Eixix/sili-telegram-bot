@@ -32,10 +32,8 @@ def get_full_response_dict(entity_data: dict, response_data: dict) -> dict[str, 
             for response_dict in response_data[entity_title]:
                 response_text = response_dict["text"]
 
-                for url_level, url in enumerate(response_dict["urls"]):
-                    full_response = (
-                        f"{entity_name} [{entity_type}]: {response_text} [{url_level}]"
-                    )
+                for url in response_dict["urls"]:
+                    full_response = f"{entity_name}: {response_text}"
 
                     if url:
                         full_response_dict[full_response] = url
