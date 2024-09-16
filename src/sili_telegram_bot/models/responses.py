@@ -54,9 +54,11 @@ def parse_voiceline_args(args: list[str]) -> dict:
         single_arg_pattern = r"[^\[\]:]+"
         ap = single_arg_pattern
 
+        lvl_ptrn = r"[0-9]+"
+
         # Parse out arguments as described in the help text above.
         arg_pattern = (
-            r"^(" + ap + r")(\[" + ap + r"\])?:\w*(" + ap + r")(\[" + ap + r"\])?"
+            r"^(" + ap + r")(\[" + ap + r"\])?:\w*(" + ap + r")(\[" + lvl_ptrn + r"\])?"
         )
 
         matches = regex.search(arg_pattern, arg_string)
