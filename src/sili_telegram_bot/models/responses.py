@@ -34,7 +34,7 @@ def parse_voiceline_args(args: list[str]) -> dict:
     """
     basic_help_text = (
         "The format should be "
-        "'/voiceline Entity Name (entity_type): Voice line (level)'.\n"
+        "'/voiceline Entity Name [entity_type]: Voice line [level]'.\n"
         'Enclose line in "double quotes" to use regex as described in the `regex` '
         "module."
     )
@@ -51,12 +51,12 @@ def parse_voiceline_args(args: list[str]) -> dict:
 
         # pattern for each arg. A continuous string of any character besides parens or
         # a colon.
-        single_arg_pattern = r"[^():]+"
+        single_arg_pattern = r"[^\[\]:]+"
         ap = single_arg_pattern
 
         # Parse out arguments as described in the help text above.
         arg_pattern = (
-            r"^(" + ap + r")(\(" + ap + r"\))?:\w*(" + ap + r")(\(" + ap + r"\))?"
+            r"^(" + ap + r")(\[" + ap + r"\])?:\w*(" + ap + r")(\[" + ap + r"\])?"
         )
 
         matches = regex.search(arg_pattern, arg_string)
@@ -81,11 +81,11 @@ def parse_voiceline_args(args: list[str]) -> dict:
         args = {"entity": entity.strip(), "line": line.strip()}
 
         if type:
-            args["type"] = type.strip("()")
+            args["type"] = type.strip("[]")
 
         if level:
             # Convert to int, and remove one level to account for zero indexing.
-            args["level"] = int(level.strip("()")) - 1
+            args["level"] = int(level.strip("[]")) - 1
 
     return ResponseArgs(**args)
 
