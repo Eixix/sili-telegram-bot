@@ -21,11 +21,11 @@ from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.triggers import date, interval
 from dataclasses import asdict
 
-from sili_telegram_bot.modules.config import config
 from sili_telegram_bot.models.message import Message
 from sili_telegram_bot.models.patch_checker import PatchChecker
 from sili_telegram_bot.models.responses import parse_voiceline_args, Responses
 from sili_telegram_bot.models.birthdays import Birthdays
+from sili_telegram_bot.modules.config import config
 from sili_telegram_bot.modules.voiceline_inline import add_inline_handlers
 from sili_telegram_bot.modules.voiceline_scraping import get_response_data
 
