@@ -37,6 +37,9 @@
         "resource_file": "resources/dynamic/entity_responses.json",
         "entity_data_file": "resources/dynamic/entity_data.json"
     },
+    "inline_authentication": {
+        "user_whitelist_path": "resources/dynamic/whitelist.txt"
+    },
     "dynamic_resources": {
         "hero_data_path": "resources/dynamic/heroes.json",
         "match_data_dir": "resources/dynamic/matchdata"

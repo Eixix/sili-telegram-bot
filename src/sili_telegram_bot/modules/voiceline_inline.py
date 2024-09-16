@@ -123,6 +123,11 @@ async def handle_inline_vl_query(update: Update, context: CallbackContext) -> No
     max_matches = 50
 
     query = update.inline_query
+
+    if not str(query.from_user.id) in context.application.bot_data["inline_whitelist"]:
+        # We don't talk to strangers.
+        return None
+
     query_text = query.query
 
     try:

@@ -21,6 +21,9 @@ from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.triggers import date, interval
 from dataclasses import asdict
 
+from sili_telegram_bot.models.inline_whitelist import (
+    default_whitelist as INLINE_WHITELIST,
+)
 from sili_telegram_bot.models.message import Message
 from sili_telegram_bot.models.patch_checker import PatchChecker
 from sili_telegram_bot.models.responses import parse_voiceline_args, Responses
@@ -32,7 +35,7 @@ from sili_telegram_bot.modules.voiceline_scraping import get_response_data
 RESOURCE_CONFIG = config["static_resources"]
 SECRETS = config["secrets"]
 
-CHAT_ID_FILTER = filters.Chat(SECRETS["chat_id"])
+CHAT_ID_FILTER = filters.Chat(int(SECRETS["chat_id"]))
 
 
 logger = logging.getLogger(__name__)
@@ -288,6 +291,34 @@ async def get_if_new_patch(context: CallbackContext) -> None:
         )
 
 
+async def add_to_inline_whitelist(update: Update, context: CallbackContext) -> None:
+    """
+    Add the calling user to the whitelist for using the inline voiceline keyboard.
+    """
+    user_id = str(update.effective_user.id)
+
+    user_name = update.effective_user.name
+
+    if not user_id in context.application.bot_data["inline_whitelist"]:
+        logger.info(f"Adding {user_name} ({user_id}) to whitelist...")
+
+        # Update both the persistent whitelist & the app's whitelist.
+        INLINE_WHITELIST.add_to_whitelist(user_id)
+        bot_whitelist = context.application.bot_data["inline_whitelist"]
+        bot_whitelist = bot_whitelist | {user_id}
+        context.application.bot_data["inline_whitelist"] = bot_whitelist
+
+        await context.bot.send_message(
+            update.effective_chat.id, f"{user_name} can now use the inline responses!"
+        )
+
+    else:
+        await context.bot.send_message(
+            update.effective_chat.id,
+            f"Chill, {user_name}, you should already be able to use inline responses.",
+        )
+
+
 def get_and_config_scheduler() -> BackgroundScheduler:
     """
     Initialize Scheduler and add non-telegram jobs.
@@ -322,6 +353,9 @@ def get_and_config_scheduler() -> BackgroundScheduler:
 def main():
     job_queue = SILI_BOT_APP.job_queue
 
+    # Ensure the app object has the whitelist for inline queries.
+    SILI_BOT_APP.bot_data["inline_whitelist"] = INLINE_WHITELIST.get_whitelist()
+
     SILI_BOT_APP.add_handler(CommandHandler("dodo", dodo, filters=CHAT_ID_FILTER))
     SILI_BOT_APP.add_handler(CommandHandler("crawl", crawl, filters=CHAT_ID_FILTER))
     SILI_BOT_APP.add_handler(
@@ -336,6 +370,11 @@ def main():
     SILI_BOT_APP.add_handler(CommandHandler("stopbot", stopbot, filters=CHAT_ID_FILTER))
     SILI_BOT_APP.add_handler(
         CommandHandler("voiceline", voiceline, filters=CHAT_ID_FILTER)
+    )
+    SILI_BOT_APP.add_handler(
+        CommandHandler(
+            "enable_inline_voicelines", add_to_inline_whitelist, filters=CHAT_ID_FILTER
+        )
     )
     SILI_BOT_APP.add_handler(
         MessageHandler(
