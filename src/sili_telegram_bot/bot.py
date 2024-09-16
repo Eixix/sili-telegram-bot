@@ -32,6 +32,8 @@ from sili_telegram_bot.modules.voiceline_scraping import get_response_data
 RESOURCE_CONFIG = config["static_resources"]
 SECRETS = config["secrets"]
 
+CHAT_ID_FILTER = filters.Chat(SECRETS["chat_id"])
+
 
 logger = logging.getLogger(__name__)
 
@@ -142,110 +144,104 @@ def user_to_representation(user: User):
 
 
 async def voiceline(update: Update, context: CallbackContext) -> None:
-    if update.effective_chat.id == int(SECRETS["chat_id"]):
-        logger.info("Getting voiceline...")
+    logger.info("Getting voiceline...")
 
+    try:
+        voiceline_args = asdict(parse_voiceline_args(context.args))
+
+    except ValueError as e:
+        logger.error(f"Error while parsing voiceline args: {str(e)}")
+        await context.bot.send_message(chat_id=SECRETS["chat_id"], text=str(e))
+
+        return None
+
+    try:
+        responses = Responses()
+
+        vl_link = responses.get_link(**voiceline_args)
+
+    except Exception as e:
+        entity = voiceline_args["entity"]
+        logger.error(f"Error while attempting to get voiceline for {entity}: {e}")
+
+        await context.bot.send_message(
+            chat_id=SECRETS["chat_id"],
+            text=str(e),
+        )
+
+        return None
+
+    vl_file_path = responses.download_mp3(vl_link)
+
+    try:
+        # Delete /voiceline to make conversation more seamless
         try:
-            voiceline_args = asdict(parse_voiceline_args(context.args))
-
-        except ValueError as e:
-            logger.error(f"Error while parsing voiceline args: {str(e)}")
-            await context.bot.send_message(chat_id=SECRETS["chat_id"], text=str(e))
-
-            return None
-
-        try:
-            responses = Responses()
-
-            vl_link = responses.get_link(**voiceline_args)
-
-        except Exception as e:
-            entity = voiceline_args["entity"]
-            logger.error(f"Error while attempting to get voiceline for {entity}: {e}")
-
-            await context.bot.send_message(
+            await context.bot.delete_message(
                 chat_id=SECRETS["chat_id"],
-                text=str(e),
+                message_id=update.message.message_id,
+            )
+        except error.BadRequest as e:
+            logger.error(
+                f"Error attempting to delete message: {e}. Likely "
+                f"insufficient permissions for the bot in this chat. Try "
+                f"giving it the `can_delete_messages` permission. See "
+                f"<https://docs.python-telegram-bot.org/en/stable/telegram.bot.html#telegram.Bot.delete_message> "
+                f"for more info."
             )
 
-            return None
+        sender_name = user_to_representation(update.message.from_user)
 
-        vl_file_path = responses.download_mp3(vl_link)
+        await context.bot.send_message(
+            chat_id=SECRETS["chat_id"], text=sender_name + ":"
+        )
+        await context.bot.send_voice(
+            chat_id=SECRETS["chat_id"],
+            voice=open(vl_file_path, "rb"),
+        )
 
-        try:
-            # Delete /voiceline to make conversation more seamless
-            try:
-                await context.bot.delete_message(
-                    chat_id=SECRETS["chat_id"],
-                    message_id=update.message.message_id,
-                )
-            except error.BadRequest as e:
-                logger.error(
-                    f"Error attempting to delete message: {e}. Likely "
-                    f"insufficient permissions for the bot in this chat. Try "
-                    f"giving it the `can_delete_messages` permission. See "
-                    f"<https://docs.python-telegram-bot.org/en/stable/telegram.bot.html#telegram.Bot.delete_message> "
-                    f"for more info."
-                )
+        logger.info("... voiceline delivered.")
 
-            sender_name = user_to_representation(update.message.from_user)
-
-            await context.bot.send_message(
-                chat_id=SECRETS["chat_id"], text=sender_name + ":"
-            )
-            await context.bot.send_voice(
-                chat_id=SECRETS["chat_id"],
-                voice=open(vl_file_path, "rb"),
-            )
-
-            logger.info("... voiceline delivered.")
-
-        finally:
-            os.remove(vl_file_path)
+    finally:
+        os.remove(vl_file_path)
 
 
 async def crawl(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(SECRETS["chat_id"]):
-        await get_dota_matches(context)
+    await get_dota_matches(context)
 
 
 async def dodo(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(SECRETS["chat_id"]):
-        await poll(context)
+    await poll(context)
 
 
 async def playerinfos(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(SECRETS["chat_id"]):
-        message = Message(None, None, dota_api.get_playerinfos())
-        messages = message.get_message_for_playerinfos()
+    message = Message(None, None, dota_api.get_playerinfos())
+    messages = message.get_message_for_playerinfos()
 
-        if messages:
-            await context.bot.send_message(
-                chat_id=SECRETS["chat_id"],
-                text=messages,
-                parse_mode=ParseMode.HTML,
-            )
+    if messages:
+        await context.bot.send_message(
+            chat_id=SECRETS["chat_id"],
+            text=messages,
+            parse_mode=ParseMode.HTML,
+        )
 
 
 async def lastgame(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(SECRETS["chat_id"]):
-        time = dota_api.get_lastgame()
+    time = dota_api.get_lastgame()
 
-        if time:
-            await context.bot.send_message(
-                chat_id=SECRETS["chat_id"],
-                text=time,
-                parse_mode=ParseMode.HTML,
-            )
+    if time:
+        await context.bot.send_message(
+            chat_id=SECRETS["chat_id"],
+            text=time,
+            parse_mode=ParseMode.HTML,
+        )
 
 
 async def birthdays(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(SECRETS["chat_id"]):
-        await context.bot.send_message(
-            chat_id=SECRETS["chat_id"],
-            text=Birthdays().GetBirthdays(),
-            parse_mode=ParseMode.HTML,
-        )
+    await context.bot.send_message(
+        chat_id=SECRETS["chat_id"],
+        text=Birthdays().GetBirthdays(),
+        parse_mode=ParseMode.HTML,
+    )
 
 
 async def upcomingBirthdays(context: CallbackContext):
@@ -269,18 +265,17 @@ async def todayBirthdays(context: CallbackContext):
 
 
 async def stopbot(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(SECRETS["chat_id"]) and SILI_BOT_APP.running:
+    if SILI_BOT_APP.running:
         await SILI_BOT_APP.stop()
 
 
 async def message_handler(update: Update, context: CallbackContext):
-    if update.effective_chat.id == int(SECRETS["chat_id"]):
-        message_text = update.message.text.lower()
-        if "doubt" in message_text or "daud" in message_text or "daut" in message_text:
-            await context.bot.send_animation(
-                chat_id=SECRETS["chat_id"],
-                animation=open(RESOURCE_CONFIG["daut_gif_path"], "rb"),
-            )
+    message_text = update.message.text.lower()
+    if "doubt" in message_text or "daud" in message_text or "daut" in message_text:
+        await context.bot.send_animation(
+            chat_id=SECRETS["chat_id"],
+            animation=open(RESOURCE_CONFIG["daut_gif_path"], "rb"),
+        )
 
 
 async def get_if_new_patch(context: CallbackContext) -> None:
@@ -327,15 +322,25 @@ def get_and_config_scheduler() -> BackgroundScheduler:
 def main():
     job_queue = SILI_BOT_APP.job_queue
 
-    SILI_BOT_APP.add_handler(CommandHandler("dodo", dodo))
-    SILI_BOT_APP.add_handler(CommandHandler("crawl", crawl))
-    SILI_BOT_APP.add_handler(CommandHandler("playerinfos", playerinfos))
-    SILI_BOT_APP.add_handler(CommandHandler("lastgame", lastgame))
-    SILI_BOT_APP.add_handler(CommandHandler("birthdays", birthdays))
-    SILI_BOT_APP.add_handler(CommandHandler("stopbot", stopbot))
-    SILI_BOT_APP.add_handler(CommandHandler("voiceline", voiceline))
+    SILI_BOT_APP.add_handler(CommandHandler("dodo", dodo, filters=CHAT_ID_FILTER))
+    SILI_BOT_APP.add_handler(CommandHandler("crawl", crawl, filters=CHAT_ID_FILTER))
     SILI_BOT_APP.add_handler(
-        MessageHandler(filters.TEXT & (~filters.COMMAND), message_handler)
+        CommandHandler("playerinfos", playerinfos, filters=CHAT_ID_FILTER)
+    )
+    SILI_BOT_APP.add_handler(
+        CommandHandler("lastgame", lastgame, filters=CHAT_ID_FILTER)
+    )
+    SILI_BOT_APP.add_handler(
+        CommandHandler("birthdays", birthdays, filters=CHAT_ID_FILTER)
+    )
+    SILI_BOT_APP.add_handler(CommandHandler("stopbot", stopbot, filters=CHAT_ID_FILTER))
+    SILI_BOT_APP.add_handler(
+        CommandHandler("voiceline", voiceline, filters=CHAT_ID_FILTER)
+    )
+    SILI_BOT_APP.add_handler(
+        MessageHandler(
+            CHAT_ID_FILTER & filters.TEXT & (~filters.COMMAND), message_handler
+        )
     )
 
     add_inline_handlers(SILI_BOT_APP)
