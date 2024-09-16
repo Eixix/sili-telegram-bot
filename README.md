@@ -63,10 +63,3 @@ docker run --mount source=silibotvolume,target=/bot/resources/dynamic --name sil
 ```
 
 ## WIP: Port to Rust
-
-# Inline mode
-
-The bot has the capability for inline response search (see
-<https://core.telegram.org/bots/inline> for more information). To enable this,
-send `/setinline` to the botfather and, when prompred, set the placeholder
-message along the lines of "Search for responses...".

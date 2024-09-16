@@ -26,7 +26,6 @@ from sili_telegram_bot.models.message import Message
 from sili_telegram_bot.models.patch_checker import PatchChecker
 from sili_telegram_bot.models.responses import parse_voiceline_args, Responses
 from sili_telegram_bot.models.birthdays import Birthdays
-from sili_telegram_bot.modules.voiceline_inline import add_inline_handlers
 from sili_telegram_bot.modules.voiceline_scraping import get_response_data
 
 RESOURCE_CONFIG = config["static_resources"]
@@ -337,8 +336,6 @@ def main():
     SILI_BOT_APP.add_handler(
         MessageHandler(filters.TEXT & (~filters.COMMAND), message_handler)
     )
-
-    add_inline_handlers(SILI_BOT_APP)
 
     job_queue.run_repeating(get_dota_matches, interval=600, first=10)
 
