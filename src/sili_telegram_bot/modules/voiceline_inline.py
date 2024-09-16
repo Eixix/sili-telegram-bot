@@ -17,35 +17,53 @@ from sili_telegram_bot.models.responses import Responses, parse_voiceline_args
 LOGGER = logging.getLogger(__name__)
 
 
-def get_full_response_dict(entity_data: dict, response_data: dict) -> dict[str, str]:
-    """
-    Create a dict mapping full response info to the response url. The info
-    consists of: Entity name (entity_type): Response text (url_level)
-    This corresponds to the format of the voiceline command.
-    """
-    full_response_dict = {}
+class LazyResponseDict:
 
-    # FIXME Switch to SQLite DB and remove these ghastly loops.
-    for type_data in entity_data.values():
-        for entity_name, entity_dict in type_data.items():
-            entity_title = entity_dict["title"]
-            for response_dict in response_data[entity_title]:
-                response_text = response_dict["text"]
+    _RESPONSES = None
+    _FULL_RESPONSE_DICT = None
 
-                for url in response_dict["urls"]:
-                    full_response = f"{entity_name}: {response_text}"
+    @classmethod
+    def _get_or_create_response_obj(cls) -> Responses:
+        if cls._RESPONSES is None:
+            cls._RESPONSES = Responses()
 
-                    if url:
-                        full_response_dict[full_response] = url
+        return cls._RESPONSES
 
-    return full_response_dict
+    @classmethod
+    def _create_full_response_dict(
+        cls, entity_data: dict, response_data: dict
+    ) -> dict[str, str]:
+        """
+        Create a dict mapping full response info to the response url. The info
+        consists of: Entity name (entity_type): Response text (url_level)
+        This corresponds to the format of the voiceline command.
+        """
+        full_response_dict = {}
 
+        # FIXME Switch to SQLite DB and remove these ghastly loops.
+        for type_data in entity_data.values():
+            for entity_name, entity_dict in type_data.items():
+                entity_title = entity_dict["title"]
+                for response_dict in response_data[entity_title]:
+                    response_text = response_dict["text"]
 
-_RESPONSES = Responses()
+                    for url in response_dict["urls"]:
+                        full_response = f"{entity_name}: {response_text}"
 
-FULL_RESPONSE_DICT = get_full_response_dict(
-    _RESPONSES.entity_data, _RESPONSES.entity_responses
-)
+                        if url:
+                            full_response_dict[full_response] = url
+
+        return full_response_dict
+
+    @classmethod
+    def get_or_create_full_resp_dict(cls):
+        if cls._FULL_RESPONSE_DICT is None:
+            responses = cls._get_or_create_response_obj()
+            cls._FULL_RESPONSE_DICT = cls._create_full_response_dict(
+                responses.entity_data, responses.entity_responses
+            )
+
+        return cls._FULL_RESPONSE_DICT
 
 
 def get_substring_matches(
@@ -103,6 +121,7 @@ async def handle_inline_vl_query(update: Update, context: CallbackContext) -> No
     Inline query handler to provide responses.
     """
     max_matches = 50
+    full_resp_dict = LazyResponseDict.get_or_create_full_resp_dict()
     query = update.inline_query
     query_text = query.query
 
@@ -112,17 +131,17 @@ async def handle_inline_vl_query(update: Update, context: CallbackContext) -> No
         # TODO This takes way too long.
         LOGGER.info(f"Matching responses for '{query_text}'")
         matching_responses = get_substring_matches(
-            query_text, FULL_RESPONSE_DICT.keys(), max_n=max_matches
+            query_text, full_resp_dict.keys(), max_n=max_matches
         )
 
     else:
         LOGGER.info(f"Query has no length, returning first {max_matches} responses...")
-        n_keys = min(max_matches, len(FULL_RESPONSE_DICT.keys()))
-        matching_responses = islice(FULL_RESPONSE_DICT.keys(), n_keys)
+        n_keys = min(max_matches, len(full_resp_dict.keys()))
+        matching_responses = islice(full_resp_dict.keys(), n_keys)
 
     LOGGER.info(f"Back-searching response URLs for '{query_text}'")
     matched_response_dict = {
-        matching_response: FULL_RESPONSE_DICT[matching_response]
+        matching_response: full_resp_dict[matching_response]
         for matching_response in matching_responses
     }
 
