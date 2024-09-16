@@ -4,7 +4,6 @@ import pytest
 from pytest_cases import parametrize_with_cases
 
 import test_scrape_voiceline_urls_cases as case_module
-import test_infrastructure.common_case_infra as case_infra
 
 from sili_telegram_bot.modules import voiceline_scraping
 
@@ -44,11 +43,11 @@ class TestExtractResponseUrlsFromTitles:
         "input",
         cases=case_module.TestExtractResponseUrlsFromTitlesCases,
     )
-    def test_success(self, input):
+    def test_success(self, input, mediawiki_api):
         """
         Test basic functionality.
         """
-        res = voiceline_scraping.extract_response_urls_from_titles(input)
+        res = voiceline_scraping.extract_response_urls_from_titles(input, mediawiki_api)
 
         assert isinstance(res, dict)
         assert input == [*res.keys()]

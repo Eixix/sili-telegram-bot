@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import regex
 import requests
@@ -6,10 +7,16 @@ import requests
 from dataclasses import dataclass
 from difflib import get_close_matches
 
+from sili_telegram_bot.modules.voiceline_scraping import (
+    save_entity_table,
+    save_resource,
+)
 from sili_telegram_bot.models.exceptions import MissingResponseUrlException
 from sili_telegram_bot.modules.config import config
 
 VL_CONFIG = config["voicelines"]
+
+LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
@@ -27,7 +34,7 @@ def parse_voiceline_args(args: list[str]) -> dict:
     """
     basic_help_text = (
         "The format should be "
-        "'/voiceline Entity Name (entity_type): Voice line (level)'.\n"
+        "'/voiceline Entity Name [entity_type]: Voice line [level]'.\n"
         'Enclose line in "double quotes" to use regex as described in the `regex` '
         "module."
     )
@@ -44,12 +51,14 @@ def parse_voiceline_args(args: list[str]) -> dict:
 
         # pattern for each arg. A continuous string of any character besides parens or
         # a colon.
-        single_arg_pattern = r"[^():]+"
+        single_arg_pattern = r"[^\[\]:]+"
         ap = single_arg_pattern
+
+        lvl_ptrn = r"[0-9]+"
 
         # Parse out arguments as described in the help text above.
         arg_pattern = (
-            r"^(" + ap + r")(\(" + ap + r"\))?:\w*(" + ap + r")(\(" + ap + r"\))?"
+            r"^(" + ap + r")(\[" + ap + r"\])?:\w*(" + ap + r")(\[" + lvl_ptrn + r"\])?"
         )
 
         matches = regex.search(arg_pattern, arg_string)
@@ -74,11 +83,11 @@ def parse_voiceline_args(args: list[str]) -> dict:
         args = {"entity": entity.strip(), "line": line.strip()}
 
         if type:
-            args["type"] = type.strip("()")
+            args["type"] = type.strip("[]")
 
         if level:
             # Convert to int, and remove one level to account for zero indexing.
-            args["level"] = int(level.strip("()")) - 1
+            args["level"] = int(level.strip("[]")) - 1
 
     return ResponseArgs(**args)
 
@@ -107,11 +116,45 @@ class Responses:
         self.entity_data_file = entity_data_file
         self.resource_file = resource_file
 
-        with open(entity_data_file, "r") as infile:
-            self.entity_data = json.load(infile)
+        try:
+            with open(entity_data_file, "r") as infile:
+                self.entity_data = json.load(infile)
 
-        with open(resource_file, "r") as infile:
-            self.entity_responses = json.load(infile)
+        except FileNotFoundError as e:
+            raise FileNotFoundError(
+                f"Error when attempting to read entity data file at "
+                f"'{entity_data_file}': {e}. The resources have likely not finished "
+                f"downloading yet."
+            )
+
+        except json.JSONDecodeError as e:
+            LOGGER.error(
+                f"Error when attempting to read entity data file at "
+                f"'{entity_data_file}': {e}. Likely the file got corrupted after an "
+                f"ill-timed bot shutdown. The file was removed, and will be "
+                f"created again."
+            )
+            save_entity_table(entity_data_file)
+
+        try:
+            with open(resource_file, "r") as infile:
+                self.entity_responses = json.load(infile)
+
+        except FileNotFoundError as e:
+            raise FileNotFoundError(
+                f"Error when attempting to read responses file at "
+                f"'{resource_file}': {e}. The resources have likely not finished "
+                f"downloading yet."
+            )
+
+        except json.JSONDecodeError as e:
+            LOGGER.error(
+                f"Error when attempting to read entity data file at "
+                f"'{resource_file}': {e}. Likely the file got corrupted after an "
+                f"ill-timed bot shutdown. The file was removed, and will be "
+                f"created again."
+            )
+            save_resource(resource_file)
 
     def _get_type_data(self, entity_type: str):
         """
