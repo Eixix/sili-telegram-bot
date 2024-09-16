@@ -75,31 +75,34 @@ class TestParseVoicelineArgsCases:
 
         def case_basic_with_type(self):
             return (
-                ["Abaddon", "(hero):", "Abaddon."],
+                ["Abaddon", "[hero]:", "Abaddon."],
                 ResponseArgs(entity="Abaddon", line="Abaddon."),
             )
 
         def case_basic_with_type_and_level(self):
             return (
-                ["Abaddon", "(hero):", "Abaddon.", "(1)"],
+                ["Abaddon", "[hero]:", "Abaddon.", "[1]"],
                 ResponseArgs(entity="Abaddon", line="Abaddon."),
             )
 
         def case_basic_with_non_default_level(self):
             return (
-                ["Abaddon", "(hero):", "Abaddon.", "(2)"],
+                ["Abaddon", "[hero]:", "Abaddon.", "[2]"],
                 ResponseArgs(entity="Abaddon", line="Abaddon.", level=1),
+            )
+
+        def case_non_int_level(self):
+            return (
+                ["Abaddon:", "Abaddon.", "[foo]"],
+                ResponseArgs(entity="Abaddon", line="Abaddon."),
             )
 
     class TestValueErrorCases:
         def case_no_colon(self):
             return ["Abaddon", "Abaddon."]
 
-        def case_non_int_level(self):
-            return ["Abaddon:", "Abaddon.", "(foo)"]
-
-        def case_too_many_parens(self):
-            return ["Abaddon(hero) ():", "Abaddon.", "(foo)"]
+        def case_too_many_braces(self):
+            return ["Abaddon[hero] []:", "Abaddon.", "[foo]"]
 
         def case_missing_entity(self):
-            return ["():", "Abaddon."]
+            return ["[]:", "Abaddon."]
