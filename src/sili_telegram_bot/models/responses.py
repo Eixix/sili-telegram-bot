@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import regex
 import requests
@@ -6,10 +7,16 @@ import requests
 from dataclasses import dataclass
 from difflib import get_close_matches
 
+from sili_telegram_bot.modules.voiceline_scraping import (
+    save_entity_table,
+    save_resource,
+)
 from sili_telegram_bot.models.exceptions import MissingResponseUrlException
 from sili_telegram_bot.modules.config import config
 
 VL_CONFIG = config["voicelines"]
+
+LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
@@ -118,6 +125,15 @@ class Responses:
                 f"downloading yet."
             )
 
+        except json.JSONDecodeError as e:
+            LOGGER.error(
+                f"Error when attempting to read entity data file at "
+                f"'{entity_data_file}': {e}. Likely the file got corrupted after an "
+                f"ill-timed bot shutdown. The file was removed, and will be "
+                f"created again."
+            )
+            save_entity_table(entity_data_file)
+
         try:
             with open(resource_file, "r") as infile:
                 self.entity_responses = json.load(infile)
@@ -128,6 +144,15 @@ class Responses:
                 f"'{resource_file}': {e}. The resources have likely not finished "
                 f"downloading yet."
             )
+
+        except json.JSONDecodeError as e:
+            LOGGER.error(
+                f"Error when attempting to read entity data file at "
+                f"'{resource_file}': {e}. Likely the file got corrupted after an "
+                f"ill-timed bot shutdown. The file was removed, and will be "
+                f"created again."
+            )
+            save_resource(resource_file)
 
     def _get_type_data(self, entity_type: str):
         """
