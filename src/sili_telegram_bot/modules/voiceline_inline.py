@@ -121,9 +121,18 @@ async def handle_inline_vl_query(update: Update, context: CallbackContext) -> No
     Inline query handler to provide responses.
     """
     max_matches = 50
-    full_resp_dict = LazyResponseDict.get_or_create_full_resp_dict()
+
     query = update.inline_query
     query_text = query.query
+
+    try:
+        full_resp_dict = LazyResponseDict.get_or_create_full_resp_dict()
+
+    except Exception as e:
+        err_text = f"Error getting response data: {e}."
+        LOGGER.error(f"{err_text} Informing whoever sent the query...")
+        await query.answer(results=[])
+        await context.bot.send_message(chat_id=query.from_user.id, text=err_text)
 
     LOGGER.info(f"Recieved query '{query_text}'")
 
