@@ -128,7 +128,6 @@ async def handle_inline_vl_query(update: Update, context: CallbackContext) -> No
     LOGGER.info(f"Recieved query '{query_text}'")
 
     if len(query_text) > 0:
-        # TODO This takes way too long.
         LOGGER.info(f"Matching responses for '{query_text}'")
         matching_responses = get_substring_matches(
             query_text, full_resp_dict.keys(), max_n=max_matches
