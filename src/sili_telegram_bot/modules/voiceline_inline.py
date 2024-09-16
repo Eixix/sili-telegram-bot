@@ -26,7 +26,7 @@ def get_full_response_dict(entity_data: dict, response_data: dict) -> dict[str, 
     full_response_dict = {}
 
     # FIXME Switch to SQLite DB and remove these ghastly loops.
-    for entity_type, type_data in entity_data.items():
+    for type_data in entity_data.values():
         for entity_name, entity_dict in type_data.items():
             entity_title = entity_dict["title"]
             for response_dict in response_data[entity_title]:
