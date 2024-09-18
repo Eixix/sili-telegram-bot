@@ -341,7 +341,7 @@ def main():
 
     # Reduced the interval heavily, as cloudflare caching should prevent bans completely according to @maakep
     job_queue.run_repeating(get_if_new_patch, interval=30, first=10)
-    job_queue.run_daily(poll, datetime.time(0, 0, 0), days=(3,))
+    job_queue.run_daily(poll, datetime.time(0, 0, 0), days=(4,))
 
     job_queue.run_daily(upcomingBirthdays, datetime.time(0, 0, 0))
     job_queue.run_daily(todayBirthdays, datetime.time(0, 0, 0))
