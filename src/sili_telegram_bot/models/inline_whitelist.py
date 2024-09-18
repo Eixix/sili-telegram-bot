@@ -26,7 +26,7 @@ class InlineWhitelist:
 
     def add_to_whitelist(self, user_id: str) -> None:
         with open(self.wl_path, "a", newline="\n") as infile:
-            infile.write(user_id + "\n")
+            infile.write(user_id)
 
 
 default_whitelist = InlineWhitelist()
