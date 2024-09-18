@@ -10,6 +10,9 @@ import logging
 import re
 import unicodedata
 
+from shutil import move
+from tempfile import TemporaryDirectory
+
 from sili_telegram_bot.models.mediawiki_api import APIWrapper
 from sili_telegram_bot.models.response_types import EntityData, EntityResponse
 from sili_telegram_bot.modules.config import config
@@ -235,5 +238,22 @@ def get_response_data() -> None:
     Retrieve data on responses and save to configured paths.
     """
     LOGGER.info("Getting response data...")
-    save_entity_table(output_file=VL_CONFIG["entity_data_file"])
-    save_resource(output_file=VL_CONFIG["resource_file"])
+
+    data_filenames = {"entity_data": "entity_data.json", "responses": "responses.json"}
+
+    # To avoid an inconsistent state where entity data doesn't match the response
+    # data, we first save both date to a temp_dir and move the files to their place
+    # after everything finished successfully.
+    with TemporaryDirectory() as temp_dir:
+        LOGGER.info(f"Saving data to temp dir ('{temp_dir}')...")
+        temp_paths = {
+            data_name: temp_dir + "/" + data_filename
+            for data_name, data_filename in data_filenames.items()
+        }
+
+        save_entity_table(output_file=temp_paths["entity_data"])
+        save_resource(output_file=temp_paths["responses"])
+
+        LOGGER.info(f"Done getting data, moving to final locations.")
+        move(temp_paths["entity_data"], VL_CONFIG["entity_data_file"])
+        move(temp_paths["responses"], VL_CONFIG["resource_file"])
