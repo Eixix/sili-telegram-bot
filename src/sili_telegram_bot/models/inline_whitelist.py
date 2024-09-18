@@ -22,7 +22,7 @@ class InlineWhitelist:
 
     def get_whitelist(self) -> list[str]:
         with open(self.wl_path, "r") as infile:
-            return set(infile.readlines())
+            return set([line.strip() for line in infile.readlines()])
 
     def add_to_whitelist(self, user_id: str) -> None:
         with open(self.wl_path, "a", newline="\n") as infile:
