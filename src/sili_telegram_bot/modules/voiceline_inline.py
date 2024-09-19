@@ -56,6 +56,16 @@ class LazyResponseDict:
         return full_response_dict
 
     @classmethod
+    def update_full_response_dict(cls) -> None:
+        """
+        Re-load the full responses dict after an update.
+        """
+        responses = cls._get_or_create_response_obj()
+        cls._FULL_RESPONSE_DICT = cls._create_full_response_dict(
+            responses.entity_data, responses.entity_responses
+        )
+
+    @classmethod
     def get_or_create_full_resp_dict(cls):
         if cls._FULL_RESPONSE_DICT is None:
             responses = cls._get_or_create_response_obj()
