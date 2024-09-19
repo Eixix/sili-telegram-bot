@@ -29,7 +29,10 @@ from sili_telegram_bot.models.patch_checker import PatchChecker
 from sili_telegram_bot.models.responses import parse_voiceline_args, Responses
 from sili_telegram_bot.models.birthdays import Birthdays
 from sili_telegram_bot.modules.config import config
-from sili_telegram_bot.modules.voiceline_inline import add_inline_handlers
+from sili_telegram_bot.modules.voiceline_inline import (
+    add_inline_handlers,
+    LazyResponseDict,
+)
 from sili_telegram_bot.modules.voiceline_scraping import get_response_data
 
 RESOURCE_CONFIG = config["static_resources"]
@@ -319,6 +322,15 @@ async def add_to_inline_whitelist(update: Update, context: CallbackContext) -> N
         )
 
 
+def update_response_data() -> None:
+    """
+    Download response data to disk and update the full responses dict for inline
+    voicelines.
+    """
+    get_response_data()
+    LazyResponseDict.update_full_response_dict()
+
+
 def get_and_config_scheduler() -> BackgroundScheduler:
     """
     Initialize Scheduler and add non-telegram jobs.
@@ -327,7 +339,7 @@ def get_and_config_scheduler() -> BackgroundScheduler:
 
     # Right after startup, get all dynamic resources.
     scheduler.add_job(dota_api.update_heroes, trigger=date.DateTrigger())
-    scheduler.add_job(get_response_data, trigger=date.DateTrigger())
+    scheduler.add_job(update_response_data, trigger=date.DateTrigger())
 
     # And repeating, trying to catch a new patch, assuming it is out on the night from
     # thursday to friday at 2AM.
