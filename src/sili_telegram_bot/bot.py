@@ -71,7 +71,7 @@ async def get_dota_matches(context: CallbackContext) -> None:
 
     if messages:
         for m in messages:
-            context.bot.send_message(
+            await context.bot.send_message(
                 chat_id=SECRETS["chat_id"], text=m, parse_mode=ParseMode.HTML
             )
 
