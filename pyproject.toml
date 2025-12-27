@@ -20,8 +20,8 @@ dependencies = [
     "regex~=2022.4",
     "requests~=2.31",
     # Not directly used, pinned for security reasons.
-    "certifi==2024.7.4",
-    "urllib3==2.2.2",
+    "certifi==2025.11.12",
+    "urllib3==2.6.2",
 ]
 
 
