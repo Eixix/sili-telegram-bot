@@ -170,7 +170,7 @@ def extract_response_urls_from_titles(
 
 
 def extract_entity_table(
-    navbar_title: str = "Template:VoiceNavSidebar",
+    navbar_title: str = "Template:VoiceNav",
     mediawiki_api=APIWrapper.get_or_create_mediawiki_api(),
 ) -> dict[str, dict[str, EntityData]]:
     """
