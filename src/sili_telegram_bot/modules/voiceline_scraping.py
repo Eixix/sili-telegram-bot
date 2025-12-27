@@ -192,10 +192,27 @@ def extract_entity_table(
 
     categories = url_table.contents
 
-    return {
+    entity_table = {
         category.contents[0].string: parse_link_row(category.select(".hlist a"))
         for category in categories
     }
+
+    entry_counts = {
+        cat_name: len(cat_entities) <= 0
+        for cat_name, cat_entities in entity_table.values()
+    }
+
+    if any([count == 0 for count in entry_counts.items]):
+        empty_category_string = ", ".join(
+            [category for category, count in entry_counts if count == 0]
+        )
+
+        raise ValueError(
+            f"Categories {empty_category_string} is/are empty, something went wrong "
+            "with parsing. Call the developers!"
+        )
+
+    return entity_table
 
 
 def save_entity_table(
