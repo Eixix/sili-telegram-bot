@@ -39,6 +39,9 @@ def parse_link_row(
     entity_data_dict = {}
     for tag in link_row:
         ref_sep = "/"
+
+        # For some reason, some entity names contain non-breaking spaces (\u00a0),
+        # which we don't want.
         entity_name = tag.string.replace("\u00a0", " ")
 
         # These tags are relative to the root of the entire wiki, so we need to
@@ -48,8 +51,6 @@ def parse_link_row(
         )
 
         data = EntityData(
-            # For some reason, some entity names contain non-breaking spaces (\u00a0),
-            # which we don't want.
             name=entity_name,
             url=base_url + pruned_ref,
             title=tag["title"],
