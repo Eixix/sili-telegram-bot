@@ -38,6 +38,16 @@ def parse_link_row(
     """
     entity_data_dict = {}
     for tag in link_row:
+        if tag.string is None:
+            LOGGER.debug(
+                (
+                    "Skipping parsing of tag %s, no string data found, likely not an "
+                    "actual response."
+                ),
+                str(tag["title"]),
+            )
+            continue
+
         ref_sep = "/"
 
         # For some reason, some entity names contain non-breaking spaces (\u00a0),
