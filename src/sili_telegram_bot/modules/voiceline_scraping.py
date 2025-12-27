@@ -188,20 +188,13 @@ def extract_entity_table(
     """
     navbar_page = mediawiki_api.page(navbar_title)
     navbar_soup = bs4.BeautifulSoup(navbar_page.html, features="html.parser")
-    url_table = navbar_soup.find(class_="nowraplinks")
+    url_table = navbar_soup.find(class_="nowraplinks").contents[0]
 
-    table_headers = [
-        tag.string.strip() for tag in url_table.find_all(class_="navbox-odd")
-    ]
-    path_tag_list = [
-        tag.find_all("a") for tag in url_table.find_all(class_="navbox-even")
-    ]
-
-    entity_data_lists = [parse_link_row(link_row) for link_row in path_tag_list]
+    categories = url_table.contents
 
     return {
-        table_header: entity_dict
-        for table_header, entity_dict in zip(table_headers, entity_data_lists)
+        category.contents[0].string: parse_link_row(category.select(".hlist a"))
+        for category in categories
     }
 
 
