@@ -38,7 +38,20 @@ def parse_link_row(
     """
     entity_data_dict = {}
     for tag in link_row:
+        if tag.string is None:
+            LOGGER.debug(
+                (
+                    "Skipping parsing of tag %s, no string data found, likely not an "
+                    "actual response."
+                ),
+                str(tag["title"]),
+            )
+            continue
+
         ref_sep = "/"
+
+        # For some reason, some entity names contain non-breaking spaces (\u00a0),
+        # which we don't want.
         entity_name = tag.string.replace("\u00a0", " ")
 
         # These tags are relative to the root of the entire wiki, so we need to
@@ -48,8 +61,6 @@ def parse_link_row(
         )
 
         data = EntityData(
-            # For some reason, some entity names contain non-breaking spaces (\u00a0),
-            # which we don't want.
             name=entity_name,
             url=base_url + pruned_ref,
             title=tag["title"],
@@ -169,7 +180,7 @@ def extract_response_urls_from_titles(
 
 
 def extract_entity_table(
-    navbar_title: str = "Template:VoiceNavSidebar",
+    navbar_title: str = "Template:VoiceNav",
     mediawiki_api=APIWrapper.get_or_create_mediawiki_api(),
 ) -> dict[str, dict[str, EntityData]]:
     """
@@ -177,21 +188,31 @@ def extract_entity_table(
     """
     navbar_page = mediawiki_api.page(navbar_title)
     navbar_soup = bs4.BeautifulSoup(navbar_page.html, features="html.parser")
-    url_table = navbar_soup.find(class_="nowraplinks")
+    url_table = navbar_soup.find(class_="nowraplinks").contents[0]
 
-    table_headers = [
-        tag.string.strip() for tag in url_table.find_all(class_="navbox-odd")
-    ]
-    path_tag_list = [
-        tag.find_all("a") for tag in url_table.find_all(class_="navbox-even")
-    ]
+    categories = url_table.contents
 
-    entity_data_lists = [parse_link_row(link_row) for link_row in path_tag_list]
-
-    return {
-        table_header: entity_dict
-        for table_header, entity_dict in zip(table_headers, entity_data_lists)
+    entity_table = {
+        category.contents[0].string: parse_link_row(category.select(".hlist a"))
+        for category in categories
     }
+
+    entry_counts = {
+        cat_name: len(cat_entities) <= 0
+        for cat_name, cat_entities in entity_table.values()
+    }
+
+    if any([count == 0 for count in entry_counts.items]):
+        empty_category_string = ", ".join(
+            [category for category, count in entry_counts if count == 0]
+        )
+
+        raise ValueError(
+            f"Categories {empty_category_string} is/are empty, something went wrong "
+            "with parsing. Call the developers!"
+        )
+
+    return entity_table
 
 
 def save_entity_table(
