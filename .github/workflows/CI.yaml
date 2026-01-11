@@ -17,3 +17,13 @@ jobs:
       - name: Run tests
         run: |
           pytest
+  dockertest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build test image
+        run: |
+          docker build -t sili-bot-test --target test .
+      - name: Run test image
+        run: |
+          docker run --name sili-bot-test --rm sili-bot-test
