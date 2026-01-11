@@ -198,11 +198,11 @@ def extract_entity_table(
     }
 
     entry_counts = {
-        cat_name: len(cat_entities) <= 0
-        for cat_name, cat_entities in entity_table.values()
+        cat_name: len(cat_entities)
+        for cat_name, cat_entities in entity_table.items()
     }
 
-    if any([count == 0 for count in entry_counts.items]):
+    if any([count == 0 for count in entry_counts.items()]):
         empty_category_string = ", ".join(
             [category for category, count in entry_counts if count == 0]
         )
