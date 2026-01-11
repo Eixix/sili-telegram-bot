@@ -7,11 +7,13 @@ ARG chat_id
 ENV bot_token=${bot_token}
 ENV chat_id=${chat_id}
 
-COPY pyproject.toml pyproject.toml
 COPY config config
 COPY src src
 COPY resources resources
-COPY config.json config.json
+
+# config.json may or may not be present, this ensures it is copied when it's
+# there and doesn't result in errors when it's not.
+COPY pyproject.toml config.json* ./
 
 RUN pip install .
 
