@@ -17,7 +17,7 @@ dependencies = [
     "pymediawiki<=0.7",
     "python-telegram-bot[job-queue]<=21.5",
     "regex<=2022.4",
-    "requests<=2.31",
+    "requests<=2.32.2",
     # Not directly used, pinned for security reasons.
     "certifi==2024.7.4",
     "urllib3==2.2.2",
