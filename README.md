@@ -2,7 +2,7 @@
 
 A telegram bot that evaluates DOTA2 matches of people and notifies about their
 results.
-
+ 
 # Local development 🏗️
 
 - Copy the `config.json.example` to `config.json`
