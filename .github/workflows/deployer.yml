@@ -26,7 +26,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Deploy with rsync
         run: rsync -avz ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/sili-telegram-bot/
-      - name: executing remote ssh commands using ssh key
+      - name: Build image & generate requirements file
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -38,4 +38,28 @@ jobs:
             docker build -t sili-bot --build-arg bot_token=${{ secrets.BOT_TOKEN }} --build-arg chat_id=${{ secrets.CHAT_ID }} .
             docker stop sili-bot
             docker rm sili-bot
+
+            # Start the container without running the bot, mounting the current dir to later retrieve the
+            # requirements file.
+            docker run -dt --rm -v $(pwd):/mnt/host --entrypoint sleep --name sili-bot sili-bot infinity
+
+            # Generate a requirements file with the currently installed package versions and
+            # save it to the current dir on the docker host.
+            docker exec sili-bot bash -c "pip3 freeze --exclude sili-telegram-bot > /mnt/host/requirements.txt"
+            docker stop sili-bot
+      - name: Retrieve requirements file
+        run: rsync -avz ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/sili-telegram-bot/requirements.txt ./requirements.txt
+      - name: Upload requirements file
+        uses: actions/upload-artifact@v4
+        with:
+          name: requirements.txt
+          path: ./requirements.txt
+      - name: Run the bot
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.DEPLOY_SECRET_KEY }}
+          port: 22
+          script: |
             docker run --mount source=silibotvolume,target=/bot/resources/dynamic --name sili-bot -d sili-bot

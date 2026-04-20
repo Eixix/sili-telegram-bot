@@ -62,6 +62,52 @@ repo's and adds persistence:
 docker run --mount source=silibotvolume,target=/bot/resources/dynamic --name sili-bot -d sili-bot
 ```
 
+## Managing dependency versions
+
+We track the current version of all dependencies in the `requirements.txt` file
+to ensure a reasonable level or reproducibility of the software environment. If
+you wish to work in this environment, create an empty virtual environment,
+install the dependencies and then the package itself from source:
+
+```bash
+VENV="./.venv-req"
+
+python3 -m venv "$VENV"
+source "$VENV/bin/activate"
+
+pip3 install -r requirements.txt
+pip3 install .
+```
+
+In turn, the requirements txt file can be updated to match your venv like so:
+
+```bash
+pip3 freeze --local --exclude sili-telegram-bot > requirements.txt
+```
+
+Currently, the container does not use the requirements file, but rather installs
+whatever versions meet the specifications in `pyproject.toml`. However, a
+requirements file generated from the versions used in the image can be generated
+as follows:
+
+```bash
+# Start the container without running the bot, mounting the current dir to later
+# retrieve the requirements file.
+docker run -dt --rm -v $(pwd):/mnt/host --entrypoint sleep \
+  --name sili-bot sili-bot infinity
+
+# Generate a requirements file with the currently installed package versions and
+# save it to the current dir on the docker host.
+docker exec sili-bot bash -c "pip3 freeze \
+  --exclude sili-telegram-bot > /mnt/host/requirements.txt"
+
+docker stop sili-bot
+```
+
+Similarly, the deployment action produces the requirements file generated this
+way as an artefact, allowing the reproduction of the software environment of the
+deployed image.
+
 ## WIP: Port to Rust
 
 # Inline mode
