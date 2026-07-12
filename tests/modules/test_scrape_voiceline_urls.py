@@ -51,3 +51,23 @@ class TestExtractResponseUrlsFromTitles:
 
         assert isinstance(res, dict)
         assert input == [*res.keys()]
+
+class TestExtractEntityTable:
+    def test_success(self, mediawiki_api):
+        """
+        Test basic functionality.
+        """
+        required_categories = ["Heroes", "Announcer", "Voice Packs", "Misc"]
+
+        entity_table = voiceline_scraping.extract_entity_table(
+            mediawiki_api=mediawiki_api
+        )
+
+        # Any data present.
+        assert len(entity_table) > 0
+
+        # Expected categories present.
+        assert all([category in entity_table for category in required_categories])
+
+        # Each category with at least some data.
+        assert all([len(category) > 0 for category in entity_table.values()])
