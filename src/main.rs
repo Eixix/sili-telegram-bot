@@ -258,13 +258,17 @@ async fn run(mut bot: Bot) -> Result<()> {
     let refresher = tokio::spawn(async move {
         if voices.refresh_enabled() {
             loop {
-                match voices.refresh().await {
-                    Ok(()) => tracing::info!("Voiceline cache refreshed"),
-                    Err(error) => {
-                        tracing::warn!(%error, "Voiceline refresh failed; retaining cache")
+                let retry_in = match voices.refresh().await {
+                    Ok(()) => {
+                        tracing::info!("Voiceline cache refreshed");
+                        7 * 24 * 3600
                     }
-                }
-                tokio::time::sleep(Duration::from_secs(7 * 24 * 3600)).await;
+                    Err(error) => {
+                        tracing::warn!(%error, retry_in_seconds = 3600, "Voiceline refresh failed; retaining cache");
+                        3600
+                    }
+                };
+                tokio::time::sleep(Duration::from_secs(retry_in)).await;
             }
         }
     });

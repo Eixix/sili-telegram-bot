@@ -64,7 +64,8 @@ Page parsing waits at least 30 seconds per request, following
 [Liquipedia's API limits](https://liquipedia.net/api-terms-of-use); other calls
 wait at least two seconds. HTTP 429/server errors retry up to five times with
 exponential backoff and respect `Retry-After`. A full catalog can take about
-two hours. A failed refresh retains the previous catalog.
+two hours. A failed refresh retains the previous catalog and is retried after
+an hour; successful refreshes repeat weekly.
 
 Validation:
 

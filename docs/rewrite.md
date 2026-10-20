@@ -48,6 +48,8 @@ a complete new catalog is atomically published in one `voicelines.json` file.
 Wiki parse requests are spaced by at least 30 seconds (general API calls by at
 least two seconds), even if a shorter legacy delay is configured. Rate limits
 and upstream server errors use bounded exponential retries and `Retry-After`.
+If a complete refresh still fails, it is retried after an hour rather than
+waiting for the next weekly cycle.
 
 ## Existing Docker installation
 
