@@ -60,7 +60,11 @@ configured delay between requests. The user agent includes the application name
 and repository URL, with no email address. Set `voicelines.refresh_enabled` to
 `false` to use only cached data. You can also run
 `cargo run --locked --release -- --refresh-voicelines`.
-A failed refresh retains the previous catalog.
+Page parsing waits at least 30 seconds per request, following
+[Liquipedia's API limits](https://liquipedia.net/api-terms-of-use); other calls
+wait at least two seconds. HTTP 429/server errors retry up to five times with
+exponential backoff and respect `Retry-After`. A full catalog can take about
+two hours. A failed refresh retains the previous catalog.
 
 Validation:
 

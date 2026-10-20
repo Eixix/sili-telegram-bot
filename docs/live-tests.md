@@ -34,6 +34,9 @@ project URL. The live hero and account tests passed with the same identification
 - A complete fresh wiki scrape was not part of the initial test run. Real cached
   wiki audio retrieval succeeded. Automatic scraping now works without an email;
   the live wiki test also checks discovery through the current navigation page.
+  Production discovery found 221 pages. Its first crawl hit HTTP 429 at the
+  legacy four-second interval; parse requests now enforce Liquipedia's 30-second
+  minimum, with bounded retries for HTTP 429/server errors and `Retry-After`.
 - Daily work was invoked directly. No future midnight or weekly event was awaited.
 - Group-specific permissions were not exercised in this private-chat run.
 

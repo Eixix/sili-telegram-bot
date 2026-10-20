@@ -178,6 +178,8 @@ pub struct Voices {
     config: Config,
     client: Client,
     pub catalog: Arc<RwLock<Option<Catalog>>>,
+    #[cfg(test)]
+    request_delay_override: Option<Duration>,
 }
 impl Voices {
     pub fn new(config: Config, client: Client) -> Result<Self> {
@@ -198,6 +200,8 @@ impl Voices {
             config,
             client,
             catalog: Arc::new(RwLock::new(catalog)),
+            #[cfg(test)]
+            request_delay_override: None,
         })
     }
     pub fn refresh_enabled(&self) -> bool {
@@ -217,32 +221,66 @@ impl Voices {
             self.config.string("voicelines", "user_agent_title"),
             self.config.string("voicelines", "user_agent_url")
         );
-        let delay = self.config.0["voicelines"]["secs_between_requests"]
+        let delay = self.request_delay(params);
+        for attempt in 0..=5 {
+            self.wait(delay).await;
+            let response = self
+                .client
+                .get(format!(
+                    "{}/api.php",
+                    self.config
+                        .string("voicelines", "base_url")
+                        .trim_end_matches('/')
+                ))
+                .header(reqwest::header::USER_AGENT, &agent)
+                .query(&[("format", "json")])
+                .query(params)
+                .send()
+                .await?;
+            let status = response.status();
+            if attempt < 5 && (status.as_u16() == 429 || status.is_server_error()) {
+                let retry_after = response
+                    .headers()
+                    .get(reqwest::header::RETRY_AFTER)
+                    .and_then(|value| value.to_str().ok())
+                    .and_then(|value| retry_after_seconds(value, chrono::Utc::now()))
+                    .unwrap_or(0)
+                    .max(30 * (1 << attempt));
+                tracing::warn!(
+                    status = status.as_u16(),
+                    retry_after,
+                    attempt = attempt + 1,
+                    "Wiki request delayed; retrying"
+                );
+                drop(response);
+                self.wait(retry_after).await;
+                continue;
+            }
+            let data: Value = response.error_for_status()?.json().await?;
+            ensure!(data.get("error").is_none(), "Wiki API returned an error");
+            return Ok(data);
+        }
+        unreachable!("Final attempt returns its response or error")
+    }
+    fn request_delay(&self, params: &[(&str, &str)]) -> u64 {
+        // Liquipedia permits general API calls every 2s, but parse only every 30s.
+        let minimum = if params.contains(&("action", "parse")) {
+            30
+        } else {
+            2
+        };
+        self.config.0["voicelines"]["secs_between_requests"]
             .as_u64()
             .unwrap_or(4)
-            .max(1);
-        tokio::time::sleep(Duration::from_secs(delay)).await;
-        let response: Value = self
-            .client
-            .get(format!(
-                "{}/api.php",
-                self.config
-                    .string("voicelines", "base_url")
-                    .trim_end_matches('/')
-            ))
-            .header(reqwest::header::USER_AGENT, agent)
-            .query(&[("format", "json")])
-            .query(params)
-            .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await?;
-        ensure!(
-            response.get("error").is_none(),
-            "Wiki API returned an error"
-        );
-        Ok(response)
+            .max(minimum)
+    }
+    async fn wait(&self, seconds: u64) {
+        #[cfg(test)]
+        if let Some(delay) = self.request_delay_override {
+            tokio::time::sleep(delay).await;
+            return;
+        }
+        tokio::time::sleep(Duration::from_secs(seconds)).await;
     }
     async fn page(&self, title: &str) -> Result<String> {
         self.api(&[("action", "parse"), ("page", title), ("prop", "text")])
@@ -293,7 +331,7 @@ impl Voices {
             if !parsed.is_empty() {
                 responses.insert(title, parsed);
             }
-            if (index + 1) % 25 == 0 || index + 1 == total {
+            if index == 0 || (index + 1) % 10 == 0 || index + 1 == total {
                 tracing::info!(completed = index + 1, total, "Voiceline refresh progress");
             }
         }
@@ -309,6 +347,17 @@ impl Voices {
         *self.catalog.write().await = Some(catalog);
         Ok(())
     }
+}
+fn retry_after_seconds(value: &str, now: chrono::DateTime<chrono::Utc>) -> Option<u64> {
+    value.parse().ok().or_else(|| {
+        chrono::DateTime::parse_from_rfc2822(value)
+            .ok()
+            .map(|date| {
+                (date.with_timezone(&chrono::Utc) - now)
+                    .num_seconds()
+                    .max(0) as u64
+            })
+    })
 }
 fn selector(s: &str) -> Selector {
     Selector::parse(s).unwrap()
@@ -421,7 +470,7 @@ mod tests {
             ),
             (200, json!({"parse":{"text":{"*":page}}})),
             (200, json!({"parse":{"text":{"*":page}}})),
-            (503, json!({"error":"unavailable"})),
+            (400, json!({"error":"invalid request"})),
         ]);
         let mut value: Value = serde_json::from_str(include_str!("../config/default.json"))?;
         value["dynamic_resources"]["hero_data_path"] = json!(temp.path().join("heroes.json"));
@@ -435,7 +484,10 @@ mod tests {
         value["voicelines"]["refresh_enabled"] = json!(true);
         // Old configuration must not reintroduce contact details into requests.
         value["voicelines"]["user_agent_email"] = json!("private@example.com");
-        let voices = Voices::new(Config(value), Client::new())?;
+        let mut voices = Voices::new(Config(value), Client::new())?;
+        assert_eq!(voices.request_delay(&[("action", "parse")]), 30);
+        assert_eq!(voices.request_delay(&[("action", "query")]), 2);
+        voices.request_delay_override = Some(Duration::ZERO);
         voices.refresh().await?;
         assert_eq!(
             voices
@@ -477,6 +529,50 @@ mod tests {
             ));
             assert!(!agent.contains('@'));
         }
+        Ok(())
+    }
+    #[tokio::test]
+    async fn retries_rate_limits_and_server_errors_without_losing_the_page() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let server = crate::test_support::Server::new(vec![
+            (429, json!({})),
+            (503, json!({})),
+            (200, json!({"parse":{"text":{"*":"the requested page"}}})),
+            (429, json!({})),
+            (429, json!({})),
+            (429, json!({})),
+            (429, json!({})),
+            (429, json!({})),
+            (429, json!({})),
+        ]);
+        let mut voices = Voices::new(
+            Config(json!({
+                "dynamic_resources":{"hero_data_path":temp.path().join("heroes.json")},
+                "voicelines":{"base_url":server.url,"secs_between_requests":60,
+                    "entity_data_file":temp.path().join("entities.json"),
+                    "resource_file":temp.path().join("responses.json")}
+            })),
+            Client::new(),
+        )?;
+        assert_eq!(voices.request_delay(&[("action", "parse")]), 60);
+        voices.request_delay_override = Some(Duration::ZERO);
+        assert_eq!(voices.page("Sniper/Responses").await?, "the requested page");
+        assert!(voices.page("Sniper/Responses").await.is_err());
+        let requests = server.requests.lock().unwrap();
+        assert_eq!(requests.len(), 9);
+        assert!(requests.iter().all(|r| r.0 == requests[0].0));
+        let now = chrono::DateTime::parse_from_rfc2822("Wed, 21 Oct 2015 07:27:00 GMT")?
+            .with_timezone(&chrono::Utc);
+        assert_eq!(retry_after_seconds("120", now), Some(120));
+        assert_eq!(
+            retry_after_seconds("Wed, 21 Oct 2015 07:28:00 GMT", now),
+            Some(60)
+        );
+        assert_eq!(
+            retry_after_seconds("Wed, 21 Oct 2015 07:26:00 GMT", now),
+            Some(0)
+        );
+        assert_eq!(retry_after_seconds("invalid", now), None);
         Ok(())
     }
     #[tokio::test]
