@@ -2,28 +2,27 @@ name: Continuous Integration
 on:
   push:
   pull_request:
-
+permissions:
+  contents: read
 jobs:
-  pytest:
+  rust:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.90.0
         with:
-          python-version: "3.10"
-      - uses: actions/checkout@v4
-      - name: Install dev dependencies
-        run: |
-          pip install .[dev]
-      - name: Run tests
-        run: |
-          pytest
-  dockertest:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --check
+      - run: cargo clippy --locked --all-targets -- -D warnings
+      - run: cargo test --locked
+      - run: docker compose config --quiet
+  docker:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build test image
-        run: |
-          docker build -t sili-bot-test --target test .
-      - name: Run test image
-        run: |
-          docker run --name sili-bot-test --rm sili-bot-test
+      - run: docker build --target test -t sili-bot-test .
+      - run: docker run --rm --network none sili-bot-test
+      - run: docker build -t sili-bot .
+      - name: Validate configuration in production image without networking
+        run: docker run --rm --network none -e BOT_TOKEN=12345:test -e CHAT_ID=-123 sili-bot --check-config

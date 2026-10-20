@@ -4,7 +4,7 @@
         "chat_id": "-123456"
     },
     "voicelines": {
-        "user-agent-email": "someone@example.com"
+        "user_agent_email": "someone@example.com"
     },
     "accounts": {
         "account_list": [

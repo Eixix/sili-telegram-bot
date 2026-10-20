@@ -1,41 +1,194 @@
-name: deploy
+name: Deploy bot (standalone)
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      inspect_host_only:
+        description: Inspect the deployment target's public SSH keys without deploying
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: sili-bot-production
+  cancel-in-progress: false
 jobs:
   deploy:
+    if: github.ref == 'refs/heads/main' && !inputs.inspect_host_only
     runs-on: ubuntu-latest
+    env:
+      DEPLOY_HOST: ${{ secrets.SSH_HOST }}
+      DEPLOY_USER: ${{ secrets.SSH_USER }}
     steps:
-      - run: sudo apt install wireguard
-      - run: echo "${{ secrets.WIREGUARD_CONF }}" > wireguard.conf
-      - run: sudo ln -s /usr/bin/resolvectl /usr/local/bin/resolvconf
-      - run: sudo wg-quick up ./wireguard.conf
-      - run: sudo wg show
-
-      - name: Install SSH key
-        uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.DEPLOY_SECRET_KEY }}
-          name: id_rsa # optional
-          known_hosts: ${{ secrets.SSH_HOST }}
-          if_key_exists: fail # replace / ignore / fail; optional (defaults to fail)
-      - name: Adding Known Hosts
-        run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-      - name: Checkout project
-        uses: actions/checkout@v4
-      - name: Deploy with rsync
-        run: rsync -avz ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/sili-telegram-bot/
-      - name: executing remote ssh commands using ssh key
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.DEPLOY_SECRET_KEY }}
-          port: 22
-          script: |
-            cd sili-telegram-bot
-            docker build -t sili-bot --build-arg bot_token=${{ secrets.BOT_TOKEN }} --build-arg chat_id=${{ secrets.CHAT_ID }} .
+      - uses: actions/checkout@v4
+      - name: Test Rust rewrite
+        run: |
+          docker build --target test -t sili-bot-test .
+          docker run --rm --network none sili-bot-test
+      - name: Connect WireGuard
+        env:
+          WIREGUARD_CONF: ${{ secrets.WIREGUARD_CONF }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y wireguard-tools
+          sudo ln -sf "$(command -v resolvectl)" /usr/local/bin/resolvconf
+          umask 077
+          printf '%s' "$WIREGUARD_CONF" > "$RUNNER_TEMP/wg0.conf"
+          sudo wg-quick up "$RUNNER_TEMP/wg0.conf"
+      - name: Configure SSH
+        env:
+          DEPLOY_SECRET_KEY: ${{ secrets.DEPLOY_SECRET_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          umask 077
+          printf '%s\n' "$DEPLOY_SECRET_KEY" > "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+      - name: Synchronize source, preserving private config and state
+        run: |
+          set -euo pipefail
+          ssh "$DEPLOY_USER@$DEPLOY_HOST" 'mkdir -p ~/sili-telegram-bot'
+          rsync -az --exclude='.git/' --exclude='.agents/' --exclude='.aws/' --exclude='.codex/' --exclude='.deploy.env' --exclude='target/' --exclude='config.json' --exclude='.env*' --exclude='resources/dynamic/' ./ "$DEPLOY_USER@$DEPLOY_HOST:sili-telegram-bot/"
+      - name: Write runtime credentials
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os, pathlib, re, json, urllib.request, urllib.error
+          token, chat = os.environ['BOT_TOKEN'], os.environ['CHAT_ID']
+          if not re.fullmatch(r'[0-9]+:[A-Za-z0-9_-]+', token) or not re.fullmatch(r'-?[0-9]+', chat):
+              raise ValueError('Invalid deployment credential format')
+          # Verify credentials/chat access without sending a production message.
+          for method, body in [('getMe', {}), ('getChat', {'chat_id': int(chat)})]:
+              try:
+                  request = urllib.request.Request('https://api.telegram.org/bot' + token + '/' + method,
+                      data=json.dumps(body).encode(), headers={'Content-Type': 'application/json'})
+                  with urllib.request.urlopen(request, timeout=20) as response:
+                      result = json.load(response)
+                  if not result.get('ok'):
+                      raise RuntimeError('Telegram preflight rejected')
+              except urllib.error.HTTPError as error:
+                  raise SystemExit(f'Telegram preflight failed: HTTP {error.code}') from None
+              except Exception:
+                  raise SystemExit('Telegram preflight failed; credentials/chat access not verified') from None
+          print('Deployment bot identity and chat access verified')
+          path = pathlib.Path(os.environ['RUNNER_TEMP']) / 'bot.env'
+          path.write_text(f'BOT_TOKEN={token}\nCHAT_ID={chat}\n')
+          path.chmod(0o600)
+          PY
+          ssh "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/sili-telegram-bot && umask 077 && cat > .deploy.env.new && mv .deploy.env.new .deploy.env' < "$RUNNER_TEMP/bot.env"
+      - name: Build and recreate service
+        run: |
+          ssh "$DEPLOY_USER@$DEPLOY_HOST" 'bash -se' <<'REMOTE'
+          set -euo pipefail
+          cd ~/sili-telegram-bot
+          test -f config.json
+          # Use the deploy user's identity to read private mounted configuration.
+          printf 'BOT_UID=%s\nBOT_GID=%s\n' "$(id -u)" "$(id -g)" >> .deploy.env
+          docker compose --env-file .deploy.env config --quiet
+          docker compose --env-file .deploy.env build --pull
+          docker compose --env-file .deploy.env run --rm --no-deps sili-bot --check-config
+          timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+          backup_container=""
+          rollback() {
+            result=$?
+            if [ "$result" -ne 0 ] && [ -n "$backup_container" ]; then
+              echo 'Startup failed; restoring the previous container.' >&2
+              docker rm -f sili-bot >/dev/null 2>&1 || true
+              docker rename "$backup_container" sili-bot
+              docker start sili-bot
+            elif [ "$result" -ne 0 ] && docker inspect sili-bot >/dev/null 2>&1; then
+              docker start sili-bot || true
+            fi
+            exit "$result"
+          }
+          trap rollback EXIT
+          if docker inspect sili-bot >/dev/null 2>&1; then
             docker stop sili-bot
-            docker rm sili-bot
-            docker run --restart unless-stopped --mount source=silibotvolume,target=/bot/resources/dynamic --name sili-bot -d sili-bot
+            candidate="sili-bot-rollback-$timestamp"
+            if [ -n "$(docker inspect -f '{{if index .Config.Labels "com.docker.compose.project"}}compose{{end}}' sili-bot)" ]; then
+              old_image="$(docker inspect -f '{{.Image}}' sili-bot)"
+              old_user="$(docker inspect -f '{{.Config.User}}' sili-bot)"
+              # An unlabelled rollback copy cannot be adopted/removed by Compose.
+              docker create --name "$candidate" --user "${old_user:-0:0}" \
+                --env-file .deploy.env -e CONFIG_FILE=/bot/config.json \
+                --mount "type=bind,src=$PWD/config.json,dst=/bot/config.json,readonly" \
+                --mount source=silibotvolume,target=/bot/resources/dynamic "$old_image" >/dev/null
+              backup_container="$candidate"
+              docker rm sili-bot
+            else
+              docker rename sili-bot "$candidate"
+              backup_container="$candidate"
+            fi
+          fi
+          # Snapshot stopped state before changing ownership for the Rust runtime.
+          install -d -m 700 backups
+          cp -p config.json "backups/config-$timestamp.json"
+          docker compose --env-file .deploy.env run --rm --no-deps --user 0:0 \
+            -v "$PWD/backups:/backup" --entrypoint sh sili-bot -ec '
+              umask 077
+              tar -czf "/backup/dynamic-$3.tar.gz" -C /bot/resources/dynamic .
+              chown "$1:$2" "/backup/dynamic-$3.tar.gz"
+              chown -R "$1:$2" /bot/resources/dynamic
+            ' sh "$(id -u)" "$(id -g)" "$timestamp"
+          docker compose --env-file .deploy.env run --rm --no-deps --entrypoint sh sili-bot -ec \
+            'test -r /bot/config.json && test -w /bot/resources/dynamic'
+          docker compose --env-file .deploy.env up -d --force-recreate
+          sleep 15
+          test "$(docker inspect -f '{{.State.Running}}' sili-bot)" = true
+          test "$(docker inspect -f '{{.RestartCount}}' sili-bot)" = 0
+          if docker logs --since 1m sili-bot 2>&1 | grep -Eq 'Permission denied|Invalid state file|Invalid config|Error:'; then
+            echo 'Startup validation found a configuration or state error.' >&2
+            exit 1
+          fi
+          echo "Rust bot running; backup snapshot: backups/dynamic-$timestamp.tar.gz"
+          if [ -n "$backup_container" ]; then
+            echo "Previous container retained stopped as $backup_container"
+          fi
+          REMOTE
+      - name: Disconnect WireGuard
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/wg0.conf" ]; then
+            sudo wg-quick down "$RUNNER_TEMP/wg0.conf" || true
+          fi
+
+  inspect-host:
+    if: github.ref == 'refs/heads/main' && inputs.inspect_host_only
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_HOST: ${{ secrets.SSH_HOST }}
+    steps:
+      - name: Connect WireGuard
+        env:
+          WIREGUARD_CONF: ${{ secrets.WIREGUARD_CONF }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y wireguard-tools
+          sudo ln -sf "$(command -v resolvectl)" /usr/local/bin/resolvconf
+          umask 077
+          printf '%s' "$WIREGUARD_CONF" > "$RUNNER_TEMP/wg0.conf"
+          sudo wg-quick up "$RUNNER_TEMP/wg0.conf"
+      - name: Inspect only the deployment target's public SSH keys
+        run: |
+          set -euo pipefail
+          ssh-keyscan -T 15 -H "$DEPLOY_HOST" 2>/dev/null > "$RUNNER_TEMP/deploy-known-hosts"
+          test -s "$RUNNER_TEMP/deploy-known-hosts"
+          ssh-keygen -lf "$RUNNER_TEMP/deploy-known-hosts" | awk '{print $2}'
+      - name: Save target keys for verification against the operator's trusted records
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-host-keys
+          path: ${{ runner.temp }}/deploy-known-hosts
+          retention-days: 1
+      - name: Disconnect WireGuard
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/wg0.conf" ]; then
+            sudo wg-quick down "$RUNNER_TEMP/wg0.conf" || true
+          fi

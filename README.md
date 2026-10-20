@@ -1,72 +1,84 @@
-# sili-telegram-bot 🚀
+# sili-telegram-bot
 
-A telegram bot that evaluates DOTA2 matches of people and notifies about their
-results.
- 
-# Local development 🏗️
+A Rust Telegram bot for the Sili Dota 2 group. It posts shared match results,
+player stats, birthday reminders, Dota patch alerts, polls, and searchable
+voicelines. It uses outbound long polling; no public port or reverse proxy is needed.
 
-- Copy the `config.json.example` to `config.json`
-- Find your
-  [Steam32 ID with this website and update your name](https://steamid.xyz/)
-- Create a new bot with the [@botfather](https://t.me/botfather)
-- Find out your corresponding chat ID, e.g.
-  [@userinfobot](https://t.me/userinfobot)
-- Update `config.json` with all the information.
+Copy `example_config.json` to `config.json`, set your Telegram bot token and chat
+ID, and replace the example accounts with Steam32 IDs. The existing Python bot's
+JSON configuration is supported. See [migration and behavior notes](docs/rewrite.md)
+and [homelab deployment](docs/homelab.md).
 
-## Without docker ⚙️
-
-Change the two variables `bot_token` and `chat_id` in `bot.py` accordingly.
-Instead of using inline environment variables you can use a `.env` file in
-VSCode.
-
-### For Linux 🐧
-
-```bash
-pip install .
-bot_token="<bot_token>" chat_id="<chat_id>" run_bot
+```sh
+cp example_config.json config.json
+# Edit config.json before starting.
+cargo run --locked -- --check-config
+cargo run --locked --release
 ```
 
-### For Windows 💩
+Rust 1.90 is pinned in `rust-toolchain.toml`. Configuration precedence is built-in
+defaults, `config.json`, then environment variables. `CONFIG_FILE` selects another
+JSON file. `BOT_TOKEN` / `CHAT_ID` override JSON secrets; the old lowercase
+`bot_token` / `chat_id` names still work. `BOT_TOKEN_FILE` takes precedence over
+token environment variables and reads a mounted secret. Tokens are never build arguments.
+`TZ` defaults to `Europe/Berlin`; `RUST_LOG` controls logging.
 
-```powershell
-pip install .
-cd src
-set bot_token="<bot_token>"
-set chat_id="<chat_id>"
-run_bot
+To use Docker:
+
+```sh
+docker compose build
+docker compose up -d
+docker compose logs -f sili-bot
 ```
 
-## With docker 🐋
+Compose reads optional runtime credentials from `.env` (see `.env.example`).
+It mounts `config.json` read-only and reuses the named `silibotvolume` at
+`/bot/resources/dynamic`. A new volume works automatically. When reusing a legacy
+root-owned volume, back it up and update its ownership before starting the new
+non-root container; instructions are in the migration notes.
 
-```bash
-docker rm sili-bot
-docker build -t sili-bot --build-arg bot_token="<BOT_TOKEN>" --build-arg chat_id="<CHAT_ID>" .
-docker run --name sili-bot sili-bot
+| Command | Behavior |
+| --- | --- |
+| `/crawl` | Check for new shared matches immediately |
+| `/playerinfos` | Profile, wins/losses, win percentage, last game |
+| `/lastgame` | Most recent game across tracked accounts |
+| `/birthdays` | List upcoming birthday dates |
+| `/dodo` | Send the Dota voice clip and group poll |
+| `/voiceline Legion Commander: Ten hut! [2]` | Find and send a voiceline; level defaults to 1 |
+| `/enable_inline_voicelines` | Allow the calling group member to use inline search |
+| `/stopbot` | Exit the process (Docker restart policies can restart it) |
+
+Only the configured chat can execute commands or trigger the doubt/daud/daut GIF.
+Inline search checks a persistent user whitelist. Enable inline mode using
+BotFather's `/setinline`, then query `@your_bot Legion Commander: Ten hut`.
+Quoted voiceline text uses Rust regex syntax, for example
+`/voiceline Legion Commander: "^Ten hut!$"`. Unquoted text tolerates one edit.
+
+Voiceline caches from the Python version are read directly. To fetch new data,
+set `voicelines.user_agent_email` to a real contact address. Scraping runs in the
+background at startup and weekly, with at least the configured delay between
+requests. Without an email, cached voices still work and automatic scraping is
+disabled. You can also run `cargo run --locked --release -- --refresh-voicelines`.
+A failed refresh retains the previous catalog.
+
+Validation:
+
+```sh
+cargo fmt --check
+cargo clippy --locked --all-targets -- -D warnings
+cargo test --locked
+docker build --target test -t sili-bot-test .
+docker run --rm --network none sili-bot-test
 ```
 
-Or, if the secrets are already contained in `config.json`:
-
-```bash
-docker rm sili-bot
-docker build -t sili-bot .
-docker run --name sili-bot sili-bot
-```
-
-By default, the container incorporates the state of `resources/dynamic` at
-build time, but does not have persistence. As a consequence, the bot might
-re-send match summaries after a restart. To mitigate this, use a volume
-for the dynamic resources. This decouples the containers state from the build
-repo's and adds persistence:
-
-```bash
-docker run --mount source=silibotvolume,target=/bot/resources/dynamic --name sili-bot -d sili-bot
-```
-
-## WIP: Port to Rust
-
-# Inline mode
-
-The bot has the capability for inline response search (see
-<https://core.telegram.org/bots/inline> for more information). To enable this,
-send `/setinline` to the botfather and, when prompred, set the placeholder
-message along the lines of "Search for responses...".
+Tests use local HTTP mocks and the original response/scraper fixtures; no Telegram
+credentials or live wiki access are needed. Opt-in live tests and their verified
+coverage are documented in [live functional verification](docs/live-tests.md).
+The standalone GitHub Actions deploy
+keeps WireGuard, SSH, rsync, Docker, and the persistent volume, but now runs only
+via **workflow_dispatch**. It requires the existing `WIREGUARD_CONF`,
+`DEPLOY_SECRET_KEY`, `SSH_HOST`, `SSH_USER`, `BOT_TOKEN`, and `CHAT_ID` secrets,
+plus `SSH_KNOWN_HOSTS` containing the verified server host key. Provision the
+server's `~/sili-telegram-bot/config.json` privately before first deployment.
+Use the homelab deployment workflow instead once the service belongs to that stack;
+run only one instance for each bot token.

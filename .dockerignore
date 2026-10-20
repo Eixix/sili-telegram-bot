@@ -1,0 +1,13 @@
+.git
+.github
+target
+.agents
+.aws
+.codex
+.env
+.env.*
+config.json
+resources/dynamic
+__pycache__
+.pytest_cache
+.venv

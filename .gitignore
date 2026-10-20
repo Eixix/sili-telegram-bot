@@ -137,3 +137,8 @@ secrets.txt
 
 # config
 config.json
+# Rust/runtime credentials
+/target/
+.deploy.env
+.env.*
+!.env.example

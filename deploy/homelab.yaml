@@ -1,0 +1,32 @@
+# Copy to homelab/compose/apps/sili-telegram-bot.yaml and add to compose.yaml's include.
+services:
+  sili-bot:
+    container_name: sili-bot
+    build:
+      context: ../../apps/sili-telegram-bot
+    restart: unless-stopped
+    user: ${DEPLOY_UID:-1003}:${DEPLOY_GID:-1003}
+    environment:
+      TZ: Europe/Berlin
+      CONFIG_FILE: /run/secrets/sili-telegram-bot/config.json
+    volumes:
+      - type: bind
+        source: ../../secrets/sili-telegram-bot/config.json
+        target: /run/secrets/sili-telegram-bot/config.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ../../data/sili-telegram-bot
+        target: /bot/resources/dynamic
+        bind:
+          create_host_path: false
+    networks:
+      - internal_network
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 128
+    stop_grace_period: 20s
+    labels:
+      traefik.enable: "false"

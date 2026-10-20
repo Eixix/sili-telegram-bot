@@ -1,32 +1,23 @@
-FROM python:3.10 AS base
+FROM rust:1.90-bookworm AS build
+WORKDIR /build
+COPY Cargo.toml Cargo.lock ./
+COPY src ./src
+COPY config ./config
+COPY tests/test_data ./tests/test_data
+RUN cargo build --locked --release
+
+FROM build AS test
+RUN cargo test --locked
+ENTRYPOINT ["cargo", "test", "--locked", "--offline"]
+
+FROM debian:bookworm-slim AS prod
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --gid 1000 bot && useradd --uid 1000 --gid bot --no-create-home bot
 WORKDIR /bot
-
-ARG bot_token
-ARG chat_id
-
-ENV bot_token=${bot_token}
-ENV chat_id=${chat_id}
-
-COPY config config
-COPY src src
-COPY resources resources
-
-# config.json may or may not be present, this ensures it is copied when it's
-# there and doesn't result in errors when it's not.
-COPY pyproject.toml config.json* ./
-
-FROM base AS test
-
-COPY tests tests
-
-RUN pip install .[dev]
-
-ENTRYPOINT [ "pytest" ]
-
-FROM base AS prod
-
-RUN pip install .
-
-WORKDIR /bot
-ENTRYPOINT [ "run_bot" ]
-
+COPY --from=build /build/target/release/sili-telegram-bot /usr/local/bin/sili-telegram-bot
+COPY config ./config
+COPY resources/static ./resources/static
+RUN mkdir -p resources/dynamic && chown -R bot:bot resources/dynamic
+USER 1000:1000
+ENTRYPOINT ["sili-telegram-bot"]

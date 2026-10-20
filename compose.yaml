@@ -1,0 +1,30 @@
+services:
+  sili-bot:
+    image: sili-bot:local
+    build: .
+    container_name: sili-bot
+    restart: unless-stopped
+    user: ${BOT_UID:-1000}:${BOT_GID:-1000}
+    environment:
+      BOT_TOKEN: ${BOT_TOKEN:-}
+      CHAT_ID: ${CHAT_ID:-}
+      TZ: ${TZ:-Europe/Berlin}
+      CONFIG_FILE: /bot/config.json
+    volumes:
+      - type: bind
+        source: ./config.json
+        target: /bot/config.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - silibotvolume:/bot/resources/dynamic
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 128
+    stop_grace_period: 20s
+    labels:
+      traefik.enable: "false"
+volumes:
+  silibotvolume:
+    name: silibotvolume
