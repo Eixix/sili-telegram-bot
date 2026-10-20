@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
 cd "$(dirname "$0")/.."
 test -f config.json
 # Use the deploy user's identity to read private mounted configuration.
@@ -43,13 +44,16 @@ fi
 # Snapshot stopped state before changing ownership for the Rust runtime.
 install -d -m 700 backups
 cp -p config.json "backups/config-$timestamp.json"
-docker compose --env-file .deploy.env run --rm --no-deps --user 0:0 \
-  -v "$PWD/backups:/backup" --entrypoint sh sili-bot -ec '
-    umask 077
-    tar -czf "/backup/dynamic-$3.tar.gz" -C /bot/resources/dynamic .
-    chown "$1:$2" "/backup/dynamic-$3.tar.gz"
-    chown -R "$1:$2" /bot/resources/dynamic
-  ' sh "$(id -u)" "$(id -g)" "$timestamp"
+# Stream the archive to the host shell: a private host bind may be inaccessible
+# to container root, especially with capability drops or user-namespace remapping.
+backup="backups/dynamic-$timestamp.tar.gz"
+docker compose --env-file .deploy.env run --rm -T --no-deps --user 0:0 \
+  --cap-add DAC_OVERRIDE --entrypoint tar sili-bot \
+  -czf - -C /bot/resources/dynamic . > "$backup"
+gzip -t "$backup"
+docker compose --env-file .deploy.env run --rm -T --no-deps --user 0:0 \
+  --cap-add CHOWN --cap-add DAC_OVERRIDE --entrypoint chown sili-bot \
+  -R "$(id -u):$(id -g)" /bot/resources/dynamic
 docker compose --env-file .deploy.env run --rm --no-deps --entrypoint sh sili-bot -ec \
   'test -r /bot/config.json && test -w /bot/resources/dynamic'
 docker compose --env-file .deploy.env up -d --force-recreate

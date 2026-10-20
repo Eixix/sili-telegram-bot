@@ -36,7 +36,10 @@ case "$1" in
     case "$2" in
       --env-file)
         if [ "$4" = up ]; then printf 'rust\n' > "$SIM_STATE/active"; fi
-        if [ "$4" = run ]; then cat >/dev/null; fi
+        if [ "$4" = run ]; then
+          case "$*" in *"--entrypoint tar"*) tar -czf - --files-from=/dev/null ;; esac
+          cat >/dev/null
+        fi
         ;;
     esac
     ;;
@@ -61,6 +64,8 @@ for mode in no yes; do
     grep -q '^Rust bot running; backup snapshot:' "$work/result-$mode"
     grep -q '^rust$' "$SIM_STATE/active"
     test -f "$SIM_STATE/rollback"
+    gzip -t "$work/app"/backups/dynamic-*.tar.gz
+    grep -q -- '--cap-add CHOWN --cap-add DAC_OVERRIDE --entrypoint chown' "$SIM_STATE/commands"
     grep -q 'exec sili-bot sili-telegram-bot --check-config' "$SIM_STATE/commands"
   else
     test "$mode" = yes
