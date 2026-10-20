@@ -12,7 +12,7 @@ fn config(temp: &std::path::Path, chat: i64) -> Config {
     value["inline_authentication"]["user_whitelist_path"] = json!(temp.join("whitelist.txt"));
     value["voicelines"]["entity_data_file"] = json!(temp.join("entities.json"));
     value["voicelines"]["resource_file"] = json!(temp.join("responses.json"));
-    value["voicelines"]["user_agent_email"] = Value::Null;
+    value["voicelines"]["refresh_enabled"] = json!(false);
     Config(value)
 }
 fn update(chat: i64, user: i64, text: &str, message_id: i64) -> Value {

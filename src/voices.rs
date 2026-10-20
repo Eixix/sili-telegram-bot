@@ -201,24 +201,21 @@ impl Voices {
         })
     }
     pub fn refresh_enabled(&self) -> bool {
-        !self
-            .config
-            .string("voicelines", "user_agent_email")
-            .is_empty()
+        self.config.0["voicelines"]["refresh_enabled"]
+            .as_bool()
+            .unwrap_or(true)
     }
     pub async fn link(&self, text: &str) -> Result<String> {
         ensure!(text.chars().count() <= 512, "Query is too long");
         let args = Args::parse(text)?;
         let catalog = self.catalog.read().await;
-        catalog.as_ref().context("Voiceline resources are not ready. Configure voicelines.user_agent_email or migrate the existing cache.")?.link(&args)
+        catalog.as_ref().context("Voiceline resources are not ready. Wait for the background refresh or migrate the existing cache.")?.link(&args)
     }
     async fn api(&self, params: &[(&str, &str)]) -> Result<Value> {
-        let email = self.config.string("voicelines", "user_agent_email");
         let agent = format!(
-            "{} ({}; {})",
+            "{} (+{})",
             self.config.string("voicelines", "user_agent_title"),
-            self.config.string("voicelines", "user_agent_url"),
-            email
+            self.config.string("voicelines", "user_agent_url")
         );
         let delay = self.config.0["voicelines"]["secs_between_requests"]
             .as_u64()
@@ -255,13 +252,7 @@ impl Voices {
             .context("Wiki parse response has no HTML")
     }
     pub async fn refresh(&self) -> Result<()> {
-        ensure!(
-            !self
-                .config
-                .string("voicelines", "user_agent_email")
-                .is_empty(),
-            "Set voicelines.user_agent_email for wiki refresh"
-        );
+        tracing::info!("Voiceline refresh started");
         let page = self.page("Template:VoiceNav").await?;
         let entities = parse_entities(&page, &self.config.string("voicelines", "base_url"))?;
         let mut titles: BTreeSet<_> = entities
@@ -293,12 +284,17 @@ impl Voices {
                 None => break,
             }
         }
+        let total = titles.len();
+        tracing::info!(pages = total, "Voiceline pages discovered");
         let mut responses = BTreeMap::new();
-        for title in titles {
+        for (index, title) in titles.into_iter().enumerate() {
             let page = self.page(&title).await?;
             let parsed = parse_responses(&page);
             if !parsed.is_empty() {
                 responses.insert(title, parsed);
+            }
+            if (index + 1) % 25 == 0 || index + 1 == total {
+                tracing::info!(completed = index + 1, total, "Voiceline refresh progress");
             }
         }
         ensure!(
@@ -409,6 +405,81 @@ fn process_text(text: &str) -> String {
 mod tests {
     use super::*;
     #[tokio::test]
+    async fn refresh_without_email_paginates_and_preserves_cache_on_failure() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let nav = r#"<div class="nowraplinks"><table><tr><th>Hero responses</th><td class="hlist"><a title="Sniper/Responses" href="/dota2/Sniper/Responses">Sniper</a></td></tr></table></div>"#;
+        let page = r#"<div class="mw-parser-output"><ul><li><span><a class="ext-audiobutton" data-state="play"></a><source src="https://example.com/voice.mp3"></span>Sniper!</li></ul></div>"#;
+        let server = crate::test_support::Server::new(vec![
+            (200, json!({"parse":{"text":{"*":nav}}})),
+            (
+                200,
+                json!({"query":{"categorymembers":[{"title":"Sniper/Responses","ns":0}]},"continue":{"cmcontinue":"next-page"}}),
+            ),
+            (
+                200,
+                json!({"query":{"categorymembers":[{"title":"Axe/Responses","ns":0},{"title":"Category:Responses","ns":14}]}}),
+            ),
+            (200, json!({"parse":{"text":{"*":page}}})),
+            (200, json!({"parse":{"text":{"*":page}}})),
+            (503, json!({"error":"unavailable"})),
+        ]);
+        let mut value: Value = serde_json::from_str(include_str!("../config/default.json"))?;
+        value["dynamic_resources"]["hero_data_path"] = json!(temp.path().join("heroes.json"));
+        value["voicelines"]["entity_data_file"] = json!(temp.path().join("entities.json"));
+        value["voicelines"]["resource_file"] = json!(temp.path().join("responses.json"));
+        value["voicelines"]["base_url"] = json!(server.url);
+        value["voicelines"]["secs_between_requests"] = json!(1);
+        assert!(Voices::new(Config(value.clone()), Client::new())?.refresh_enabled());
+        value["voicelines"]["refresh_enabled"] = json!(false);
+        assert!(!Voices::new(Config(value.clone()), Client::new())?.refresh_enabled());
+        value["voicelines"]["refresh_enabled"] = json!(true);
+        // Old configuration must not reintroduce contact details into requests.
+        value["voicelines"]["user_agent_email"] = json!("private@example.com");
+        let voices = Voices::new(Config(value), Client::new())?;
+        voices.refresh().await?;
+        assert_eq!(
+            voices
+                .catalog
+                .read()
+                .await
+                .as_ref()
+                .unwrap()
+                .responses
+                .len(),
+            2
+        );
+        let path = temp.path().join("voicelines.json");
+        let saved = std::fs::read(&path)?;
+        assert!(voices.refresh().await.is_err());
+        assert_eq!(std::fs::read(&path)?, saved);
+        assert_eq!(
+            voices
+                .catalog
+                .read()
+                .await
+                .as_ref()
+                .unwrap()
+                .responses
+                .len(),
+            2
+        );
+        let requests = server.requests.lock().unwrap();
+        assert!(requests[2].0.contains("cmcontinue=next-page"));
+        assert!(requests[3].0.contains("Axe%2FResponses"));
+        assert!(requests[4].0.contains("Sniper%2FResponses"));
+        for headers in server.headers.lock().unwrap().iter() {
+            let agent = headers
+                .lines()
+                .find(|line| line.to_ascii_lowercase().starts_with("user-agent:"))
+                .unwrap();
+            assert!(agent.contains(
+                "sili-telegram-bot instance (+https://github.com/Eixix/sili-telegram-bot)"
+            ));
+            assert!(!agent.contains('@'));
+        }
+        Ok(())
+    }
+    #[tokio::test]
     #[ignore = "downloads a real wiki page to verify required gzip and current markup"]
     async fn live_wiki_gzip_and_sniper_responses() -> Result<()> {
         let temp = tempfile::tempdir()?;
@@ -421,6 +492,12 @@ mod tests {
             .timeout(Duration::from_secs(30))
             .build()?;
         let voices = Voices::new(Config(value), client)?;
+        let navigation = voices.page("Template:VoiceNav").await?;
+        let entities = parse_entities(&navigation, "https://liquipedia.net/dota2")?;
+        ensure!(
+            !entities["Hero responses"].is_empty(),
+            "No live heroes discovered"
+        );
         let html = voices.page("Sniper/Responses").await?;
         let responses = parse_responses(&html);
         ensure!(

@@ -41,8 +41,9 @@ year boundaries. Win rate is wins divided by total games, expressed as a percent
 HTML from names is escaped. Quoted voice patterns use Rust regex syntax, without
 Python-specific backreferences/lookaround; ambiguous fuzzy matches may rank differently.
 
-Set a real `voicelines.user_agent_email` for automatic wiki scraping. Without it,
-existing cached audio still works. A failed refresh retains the previous catalog;
+Wiki scraping is enabled by default (`voicelines.refresh_enabled`) and uses the
+application name and repository URL in its user agent, without an email address.
+Legacy `user_agent_email` values are ignored. A failed refresh retains the previous catalog;
 a complete new catalog is atomically published in one `voicelines.json` file.
 
 ## Existing Docker installation

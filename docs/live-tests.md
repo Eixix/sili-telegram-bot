@@ -31,8 +31,9 @@ project URL. The live hero and account tests passed with the same identification
 - Inline mode was disabled on the test bot. Whitelist behavior and result generation
   are tested, but real inline query/selection is unverified. Enable `/setinline`
   through BotFather before testing it.
-- A complete fresh wiki scrape was not run; the supplied config has no scraper
-  contact email. Real cached wiki audio retrieval succeeded.
+- A complete fresh wiki scrape was not part of the initial test run. Real cached
+  wiki audio retrieval succeeded. Automatic scraping now works without an email;
+  the live wiki test also checks discovery through the current navigation page.
 - Daily work was invoked directly. No future midnight or weekly event was awaited.
 - Group-specific permissions were not exercised in this private-chat run.
 

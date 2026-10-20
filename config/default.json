@@ -33,7 +33,7 @@
         "secs_between_requests": 4,
         "user_agent_title": "sili-telegram-bot instance",
         "user_agent_url": "https://github.com/Eixix/sili-telegram-bot",
-        "user_agent_email": null,
+        "refresh_enabled": true,
         "resource_file": "resources/dynamic/entity_responses.json",
         "entity_data_file": "resources/dynamic/entity_data.json"
     },

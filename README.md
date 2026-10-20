@@ -54,11 +54,12 @@ BotFather's `/setinline`, then query `@your_bot Legion Commander: Ten hut`.
 Quoted voiceline text uses Rust regex syntax, for example
 `/voiceline Legion Commander: "^Ten hut!$"`. Unquoted text tolerates one edit.
 
-Voiceline caches from the Python version are read directly. To fetch new data,
-set `voicelines.user_agent_email` to a real contact address. Scraping runs in the
-background at startup and weekly, with at least the configured delay between
-requests. Without an email, cached voices still work and automatic scraping is
-disabled. You can also run `cargo run --locked --release -- --refresh-voicelines`.
+Voiceline caches from the Python version are read directly. Scraping is enabled
+by default and runs in the background at startup and weekly, with at least the
+configured delay between requests. The user agent includes the application name
+and repository URL, with no email address. Set `voicelines.refresh_enabled` to
+`false` to use only cached data. You can also run
+`cargo run --locked --release -- --refresh-voicelines`.
 A failed refresh retains the previous catalog.
 
 Validation:
