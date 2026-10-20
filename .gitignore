@@ -142,3 +142,7 @@ config.json
 .deploy.env
 .env.*
 !.env.example
+
+# Runtime deployment snapshots and partial credential writes
+.deploy.env*
+/backups/

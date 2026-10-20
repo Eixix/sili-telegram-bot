@@ -11,3 +11,7 @@ resources/dynamic
 __pycache__
 .pytest_cache
 .venv
+
+# Runtime deployment credentials and private migration snapshots
+.deploy.env*
+/backups/
