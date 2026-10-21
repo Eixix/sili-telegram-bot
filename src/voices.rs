@@ -300,7 +300,10 @@ impl Voices {
     fn request_delay(&self, params: &[(&str, &str)]) -> u64 {
         // Liquipedia permits general API calls every 2s, but parse only every 30s.
         let minimum = if params.contains(&("action", "parse")) {
-            30
+            self.config.0["voicelines"]["secs_between_parse_requests"]
+                .as_u64()
+                .unwrap_or(60)
+                .max(30)
         } else {
             2
         };
@@ -558,10 +561,17 @@ mod tests {
         value["voicelines"]["refresh_enabled"] = json!(false);
         assert!(!Voices::new(Config(value.clone()), Client::new())?.refresh_enabled());
         value["voicelines"]["refresh_enabled"] = json!(true);
+        value["voicelines"]["secs_between_parse_requests"] = json!(1);
+        assert_eq!(
+            Voices::new(Config(value.clone()), Client::new())?
+                .request_delay(&[("action", "parse")]),
+            30
+        );
+        value["voicelines"]["secs_between_parse_requests"] = json!(60);
         // Old configuration must not reintroduce contact details into requests.
         value["voicelines"]["user_agent_email"] = json!("private@example.com");
         let mut voices = Voices::new(Config(value), Client::new())?;
-        assert_eq!(voices.request_delay(&[("action", "parse")]), 30);
+        assert_eq!(voices.request_delay(&[("action", "parse")]), 60);
         assert_eq!(voices.request_delay(&[("action", "query")]), 2);
         voices.request_delay_override = Some(Duration::ZERO);
         voices.refresh().await?;

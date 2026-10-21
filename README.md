@@ -60,12 +60,13 @@ configured delay between requests. The user agent includes the application name
 and repository URL, with no email address. Set `voicelines.refresh_enabled` to
 `false` to use only cached data. You can also run
 `cargo run --locked --release -- --refresh-voicelines`.
-Page parsing waits at least 30 seconds per request, following
+Page parsing defaults to one request per minute (`secs_between_parse_requests`),
+with a hard minimum of 30 seconds, following
 [Liquipedia's API limits](https://liquipedia.net/api-terms-of-use); other calls
 wait at least two seconds. HTTP 429/server errors retry up to five times with
 exponential backoff and respect `Retry-After`. A full catalog can take about
-two hours. A failed refresh retains the previous catalog and is retried after
-an hour; successful refreshes repeat weekly.
+four hours at the default pace. A failed refresh retains the previous catalog
+and is retried after an hour; successful refreshes repeat weekly.
 If Liquipedia returns its IP-block/CAPTCHA page, the bot stops immediate retries
 and checks again after a day, keeping cached voices available. Complete the
 wiki's manual unblock flow through the same outgoing connection as the bot,

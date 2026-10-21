@@ -45,7 +45,7 @@ Wiki scraping is enabled by default (`voicelines.refresh_enabled`) and uses the
 application name and repository URL in its user agent, without an email address.
 Legacy `user_agent_email` values are ignored. A failed refresh retains the previous catalog;
 a complete new catalog is atomically published in one `voicelines.json` file.
-Wiki parse requests are spaced by at least 30 seconds (general API calls by at
+Wiki parse requests default to 60 seconds apart with a hard minimum of 30 seconds (general API calls by at
 least two seconds), even if a shorter legacy delay is configured. Rate limits
 and upstream server errors use bounded exponential retries and `Retry-After`.
 If a complete refresh still fails, it is retried after an hour rather than

@@ -54,5 +54,5 @@ and complete its unblock flow, or contact the provider. A browser using IPv6
 may work while Docker's IPv4 connection is blocked. In that case, use the
 blocked IPv4 connection to reach the manual unblock page. After access is
 restored, restart the service to trigger a fresh crawl immediately. Keep the
-30-second minimum between parse calls. The bot does not automate CAPTCHA
+default 60-second interval (30-second minimum) between parse calls. The bot does not automate CAPTCHA
 solving or change routes to avoid the block.
