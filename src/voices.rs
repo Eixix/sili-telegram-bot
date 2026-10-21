@@ -5,13 +5,20 @@ use reqwest::Client;
 use scraper::{Html, Selector};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
-use std::{
-    collections::{BTreeMap, BTreeSet},
-    sync::Arc,
-    time::Duration,
+use std::{collections::BTreeMap, sync::Arc, time::Duration};
+use tokio::{
+    sync::{Mutex, RwLock},
+    time::Instant,
 };
-use tokio::sync::RwLock;
 use unicode_normalization::UnicodeNormalization;
+mod cache;
+
+fn attribution(url: &str) -> String {
+    format!(
+        "Text/metadata adapted from <a href=\"{}\">Liquipedia contributors</a> · <a href=\"https://creativecommons.org/licenses/by-sa/3.0/\">CC BY-SA 3.0</a>",
+        storage::html(url).replace('"', "&quot;")
+    )
+}
 
 #[derive(Debug)]
 pub struct WikiAccessBlocked;
@@ -78,7 +85,7 @@ impl Args {
     }
 }
 impl Catalog {
-    pub fn link(&self, args: &Args) -> Result<String> {
+    fn entity(&self, args: &Args) -> Result<&Entity> {
         let category = match args.category.as_str() {
             "hero" => "Hero responses",
             "voice_pack" => "Voice Packs",
@@ -92,7 +99,7 @@ impl Catalog {
             .get(category)
             .context("Entity type has no responses yet")?;
         let name = args.entity.to_lowercase();
-        let entity = entities
+        entities
             .values()
             .max_by(|a, b| {
                 strsim::normalized_levenshtein(&a.name.to_lowercase(), &name).total_cmp(
@@ -100,7 +107,10 @@ impl Catalog {
                 )
             })
             .filter(|e| strsim::normalized_levenshtein(&e.name.to_lowercase(), &name) >= 0.2)
-            .context("Could not find that entity")?;
+            .context("Could not find that entity")
+    }
+    pub fn link(&self, args: &Args) -> Result<String> {
+        let entity = self.entity(args)?;
         let pattern =
             if args.line.starts_with('"') && args.line.ends_with('"') && args.line.len() > 1 {
                 Some(Regex::new(&format!(
@@ -156,7 +166,7 @@ impl Catalog {
                         for (level, url) in response.urls.iter().enumerate() {
                             if let Some(url) = url {
                                 // Sequential IDs are unique within this answer and within Telegram's 64-byte limit.
-                                results.push(json!({"type":"voice","id":results.len().to_string(),"voice_url":url,"title":format!("{title} [{}]", level+1)}));
+                                results.push(json!({"type":"voice","id":results.len().to_string(),"voice_url":url,"title":format!("{title} [{}]", level+1),"caption":attribution(&entity.url),"parse_mode":"HTML"}));
                                 if results.len() == 50 {
                                     return results;
                                 }
@@ -195,8 +205,13 @@ pub struct Voices {
     config: Config,
     client: Client,
     pub catalog: Arc<RwLock<Option<Catalog>>>,
+    request_clock: Arc<Mutex<RequestClock>>,
     #[cfg(test)]
     request_delay_override: Option<Duration>,
+}
+struct RequestClock {
+    last_request: Instant,
+    last_parse: Instant,
 }
 impl Voices {
     pub fn new(config: Config, client: Client) -> Result<Self> {
@@ -217,6 +232,10 @@ impl Voices {
             config,
             client,
             catalog: Arc::new(RwLock::new(catalog)),
+            request_clock: Arc::new(Mutex::new(RequestClock {
+                last_request: Instant::now(),
+                last_parse: Instant::now(),
+            })),
             #[cfg(test)]
             request_delay_override: None,
         })
@@ -226,21 +245,42 @@ impl Voices {
             .as_bool()
             .unwrap_or(true)
     }
-    pub async fn link(&self, text: &str) -> Result<String> {
+    pub async fn link(&self, text: &str) -> Result<(String, String)> {
         ensure!(text.chars().count() <= 512, "Query is too long");
         let args = Args::parse(text)?;
         let catalog = self.catalog.read().await;
-        catalog.as_ref().context("Voiceline resources are not ready. Wait for the background refresh or migrate the existing cache.")?.link(&args)
+        let catalog = catalog.as_ref().context("Voiceline resources are not ready. Wait for the background refresh or migrate the existing cache.")?;
+        Ok((
+            catalog.link(&args)?,
+            attribution(&catalog.entity(&args)?.url),
+        ))
+    }
+    fn user_agent(&self) -> String {
+        format!(
+            "{}/{} (+{}; contact: {})",
+            self.config.string("voicelines", "user_agent_title"),
+            env!("CARGO_PKG_VERSION"),
+            self.config.string("voicelines", "user_agent_url"),
+            self.config.string("voicelines", "user_agent_contact_url")
+        )
+    }
+    pub async fn audio(&self, url: &str) -> Result<Vec<u8>> {
+        self.throttle(false).await;
+        Ok(self
+            .client
+            .get(url)
+            .header(reqwest::header::USER_AGENT, self.user_agent())
+            .send()
+            .await?
+            .error_for_status()?
+            .bytes()
+            .await?
+            .to_vec())
     }
     async fn api(&self, params: &[(&str, &str)]) -> Result<Value> {
-        let agent = format!(
-            "{} (+{})",
-            self.config.string("voicelines", "user_agent_title"),
-            self.config.string("voicelines", "user_agent_url")
-        );
-        let delay = self.request_delay(params);
+        let agent = self.user_agent();
         for attempt in 0..=5 {
-            self.wait(delay).await;
+            self.throttle(params.contains(&("action", "parse"))).await;
             let mut response = self
                 .client
                 .get(format!(
@@ -320,70 +360,41 @@ impl Voices {
         }
         tokio::time::sleep(Duration::from_secs(seconds)).await;
     }
+    async fn throttle(&self, parse: bool) {
+        #[cfg(test)]
+        if let Some(delay) = self.request_delay_override {
+            tokio::time::sleep(delay).await;
+            return;
+        }
+        let general_delay = Duration::from_secs(self.request_delay(&[("action", "query")]));
+        let parse_delay = Duration::from_secs(self.request_delay(&[("action", "parse")]));
+        loop {
+            let mut clock = self.request_clock.lock().await;
+            let mut ready = clock.last_request + general_delay;
+            if parse {
+                ready = ready.max(clock.last_parse + parse_delay);
+            }
+            let now = Instant::now();
+            if now >= ready {
+                clock.last_request = now;
+                if parse {
+                    clock.last_parse = now;
+                }
+                return;
+            }
+            // Audio requests can proceed while a parse call is waiting. Recheck
+            // under the shared lock after sleeping to handle concurrent callers.
+            drop(clock);
+            tokio::time::sleep_until(ready).await;
+        }
+    }
+    #[cfg(test)]
     async fn page(&self, title: &str) -> Result<String> {
         self.api(&[("action", "parse"), ("page", title), ("prop", "text")])
             .await?["parse"]["text"]["*"]
             .as_str()
             .map(str::to_owned)
             .context("Wiki parse response has no HTML")
-    }
-    pub async fn refresh(&self) -> Result<()> {
-        tracing::info!("Voiceline refresh started");
-        let page = self.page("Template:VoiceNav").await?;
-        let entities = parse_entities(&page, &self.config.string("voicelines", "base_url"))?;
-        let mut titles: BTreeSet<_> = entities
-            .values()
-            .flat_map(|e| e.values().map(|e| e.title.clone()))
-            .collect();
-        let mut continuation = String::new();
-        loop {
-            let mut params = vec![
-                ("action", "query"),
-                ("list", "categorymembers"),
-                ("cmtitle", "Category:Responses"),
-                ("cmlimit", "500"),
-            ];
-            if !continuation.is_empty() {
-                params.push(("cmcontinue", &continuation));
-            }
-            let data = self.api(&params).await?;
-            for entry in data["query"]["categorymembers"]
-                .as_array()
-                .context("Missing response category")?
-            {
-                if let Some(title) = entry["title"].as_str().filter(|_| entry["ns"] == 0) {
-                    titles.insert(title.into());
-                }
-            }
-            match data["continue"]["cmcontinue"].as_str() {
-                Some(c) => continuation = c.into(),
-                None => break,
-            }
-        }
-        let total = titles.len();
-        tracing::info!(pages = total, "Voiceline pages discovered");
-        let mut responses = BTreeMap::new();
-        for (index, title) in titles.into_iter().enumerate() {
-            let page = self.page(&title).await?;
-            let parsed = parse_responses(&page);
-            if !parsed.is_empty() {
-                responses.insert(title, parsed);
-            }
-            if index == 0 || (index + 1) % 10 == 0 || index + 1 == total {
-                tracing::info!(completed = index + 1, total, "Voiceline refresh progress");
-            }
-        }
-        ensure!(
-            !responses.is_empty(),
-            "No voicelines extracted; keeping previous cache"
-        );
-        let catalog = Catalog {
-            entities,
-            responses,
-        };
-        storage::write(&self.config.state_dir().join("voicelines.json"), &catalog)?;
-        *self.catalog.write().await = Some(catalog);
-        Ok(())
     }
 }
 fn retry_after_seconds(value: &str, now: chrono::DateTime<chrono::Utc>) -> Option<u64> {
@@ -491,6 +502,40 @@ fn process_text(text: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[tokio::test(start_paused = true)]
+    async fn concurrent_audio_and_api_requests_share_limits_without_blocking_on_parse() -> Result<()>
+    {
+        let temp = tempfile::tempdir()?;
+        let voices = Voices::new(
+            Config(json!({
+                "dynamic_resources":{"hero_data_path":temp.path().join("heroes.json")},
+                "voicelines":{"entity_data_file":temp.path().join("entities.json"),"resource_file":temp.path().join("responses.json"),"secs_between_requests":1}
+            })),
+            Client::new(),
+        )?;
+        let start = Instant::now();
+        let (audio_one, audio_two, parse) = tokio::join!(
+            async {
+                voices.throttle(false).await;
+                Instant::now() - start
+            },
+            async {
+                voices.clone().throttle(false).await;
+                Instant::now() - start
+            },
+            async {
+                voices.throttle(true).await;
+                Instant::now() - start
+            }
+        );
+        assert!(audio_one.min(audio_two) >= Duration::from_secs(2));
+        assert!(audio_one.abs_diff(audio_two) >= Duration::from_secs(2));
+        assert!(audio_one.max(audio_two) < Duration::from_secs(60));
+        assert!(parse >= Duration::from_secs(60));
+        voices.throttle(true).await;
+        assert!(Instant::now() - start >= Duration::from_secs(120));
+        Ok(())
+    }
     #[tokio::test]
     async fn captcha_block_does_not_repeat_requests_or_discard_cached_voices() -> Result<()> {
         let temp = tempfile::tempdir()?;
@@ -530,91 +575,6 @@ mod tests {
             voices.catalog.read().await.as_ref().unwrap().responses["Sniper/Responses"][0].text,
             "Sniper!"
         );
-        Ok(())
-    }
-    #[tokio::test]
-    async fn refresh_without_email_paginates_and_preserves_cache_on_failure() -> Result<()> {
-        let temp = tempfile::tempdir()?;
-        let nav = r#"<div class="nowraplinks"><table><tr><th>Hero responses</th><td class="hlist"><a title="Sniper/Responses" href="/dota2/Sniper/Responses">Sniper</a></td></tr></table></div>"#;
-        let page = r#"<div class="mw-parser-output"><ul><li><span><a class="ext-audiobutton" data-state="play"></a><source src="https://example.com/voice.mp3"></span>Sniper!</li></ul></div>"#;
-        let server = crate::test_support::Server::new(vec![
-            (200, json!({"parse":{"text":{"*":nav}}})),
-            (
-                200,
-                json!({"query":{"categorymembers":[{"title":"Sniper/Responses","ns":0}]},"continue":{"cmcontinue":"next-page"}}),
-            ),
-            (
-                200,
-                json!({"query":{"categorymembers":[{"title":"Axe/Responses","ns":0},{"title":"Category:Responses","ns":14}]}}),
-            ),
-            (200, json!({"parse":{"text":{"*":page}}})),
-            (200, json!({"parse":{"text":{"*":page}}})),
-            (400, json!({"error":"invalid request"})),
-        ]);
-        let mut value: Value = serde_json::from_str(include_str!("../config/default.json"))?;
-        value["dynamic_resources"]["hero_data_path"] = json!(temp.path().join("heroes.json"));
-        value["voicelines"]["entity_data_file"] = json!(temp.path().join("entities.json"));
-        value["voicelines"]["resource_file"] = json!(temp.path().join("responses.json"));
-        value["voicelines"]["base_url"] = json!(server.url);
-        value["voicelines"]["secs_between_requests"] = json!(1);
-        assert!(Voices::new(Config(value.clone()), Client::new())?.refresh_enabled());
-        value["voicelines"]["refresh_enabled"] = json!(false);
-        assert!(!Voices::new(Config(value.clone()), Client::new())?.refresh_enabled());
-        value["voicelines"]["refresh_enabled"] = json!(true);
-        value["voicelines"]["secs_between_parse_requests"] = json!(1);
-        assert_eq!(
-            Voices::new(Config(value.clone()), Client::new())?
-                .request_delay(&[("action", "parse")]),
-            30
-        );
-        value["voicelines"]["secs_between_parse_requests"] = json!(60);
-        // Old configuration must not reintroduce contact details into requests.
-        value["voicelines"]["user_agent_email"] = json!("private@example.com");
-        let mut voices = Voices::new(Config(value), Client::new())?;
-        assert_eq!(voices.request_delay(&[("action", "parse")]), 60);
-        assert_eq!(voices.request_delay(&[("action", "query")]), 2);
-        voices.request_delay_override = Some(Duration::ZERO);
-        voices.refresh().await?;
-        assert_eq!(
-            voices
-                .catalog
-                .read()
-                .await
-                .as_ref()
-                .unwrap()
-                .responses
-                .len(),
-            2
-        );
-        let path = temp.path().join("voicelines.json");
-        let saved = std::fs::read(&path)?;
-        assert!(voices.refresh().await.is_err());
-        assert_eq!(std::fs::read(&path)?, saved);
-        assert_eq!(
-            voices
-                .catalog
-                .read()
-                .await
-                .as_ref()
-                .unwrap()
-                .responses
-                .len(),
-            2
-        );
-        let requests = server.requests.lock().unwrap();
-        assert!(requests[2].0.contains("cmcontinue=next-page"));
-        assert!(requests[3].0.contains("Axe%2FResponses"));
-        assert!(requests[4].0.contains("Sniper%2FResponses"));
-        for headers in server.headers.lock().unwrap().iter() {
-            let agent = headers
-                .lines()
-                .find(|line| line.to_ascii_lowercase().starts_with("user-agent:"))
-                .unwrap();
-            assert!(agent.contains(
-                "sili-telegram-bot instance (+https://github.com/Eixix/sili-telegram-bot)"
-            ));
-            assert!(!agent.contains('@'));
-        }
         Ok(())
     }
     #[tokio::test]
@@ -755,6 +715,14 @@ mod tests {
         );
         assert_eq!(catalog.inline("").len(), 50);
         assert!(!catalog.inline("Legion Commander: Ten hut!").is_empty());
+        let inline = catalog.inline("Legion Commander: Ten hut!");
+        assert!(inline.iter().all(|r| {
+            r["parse_mode"] == "HTML"
+                && r["caption"].as_str().is_some_and(|s| {
+                    s.contains("Liquipedia contributors")
+                        && s.contains("creativecommons.org/licenses/by-sa/3.0/")
+                })
+        }));
     }
     #[test]
     fn literal_fuzzy_unicode() {

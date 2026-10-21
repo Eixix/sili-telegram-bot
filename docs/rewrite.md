@@ -53,6 +53,22 @@ waiting for the next weekly cycle.
 Explicit IP-block/CAPTCHA pages are reported separately and checked again after
 24 hours instead of repeated short retries. Restoring the provider's access is
 required before crawling can resume.
+The `wiki-cache-v1/` directory saves each parsed response page and navigation
+table with its source wiki, revision ID and `touched` timestamp. Revision checks
+use API `prop=info` batches of up to 50 titles; unchanged pages require no parse
+request. The timestamp invalidates cached HTML-derived data when templates or
+other wiki dependencies change without a page edit. Interrupted crawls keep
+their completed pages while the old complete catalog remains active. Do not run
+multiple crawlers simultaneously on the same outgoing connection.
+
+The user agent identifies the application/version, project URL and GitHub Issues
+contact URL. API calls are unauthenticated and share one gzip-capable pooled
+HTTP client. Page discovery and rendering use only `api.php`, never generated
+HTML page endpoints. Audio files are fetched on user request from the cached
+media URLs. A shared limiter covers audio and API calls, including concurrent
+requests, so user commands cannot exceed the general request limit while the
+crawler is active. Normal and inline voice captions credit Liquipedia contributors,
+link the source page, and label adapted text/metadata as CC BY-SA 3.0.
 
 ## Existing Docker installation
 

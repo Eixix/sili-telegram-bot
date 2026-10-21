@@ -146,7 +146,7 @@ impl Bot {
                 }
             }
             "/voiceline" => {
-                let link = match self.voices.link(args.trim()).await {
+                let (link, caption) = match self.voices.link(args.trim()).await {
                     Ok(link) => link,
                     Err(error) => {
                         self.telegram
@@ -155,15 +155,7 @@ impl Bot {
                         return Ok(false);
                     }
                 };
-                let data = self
-                    .dota
-                    .client
-                    .get(link)
-                    .send()
-                    .await?
-                    .error_for_status()?
-                    .bytes()
-                    .await?;
+                let data = self.voices.audio(&link).await?;
                 if let Err(error) = self
                     .telegram
                     .call(
@@ -183,7 +175,13 @@ impl Bot {
                     .text(&format!("{}:", storage::html(name)))
                     .await?;
                 self.telegram
-                    .upload_bytes("sendVoice", "voice", "response.mp3".into(), data.to_vec())
+                    .upload_bytes_caption(
+                        "sendVoice",
+                        "voice",
+                        "response.mp3".into(),
+                        data,
+                        Some(&caption),
+                    )
                     .await?;
             }
             _ if !text.starts_with('/') => {

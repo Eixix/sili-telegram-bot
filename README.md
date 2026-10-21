@@ -57,16 +57,23 @@ Quoted voiceline text uses Rust regex syntax, for example
 Voiceline caches from the Python version are read directly. Scraping is enabled
 by default and runs in the background at startup and weekly, with at least the
 configured delay between requests. The user agent includes the application name
-and repository URL, with no email address. Set `voicelines.refresh_enabled` to
+and repository URL, with GitHub Issues as the contact URL and no email address.
+Set `voicelines.refresh_enabled` to
 `false` to use only cached data. You can also run
 `cargo run --locked --release -- --refresh-voicelines`.
 Page parsing defaults to one request per minute (`secs_between_parse_requests`),
 with a hard minimum of 30 seconds, following
 [Liquipedia's API limits](https://liquipedia.net/api-terms-of-use); other calls
-wait at least two seconds. HTTP 429/server errors retry up to five times with
+wait at least two seconds, with a shared limiter for API and audio requests.
+HTTP 429/server errors retry up to five times with
 exponential backoff and respect `Retry-After`. A full catalog can take about
 four hours at the default pace. A failed refresh retains the previous catalog
 and is retried after an hour; successful refreshes repeat weekly.
+Navigation and response pages are cached persistently by revision and the wiki's
+cache-invalidation timestamp. Batched metadata checks reuse unchanged pages;
+successful individual pages survive interrupted crawls in `wiki-cache-v1/`.
+Voicelines include a link crediting Liquipedia contributors and the CC BY-SA 3.0
+license for adapted text/metadata, including inline results.
 If Liquipedia returns its IP-block/CAPTCHA page, the bot stops immediate retries
 and checks again after a day, keeping cached voices available. Complete the
 wiki's manual unblock flow through the same outgoing connection as the bot,

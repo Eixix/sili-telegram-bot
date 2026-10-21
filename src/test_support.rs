@@ -14,6 +14,7 @@ pub struct Server {
     pub url: String,
     pub requests: Arc<Mutex<Vec<(String, Value)>>>,
     pub headers: Arc<Mutex<Vec<String>>>,
+    pub bodies: Arc<Mutex<Vec<Vec<u8>>>>,
     stop: Arc<AtomicBool>,
     handle: Option<thread::JoinHandle<()>>,
 }
@@ -34,6 +35,8 @@ impl Server {
         let requests = Arc::new(Mutex::new(Vec::new()));
         let headers = Arc::new(Mutex::new(Vec::new()));
         let headers_thread = headers.clone();
+        let bodies = Arc::new(Mutex::new(Vec::new()));
+        let bodies_thread = bodies.clone();
         let (stop_thread, requests_thread) = (stop.clone(), requests.clone());
         let handle = thread::spawn(move || {
             let mut responses = responses.into_iter();
@@ -82,6 +85,10 @@ impl Server {
                     .unwrap()
                     .push(String::from_utf8_lossy(&bytes[..end]).into_owned());
                 let body = serde_json::from_slice(&bytes[end..end + length]).unwrap_or(Value::Null);
+                bodies_thread
+                    .lock()
+                    .unwrap()
+                    .push(bytes[end..end + length].to_vec());
                 requests_thread.lock().unwrap().push((first_line, body));
                 let (status, body) = responses.next().expect("Unexpected HTTP request");
                 write!(stream,"HTTP/1.1 {status} Test\r\nContent-Type: application/octet-stream\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",body.len()).unwrap();
@@ -92,6 +99,7 @@ impl Server {
             url,
             requests,
             headers,
+            bodies,
             stop,
             handle: Some(handle),
         }

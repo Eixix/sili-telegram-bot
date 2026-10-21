@@ -34,6 +34,8 @@ in the bot's network namespace. The same host's normal Python connection worked;
 host DNS preferred IPv6 while the container preferred IPv4. A successful request
 on a different outgoing connection does not establish that the bot is unblocked.
 Full fresh-catalog verification therefore remains pending manual access recovery.
+After the user completed the unblock flow, the production crawler discovered
+221 pages and fetched its first response page at the one-minute pace.
 
 The previous `pymediawiki` client used GET requests with
 `action=query&prop=revisions&rvparse` to fetch HTML; Rust uses the supported
