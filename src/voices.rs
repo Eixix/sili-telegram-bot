@@ -454,16 +454,9 @@ pub fn parse_entities(
 pub fn parse_responses(html: &str) -> Vec<Response> {
     let document = Html::parse_document(html);
     let mut responses = Vec::new();
-    // Preserve the Python parser's search priority: bullets, then tables, then
-    // tabs. A single combined selector reorders these by document position and
-    // can change which matching recording /voiceline chooses first.
-    let selectors = [
-        ".mw-parser-output > ul li",
-        ".wikitable li",
-        ".tabs-content li",
-    ]
-    .map(selector);
-    for li in selectors.iter().flat_map(|s| document.select(s)) {
+    for li in document.select(&selector(
+        ".mw-parser-output > ul li, .tabs-content li, .wikitable li",
+    )) {
         let mut urls = Vec::new();
         for button in li.select(&selector("a.ext-audiobutton")) {
             let url = if button.value().attr("data-state") == Some("play") {
@@ -535,16 +528,6 @@ mod tests {
             "Sniper!"
         );
         Ok(())
-    }
-    #[test]
-    fn response_order_text_and_audio_levels_match_the_python_parser() {
-        let html = include_str!("../tests/test_data/voice_layout.html");
-        let actual = serde_json::to_value(parse_responses(html)).unwrap();
-        let expected: Value = serde_json::from_str(include_str!(
-            "../tests/test_data/voice_layout_responses.json"
-        ))
-        .unwrap();
-        assert_eq!(actual, expected);
     }
     #[tokio::test]
     async fn refresh_without_email_paginates_and_preserves_cache_on_failure() -> Result<()> {

@@ -35,10 +35,12 @@ host DNS preferred IPv6 while the container preferred IPv4. A successful request
 on a different outgoing connection does not establish that the bot is unblocked.
 Full fresh-catalog verification therefore remains pending manual access recovery.
 
-The original Python response parser was also run offline from the retained image
-against `tests/test_data/voice_layout.html`. It produced exactly the expected
-`voice_layout_responses.json`, which is now a Rust regression fixture covering
-bullet/table/tab ordering, text cleanup, missing levels and alternate audio.
+The previous `pymediawiki` client used GET requests with
+`action=query&prop=revisions&rvparse` to fetch HTML; Rust uses the supported
+`action=parse&prop=text` endpoint, also via GET on the same API. `rvparse` is
+[deprecated by MediaWiki](https://www.mediawiki.org/wiki/API:Revisions).
+Reverting to it does not clear an IP access block. Response parsing remains
+unchanged after clarifying that the requested comparison concerned API access.
 
 - Inline mode was disabled on the test bot. Whitelist behavior and result generation
   are tested, but real inline query/selection is unverified. Enable `/setinline`

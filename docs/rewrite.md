@@ -52,8 +52,7 @@ If a complete refresh still fails, it is retried after an hour rather than
 waiting for the next weekly cycle.
 Explicit IP-block/CAPTCHA pages are reported separately and checked again after
 24 hours instead of repeated short retries. Restoring the provider's access is
-required before crawling can resume. The response parser preserves the original
-Python priority (bullets, tables, tabs), text cleanup and missing audio-level slots.
+required before crawling can resume.
 
 ## Existing Docker installation
 
