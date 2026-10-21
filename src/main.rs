@@ -264,8 +264,9 @@ async fn run(mut bot: Bot) -> Result<()> {
                         7 * 24 * 3600
                     }
                     Err(error) => {
-                        tracing::warn!(%error, retry_in_seconds = 3600, "Voiceline refresh failed; retaining cache");
-                        3600
+                        let retry_in = voices::refresh_retry_seconds(&error);
+                        tracing::warn!(%error, retry_in_seconds = retry_in, "Voiceline refresh failed; retaining cache");
+                        retry_in
                     }
                 };
                 tokio::time::sleep(Duration::from_secs(retry_in)).await;

@@ -40,3 +40,19 @@ The bot publishes no ports and disables Traefik discovery. It uses the existing
 `internal_network` for outbound requests and a read-only root filesystem with
 capabilities dropped. Confirm that the bot's data directory is included in the
 homelab backup policy. Docker `test` and `prod` targets remain available.
+## Liquipedia access blocks
+
+An HTTP 429 alone can mean ordinary throttling. An HTML response titled
+`Rate Limited - Liquipedia` that says the IP address is blocked is different:
+the wiki requires its manual unblock/CAPTCHA flow. Repeating API requests does
+not solve that challenge. The bot detects this response, retains the complete
+working catalog and waits 24 hours before checking again. Ordinary rate limits
+still use bounded retries and `Retry-After`.
+
+Open the wiki in a browser using the same outgoing IP connection as the bot
+and complete its unblock flow, or contact the provider. A browser using IPv6
+may work while Docker's IPv4 connection is blocked. In that case, use the
+blocked IPv4 connection to reach the manual unblock page. After access is
+restored, restart the service to trigger a fresh crawl immediately. Keep the
+30-second minimum between parse calls. The bot does not automate CAPTCHA
+solving or change routes to avoid the block.

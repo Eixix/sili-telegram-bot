@@ -66,6 +66,11 @@ wait at least two seconds. HTTP 429/server errors retry up to five times with
 exponential backoff and respect `Retry-After`. A full catalog can take about
 two hours. A failed refresh retains the previous catalog and is retried after
 an hour; successful refreshes repeat weekly.
+If Liquipedia returns its IP-block/CAPTCHA page, the bot stops immediate retries
+and checks again after a day, keeping cached voices available. Complete the
+wiki's manual unblock flow through the same outgoing connection as the bot,
+then restart the service to refresh immediately. See the
+[wiki troubleshooting notes](docs/homelab.md#liquipedia-access-blocks).
 
 Validation:
 

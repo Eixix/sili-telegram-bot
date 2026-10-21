@@ -13,6 +13,23 @@ use std::{
 use tokio::sync::RwLock;
 use unicode_normalization::UnicodeNormalization;
 
+#[derive(Debug)]
+pub struct WikiAccessBlocked;
+impl std::fmt::Display for WikiAccessBlocked {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("Liquipedia blocked this IP and requires its manual unblock/CAPTCHA flow; cached voicelines remain available")
+    }
+}
+impl std::error::Error for WikiAccessBlocked {}
+
+pub fn refresh_retry_seconds(error: &anyhow::Error) -> u64 {
+    if error.is::<WikiAccessBlocked>() {
+        24 * 3600
+    } else {
+        3600
+    }
+}
+
 #[derive(Clone, Deserialize, Serialize)]
 pub struct Entity {
     pub name: String,
@@ -224,7 +241,7 @@ impl Voices {
         let delay = self.request_delay(params);
         for attempt in 0..=5 {
             self.wait(delay).await;
-            let response = self
+            let mut response = self
                 .client
                 .get(format!(
                     "{}/api.php",
@@ -238,6 +255,24 @@ impl Voices {
                 .send()
                 .await?;
             let status = response.status();
+            // A CAPTCHA block cannot be cleared by repeating API requests. Read
+            // only enough of an error page to identify it; never log its body.
+            if matches!(status.as_u16(), 403 | 429) {
+                let mut body = Vec::new();
+                while body.len() < 8192 {
+                    let Some(chunk) = response.chunk().await? else {
+                        break;
+                    };
+                    let take = chunk.len().min(8192 - body.len());
+                    body.extend_from_slice(&chunk[..take]);
+                }
+                let body = String::from_utf8_lossy(&body);
+                if body.contains("Rate Limited - Liquipedia")
+                    && body.contains("IP address has been temporarily blocked")
+                {
+                    return Err(WikiAccessBlocked.into());
+                }
+            }
             if attempt < 5 && (status.as_u16() == 429 || status.is_server_error()) {
                 let retry_after = response
                     .headers()
@@ -419,9 +454,16 @@ pub fn parse_entities(
 pub fn parse_responses(html: &str) -> Vec<Response> {
     let document = Html::parse_document(html);
     let mut responses = Vec::new();
-    for li in document.select(&selector(
-        ".mw-parser-output > ul li, .tabs-content li, .wikitable li",
-    )) {
+    // Preserve the Python parser's search priority: bullets, then tables, then
+    // tabs. A single combined selector reorders these by document position and
+    // can change which matching recording /voiceline chooses first.
+    let selectors = [
+        ".mw-parser-output > ul li",
+        ".wikitable li",
+        ".tabs-content li",
+    ]
+    .map(selector);
+    for li in selectors.iter().flat_map(|s| document.select(s)) {
         let mut urls = Vec::new();
         for button in li.select(&selector("a.ext-audiobutton")) {
             let url = if button.value().attr("data-state") == Some("play") {
@@ -453,6 +495,57 @@ fn process_text(text: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[tokio::test]
+    async fn captcha_block_does_not_repeat_requests_or_discard_cached_voices() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let server = crate::test_support::Server::raw(vec![(429,
+            b"<!DOCTYPE HTML><title>Rate Limited - Liquipedia</title><p>Your IP address has been temporarily blocked from accessing Liquipedia. Complete the CAPTCHA.</p>".to_vec())]);
+        let path = temp.path().join("voicelines.json");
+        let cached = Catalog {
+            entities: BTreeMap::new(),
+            responses: BTreeMap::from([(
+                "Sniper/Responses".into(),
+                vec![Response {
+                    text: "Sniper!".into(),
+                    urls: vec![Some("https://example.com/sniper.mp3".into())],
+                }],
+            )]),
+        };
+        storage::write(&path, &cached)?;
+        let saved = std::fs::read(&path)?;
+        let mut voices = Voices::new(
+            Config(json!({
+                "dynamic_resources":{"hero_data_path":temp.path().join("heroes.json")},
+                "voicelines":{"base_url":server.url}
+            })),
+            Client::new(),
+        )?;
+        voices.request_delay_override = Some(Duration::ZERO);
+        let error = voices.refresh().await.unwrap_err();
+        assert!(error.is::<WikiAccessBlocked>());
+        assert_eq!(refresh_retry_seconds(&error), 24 * 3600);
+        assert_eq!(
+            refresh_retry_seconds(&anyhow::anyhow!("temporary failure")),
+            3600
+        );
+        assert_eq!(server.requests.lock().unwrap().len(), 1);
+        assert_eq!(std::fs::read(&path)?, saved);
+        assert_eq!(
+            voices.catalog.read().await.as_ref().unwrap().responses["Sniper/Responses"][0].text,
+            "Sniper!"
+        );
+        Ok(())
+    }
+    #[test]
+    fn response_order_text_and_audio_levels_match_the_python_parser() {
+        let html = include_str!("../tests/test_data/voice_layout.html");
+        let actual = serde_json::to_value(parse_responses(html)).unwrap();
+        let expected: Value = serde_json::from_str(include_str!(
+            "../tests/test_data/voice_layout_responses.json"
+        ))
+        .unwrap();
+        assert_eq!(actual, expected);
+    }
     #[tokio::test]
     async fn refresh_without_email_paginates_and_preserves_cache_on_failure() -> Result<()> {
         let temp = tempfile::tempdir()?;

@@ -28,6 +28,18 @@ project URL. The live hero and account tests passed with the same identification
 
 ## Remaining limits
 
+On 21 October, production logs showed repeated IP-block responses before parsing.
+The provider's HTML block page was reproduced with the original Python runtime
+in the bot's network namespace. The same host's normal Python connection worked;
+host DNS preferred IPv6 while the container preferred IPv4. A successful request
+on a different outgoing connection does not establish that the bot is unblocked.
+Full fresh-catalog verification therefore remains pending manual access recovery.
+
+The original Python response parser was also run offline from the retained image
+against `tests/test_data/voice_layout.html`. It produced exactly the expected
+`voice_layout_responses.json`, which is now a Rust regression fixture covering
+bullet/table/tab ordering, text cleanup, missing levels and alternate audio.
+
 - Inline mode was disabled on the test bot. Whitelist behavior and result generation
   are tested, but real inline query/selection is unverified. Enable `/setinline`
   through BotFather before testing it.

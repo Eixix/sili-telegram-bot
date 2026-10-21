@@ -1,0 +1,5 @@
+[
+  {"text":"List.","urls":["https://example.com/list.mp3",null,"https://example.com/arcana.mp3"]},
+  {"text":"Table.","urls":["https://example.com/table.mp3"]},
+  {"text":"Tab.","urls":["https://example.com/tab.mp3"]}
+]
