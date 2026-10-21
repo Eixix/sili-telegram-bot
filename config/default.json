@@ -51,7 +51,19 @@
         "punline_path": "resources/static/punlines.json",
         "daut_gif_path": "resources/static/i_daut_it.gif"
     },
+    "match_messages": {
+        "hero_punchlines": {},
+        "player_punchlines": {}
+    },
     "accounts": {
         "account_list": []
+    },
+    "match_features": {
+        "rampages": true,
+        "personal_records": true
+    },
+    "community": {
+        "challenges_enabled": true,
+        "challenges": []
     }
 }

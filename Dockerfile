@@ -3,6 +3,7 @@ WORKDIR /build
 COPY Cargo.toml Cargo.lock ./
 COPY src ./src
 COPY config ./config
+COPY resources/static ./resources/static
 COPY tests/test_data ./tests/test_data
 RUN cargo build --locked --release
 

@@ -64,6 +64,11 @@
             "Michi war Firstblood, oder?"
         ]
     },
+    "hero_performance_verbs": {
+        "57": ["die Gegner in den Boden gehämmert"],
+        "26": ["mehr gefingert als im Puff"],
+        "32": {"2": ["verschwindend wenig Impact gehabt"], "inf": ["die Gegner ihren Tod nicht kommen sehen lassen"]}
+    },
     "performance_verbs": {
         "0.5": [
             "mächtigst abgestunken und wird hier der öffentlichen Schmach preisgegeben",

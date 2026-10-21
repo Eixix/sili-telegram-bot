@@ -5,6 +5,9 @@ use crate::{
 };
 use anyhow::{Context, Result, ensure};
 use chrono::{DateTime, Utc};
+mod details;
+mod messages;
+mod records;
 use rand::prelude::IndexedRandom;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -39,6 +42,12 @@ struct CrawlState {
     pending: VecDeque<String>,
     #[serde(default)]
     announced: std::collections::BTreeSet<u64>,
+    #[serde(default)]
+    records: HashMap<String, records::Records>,
+    #[serde(default)]
+    details: BTreeMap<u64, details::Task>,
+    #[serde(default)]
+    detail_checked: std::collections::BTreeSet<String>,
 }
 pub struct Dota {
     pub client: Client,
@@ -97,6 +106,7 @@ impl Dota {
         let accounts = self.config.accounts()?;
         let mut fetched = HashMap::new();
         let mut new_ids = HashSet::new();
+        let mut fresh_by_account = HashMap::new();
         for account in &accounts {
             let current = self.matches(account, None).await?;
             let legacy = self
@@ -107,7 +117,11 @@ impl Dota {
                 Some(matches) => Some(matches.clone()),
                 None => storage::read::<Vec<Match>>(&legacy)?,
             };
-            new_ids.extend(new_match_ids(previous.as_deref(), &current));
+            let fresh: HashSet<_> = new_match_ids(previous.as_deref(), &current)
+                .into_iter()
+                .collect();
+            new_ids.extend(fresh.iter().copied());
+            fresh_by_account.insert(account.identifier.clone(), fresh);
             fetched.insert(account.identifier.clone(), current);
         }
         let heroes: Vec<Value> =
@@ -128,6 +142,21 @@ impl Dota {
             if state.announced.insert(*id) {
                 state.pending.push_back(self.summary(players, &heroes));
             }
+            if self.config.0["match_features"]["rampages"].as_bool() == Some(true) {
+                details::schedule(&mut state, *id, players);
+            }
+        }
+        if self.config.0["match_features"]["personal_records"].as_bool() == Some(true) {
+            for account in &accounts {
+                let (records, messages) = records::update(
+                    account,
+                    &fetched[&account.identifier],
+                    &fresh_by_account[&account.identifier],
+                    state.records.remove(&account.identifier),
+                );
+                state.records.insert(account.identifier.clone(), records);
+                state.pending.extend(messages);
+            }
         }
         state.accounts = fetched;
         // Save snapshots and outbox together, only after all upstream requests succeed.
@@ -135,59 +164,29 @@ impl Dota {
         drain(&mut state, &path, telegram).await
     }
     fn summary(&self, players: &[(&Account, &Match)], heroes: &[Value]) -> String {
-        let win = players[0].1.won();
-        let outcome = choose(&self.punlines["match_outcome"][if win { "win" } else { "lose" }]);
-        let mut parts = vec![format!(
-            "<b>{}: {}</b>",
-            if win { "W" } else { "L" },
-            storage::html(&outcome)
-        )];
-        let mut used = HashSet::new();
-        for (account, game) in players {
-            let hero = heroes
-                .iter()
-                .find(|h| h["id"].as_u64() == Some(game.hero_id as u64))
-                .and_then(|h| h["localized_name"].as_str())
-                .map(str::to_owned)
-                .unwrap_or_else(|| format!("Unbekannter Held Nr. {}", game.hero_id));
-            let mut categories: Vec<_> = self.punlines["performance_verbs"]
-                .as_object()
-                .into_iter()
-                .flatten()
-                .filter_map(|(k, v)| k.parse::<f64>().ok().map(|n| (n, v)))
-                .collect();
-            categories.sort_by(|a, b| a.0.total_cmp(&b.0));
-            let category = categories
-                .iter()
-                .find(|(n, _)| *n > game.ratio())
-                .or(categories.last());
-            let verb = if let Some((_, values)) = category {
-                let available: Vec<_> = values
-                    .as_array()
-                    .into_iter()
-                    .flatten()
-                    .filter_map(Value::as_str)
-                    .filter(|s| !used.contains(*s))
-                    .collect();
-                available
-                    .choose(&mut rand::rng())
-                    .map(|s| s.to_string())
-                    .unwrap_or_else(|| choose(values))
-            } else {
-                "gespielt".into()
-            };
-            used.insert(verb.clone());
-            parts.push(format!(
-                "{} hat mit {} {} mit {} Kills, {} Toden und {} Assists",
-                storage::html(&account.name),
-                storage::html(&hero),
-                storage::html(&verb),
-                game.kills,
-                game.deaths,
-                game.assists
-            ));
-        }
-        parts.join("\n\n")
+        messages::summary(
+            players,
+            heroes,
+            &self.punlines,
+            &self.config.0["match_messages"],
+            &mut rand::rng(),
+        )
+    }
+    pub fn replay_summary(
+        players: &[(&Account, &Match)],
+        heroes: &[Value],
+        punlines: &Value,
+        overrides: &Value,
+        seed: u64,
+    ) -> String {
+        use rand::SeedableRng;
+        messages::summary(
+            players,
+            heroes,
+            punlines,
+            overrides,
+            &mut rand::rngs::StdRng::seed_from_u64(seed),
+        )
     }
     pub async fn lastgame(&self) -> Result<String> {
         let mut latest = None;
@@ -437,5 +436,64 @@ mod integration_tests {
         };
         assert!(dota.crawl(&telegram).await.is_err());
         assert!(!temp.path().join("crawl.json").exists());
+    }
+    #[tokio::test]
+    async fn new_features_baseline_silently_then_queue_records_and_rampages_once() {
+        let temp = tempfile::tempdir().unwrap();
+        let matches = |id, slot| json!([{"match_id":id,"radiant_win":true,"player_slot":slot,"hero_id":1,"kills":id*3,"deaths":1,"assists":id*4}]);
+        let ok = json!({"ok":true,"result":{}});
+        let server = Server::new(vec![
+            (200, matches(1, 0)),
+            (200, matches(1, 1)),
+            (200, matches(2, 0)),
+            (200, matches(2, 1)),
+            (200, ok.clone()),
+            (200, ok.clone()),
+            (200, ok.clone()),
+            (
+                200,
+                json!({"match_id":2,"players":[{"player_slot":0,"account_id":1,"multi_kills":{"5":1}},{"player_slot":1,"account_id":2,"multi_kills":{}}]}),
+            ),
+            (200, ok),
+            (200, matches(2, 0)),
+            (200, matches(2, 1)),
+        ]);
+        let config = Config(json!({
+            "dynamic_resources":{"hero_data_path":temp.path().join("heroes.json"),"match_data_dir":temp.path().join("legacy")},
+            "accounts":{"account_list":[{"identifier":"1","name":"One"},{"identifier":"2","name":"Two"}]},
+            "opendota_api":{"api_root":server.url,"player_segment":"players","account_matches_endpoint":"matches"},
+            "match_features":{"rampages":true,"personal_records":true}
+        }));
+        let client = Client::new();
+        let telegram = Telegram::mock(client.clone(), server.url.clone());
+        let dota = Dota {
+            client,
+            config,
+            punlines: json!({}),
+        };
+        dota.crawl(&telegram).await.unwrap();
+        dota.details(&telegram).await.unwrap();
+        assert_eq!(server.requests.lock().unwrap().len(), 2);
+        dota.crawl(&telegram).await.unwrap();
+        dota.details(&telegram).await.unwrap();
+        dota.crawl(&telegram).await.unwrap();
+        dota.details(&telegram).await.unwrap();
+        let requests = server.requests.lock().unwrap();
+        assert_eq!(requests.len(), 11);
+        assert!(requests[4].1["text"].as_str().unwrap().contains("Dotabuff"));
+        assert!(
+            requests[5].1["text"]
+                .as_str()
+                .unwrap()
+                .contains("persönlicher Rekord")
+        );
+        assert!(requests[8].1["text"].as_str().unwrap().contains("RAMPAGE"));
+        let state: CrawlState = storage::read(&temp.path().join("crawl.json"))
+            .unwrap()
+            .unwrap();
+        assert!(state.pending.is_empty());
+        assert!(state.details.is_empty());
+        assert_eq!(state.records.len(), 2);
+        assert_eq!(state.detail_checked.len(), 2);
     }
 }

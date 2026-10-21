@@ -1,0 +1,6 @@
+{
+  "heroes": [{"id":32,"localized_name":"Riki"}],
+  "players": [
+    {"account":{"identifier":"1","name":"Example Player"}, "game":{"match_id":42,"radiant_win":true,"player_slot":0,"hero_id":32,"kills":8,"deaths":2,"assists":10}}
+  ]
+}

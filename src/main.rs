@@ -1,8 +1,10 @@
 mod birthdays;
+mod community;
 mod config;
 mod dota;
 #[cfg(test)]
 mod live_tests;
+mod replay;
 mod storage;
 mod telegram;
 #[cfg(test)]
@@ -120,6 +122,18 @@ impl Bot {
                     )
                     .await?
             }
+            "/challenge" => {
+                let today = Utc::now()
+                    .with_timezone(&self.config.timezone()?)
+                    .date_naive();
+                self.telegram.text(&community::challenge(&self.config, today)?.unwrap_or_else(|| "Keine Challenge verfügbar; es sind keine Spieler konfiguriert oder Challenges sind deaktiviert.".into())).await?;
+            }
+            "/memeteam" => {
+                self.telegram
+                    .text(&community::memeteam(&self.config, args)?)
+                    .await?
+            }
+            "/memestrats" => self.telegram.text(&community::strategies()).await?,
             "/stopbot" => {
                 self.telegram.text("Sili-Bot wird gestoppt.").await?;
                 return Ok(true);
@@ -204,6 +218,9 @@ impl Bot {
         let today = Utc::now()
             .with_timezone(&self.config.timezone()?)
             .date_naive();
+        self.daily_on(today).await
+    }
+    async fn daily_on(&self, today: chrono::NaiveDate) -> Result<()> {
         let path = self.config.state_dir().join("daily.json");
         let mut sent: BTreeSet<String> = storage::read(&path)?.unwrap_or_default();
         let (_, upcoming, now) = birthdays::messages(&self.config.accounts()?, today)?;
@@ -218,6 +235,14 @@ impl Bot {
             }
         }
         if today.weekday() == chrono::Weekday::Thu {
+            let challenge_key = format!("{today}:challenge");
+            if !sent.contains(&challenge_key) {
+                if let Some(message) = community::challenge(&self.config, today)? {
+                    self.telegram.text(&message).await?;
+                }
+                sent.insert(challenge_key);
+                storage::write(&path, &sent)?;
+            }
             let key = format!("{today}:poll");
             if !sent.contains(&key) {
                 self.poll().await?;
@@ -277,6 +302,7 @@ async fn run(mut bot: Bot) -> Result<()> {
     let mut patches_at = crawl_at;
     let mut heroes_at = Instant::now();
     let mut daily_at = Instant::now();
+    let mut details_at = crawl_at;
     tracing::info!("Sili bot started");
     loop {
         tokio::select! {
@@ -301,6 +327,7 @@ async fn run(mut bot: Bot) -> Result<()> {
                     heroes_at = Instant::now()+Duration::from_secs(if success {7*24*3600} else {600});
                 }
                 if Instant::now() >= crawl_at { report("matches", bot.dota.crawl(&bot.telegram).await); crawl_at = Instant::now()+Duration::from_secs(600); }
+                if Instant::now() >= details_at { report("match details", bot.dota.details(&bot.telegram).await); details_at = Instant::now()+Duration::from_secs(60); }
                 if Instant::now() >= patches_at { report("patches", bot.dota.patches(&bot.telegram).await); patches_at = Instant::now()+Duration::from_secs(30); }
                 if Instant::now() >= daily_at { report("daily", bot.daily().await); daily_at = Instant::now()+Duration::from_secs(60); }
             }
@@ -329,6 +356,10 @@ async fn shutdown() {
 }
 #[tokio::main]
 async fn main() -> Result<()> {
+    if let Some(message) = replay::command(&std::env::args().skip(1).collect::<Vec<_>>())? {
+        println!("{message}");
+        return Ok(());
+    }
     let config = Config::load()?;
     let level = config.string("logging", "level").to_lowercase();
     let level = match level.as_str() {
@@ -433,5 +464,83 @@ mod tests {
         let requests = server.requests.lock().unwrap();
         assert_eq!(requests.len(), 3);
         assert_eq!(requests[0].1["results"], json!([]));
+    }
+    fn community_bot(config: Config, server: &Server) -> Bot {
+        let client = Client::new();
+        Bot {
+            config: config.clone(),
+            telegram: Telegram::mock(client.clone(), server.url.clone()),
+            voices: Voices::new(config.clone(), client.clone()).unwrap(),
+            dota: Dota {
+                config,
+                client,
+                punlines: json!({}),
+            },
+            whitelist: BTreeSet::new(),
+        }
+    }
+    fn community_config(dir: &std::path::Path) -> Config {
+        Config(json!({
+            "dynamic_resources":{"hero_data_path":dir.join("heroes.json")},
+            "voicelines":{"entity_data_file":dir.join("entities.json"),"resource_file":dir.join("responses.json")},
+            "static_resources":{"dodo_voiceline_path":dir.join("dodo.mp3")},
+            "accounts":{"account_list":[{"identifier":"1","name":"One"}]},
+            "community":{"challenges_enabled":true}
+        }))
+    }
+    #[tokio::test]
+    async fn thursday_retries_same_challenge_and_deduplicates_after_restart() {
+        let temp = tempfile::tempdir().unwrap();
+        std::fs::write(temp.path().join("dodo.mp3"), b"test audio").unwrap();
+        let ok = json!({"ok":true,"result":{}});
+        let server = Server::new(vec![
+            (503, json!({"ok":false,"error_code":503})),
+            (200, ok.clone()),
+            (200, ok.clone()),
+            (200, ok),
+        ]);
+        let config = community_config(temp.path());
+        let bot = community_bot(config.clone(), &server);
+        let thursday = chrono::NaiveDate::from_ymd_opt(2026, 10, 22).unwrap();
+        assert!(bot.daily_on(thursday).await.is_err());
+        bot.daily_on(thursday).await.unwrap();
+        let restarted = community_bot(config, &server);
+        restarted.daily_on(thursday).await.unwrap();
+        restarted
+            .daily_on(thursday + chrono::Duration::days(1))
+            .await
+            .unwrap();
+        let requests = server.requests.lock().unwrap();
+        assert_eq!(requests.len(), 4);
+        assert_eq!(requests[0].1["text"], requests[1].1["text"]);
+        assert!(
+            requests[0].1["text"]
+                .as_str()
+                .unwrap()
+                .contains("Donnerstagschallenge")
+        );
+    }
+    #[tokio::test]
+    async fn public_community_commands_keep_chat_authorization() {
+        let temp = tempfile::tempdir().unwrap();
+        let server = Server::new(vec![(200, json!({"ok":true,"result":{}})); 3]);
+        let mut bot = community_bot(community_config(temp.path()), &server);
+        bot.update(&json!({"message":{"chat":{"id":999},"text":"/memeteam global"}}))
+            .await
+            .unwrap();
+        for text in ["/memeteam global", "/memestrats", "/challenge"] {
+            bot.update(&json!({"message":{"chat":{"id":-123},"text":text}}))
+                .await
+                .unwrap();
+        }
+        let requests = server.requests.lock().unwrap();
+        assert_eq!(requests.len(), 3);
+        assert!(
+            requests[0].1["text"]
+                .as_str()
+                .unwrap()
+                .contains("Position 5:")
+        );
+        assert!(temp.path().join("memeteam.json").exists());
     }
 }

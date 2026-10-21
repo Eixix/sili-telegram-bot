@@ -43,10 +43,18 @@ non-root container; instructions are in the migration notes.
 | `/playerinfos` | Profile, wins/losses, win percentage, last game |
 | `/lastgame` | Most recent game across tracked accounts |
 | `/birthdays` | List upcoming birthday dates |
+| `/challenge` | This week's saved player challenge |
+| `/memestrats` | List meme-team strategies |
+| `/memeteam [strategy]` | Draft five distinct heroes; repeat for a new draft |
 | `/dodo` | Send the Dota voice clip and group poll |
 | `/voiceline Legion Commander: Ten hut! [2]` | Find and send a voiceline; level defaults to 1 |
 | `/enable_inline_voicelines` | Allow the calling group member to use inline search |
 | `/stopbot` | Exit the process (Docker restart policies can restart it) |
+
+Match links, configurable hero/player punchlines, personal records, rampage
+mentions and the community commands are described in [feature notes](docs/features.md).
+For offline debugging, run `cargo run --locked -- --replay-match tests/test_data/match_replay.json --seed 42`;
+this prints a summary without credentials or network access.
 
 Only the configured chat can execute commands or trigger the doubt/daud/daut GIF.
 Inline search checks a persistent user whitelist. Enable inline mode using
