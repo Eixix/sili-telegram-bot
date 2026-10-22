@@ -6,6 +6,7 @@ mod dota;
 #[cfg(test)]
 mod live_tests;
 mod members;
+mod poll_sound;
 mod replay;
 mod storage;
 mod telegram;
@@ -66,6 +67,7 @@ impl Bot {
         let sent=self.telegram.call("sendPoll", json!({"chat_id":self.telegram.chat,"question":format!("Do{}",weekdays[weekday]),
             "options":[{"text":dota::choose(&self.dota.punlines["dodo_poll"]["ja"])},{"text":dota::choose(&self.dota.punlines["dodo_poll"]["nein"])}],"is_anonymous":false,"allows_multiple_answers":false})).await?;
         challenges::register(&self.config, day, self.telegram.chat, &sent)?;
+        poll_sound::register(&self.config, self.telegram.chat, &sent)?;
         Ok(())
     }
     async fn update(&mut self, update: &Value) -> Result<bool> {
@@ -76,6 +78,7 @@ impl Bot {
                 update,
                 Utc::now().with_timezone(&self.config.timezone()?),
             )?;
+            poll_sound::observe(&self.config, self.telegram.chat, update)?;
             return Ok(false);
         }
         if let Some(query) = update.get("inline_query") {
@@ -363,6 +366,7 @@ async fn run(mut bot: Bot) -> Result<()> {
                 if stop {break;}
             },
             _ = tick.tick() => {
+                report("five yes sound",poll_sound::deliver(&bot.config,&bot.telegram,Utc::now().with_timezone(&bot.config.timezone()?)).await);
                 report("Thursday challenge",challenges::advance(&bot.config,&bot.telegram,Utc::now().with_timezone(&bot.config.timezone()?)).await);
                 if Instant::now() >= heroes_at {
                     let result = bot.dota.update_heroes().await;
@@ -613,6 +617,39 @@ mod tests {
                 .unwrap()
                 .is_none()
         );
+    }
+    #[tokio::test]
+    async fn weekday_dodo_poll_and_real_update_handler_trigger_the_five_yes_clip() {
+        use chrono::TimeZone;
+        let temp = tempfile::tempdir().unwrap();
+        std::fs::write(temp.path().join("dodo.mp3"), b"opening clip").unwrap();
+        let server = Server::new(vec![
+            (200, json!({"ok":true,"result":{}})),
+            (
+                200,
+                json!({"ok":true,"result":{"message_id":99,"poll":{"id":"friday","is_anonymous":false,"allows_multiple_answers":false}}}),
+            ),
+            (200, json!({"ok":true,"result":{}})),
+        ]);
+        let mut config = community_config(temp.path());
+        config.0["community"]["five_yes_sound_enabled"] = json!(true);
+        config.0["static_resources"]["five_yes_voiceline_path"] = json!(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("resources/static/sache.mp3")
+        );
+        let mut bot = community_bot(config.clone(), &server);
+        let friday = chrono_tz::Europe::Berlin
+            .with_ymd_and_hms(2026, 10, 23, 19, 0, 0)
+            .unwrap();
+        bot.poll_at(friday).await.unwrap();
+        for (sequence, yes) in [(1, 4), (2, 5), (3, 6)] {
+            bot.update(&json!({"update_id":sequence,"poll":{"id":"friday","options":[{"voter_count":yes},{"voter_count":0}]}})).await.unwrap();
+            poll_sound::deliver(&config, &bot.telegram, friday)
+                .await
+                .unwrap();
+        }
+        let requests = server.requests.lock().unwrap();
+        assert_eq!(requests.len(), 3);
+        assert!(requests[2].0.starts_with("POST /sendVoice"));
     }
     #[tokio::test]
     async fn public_community_commands_keep_chat_authorization() {

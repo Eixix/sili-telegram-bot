@@ -144,6 +144,36 @@ is offline past Telegram's update-retention window, it cannot reconstruct the
 missing votes and will leave the challenge pending. No historic challenges are
 sent after the event day.
 
+## Sound at five yes votes
+
+Every new bot-created `/dodo` poll can play `resources/static/sache.mp3` once when
+its **positive option reaches at least five votes**. Five negative votes do not
+count. A first update showing six or more yes votes also triggers it. The clip
+is delivered as a voice message on the background job's next tick (normally
+within ten seconds), independently of the Thursday challenge's 20:00 schedule.
+Polls from other chats and unregistered poll IDs cannot trigger delivery.
+
+The threshold crossing and successful delivery are persisted per poll in
+`poll-sounds-v1.json`. Repeated updates, restarts, and dropping below five then
+crossing again do not replay an acknowledged delivery. Once reached, the cheer
+remains queued even if someone retracts a vote before upload. Upload failures
+retry with exponential backoff from one minute up to one hour; the same queued
+cheer is retained. As with the existing message outbox, a crash after Telegram
+accepts the upload but before local acknowledgement can cause a duplicate.
+
+Today's **open tracked Thursday poll** can be adopted from #98's existing
+`dodo-challenges-v1.json`, including its recorded yes votes, without replacing
+the signup poll. Future updates from that registry also count. Closed old polls
+are not backfilled. Other weekday polls created before this feature was enabled
+cannot be adopted; new `/dodo` polls are registered automatically.
+
+Defaults enable the feature with `community.five_yes_sound_enabled: true`.
+Set it to `false` to disable registration and delivery. Override the file with
+`static_resources.five_yes_voiceline_path` if needed. The supplied MP3 is bundled
+in the existing Docker image; no transcoder, extra service or new deployment
+secret is required. The existing `poll` subscription supplies aggregate counts;
+individual Dota/member mappings are not needed for the sound.
+
 ## Offline match replay
 
 ```sh

@@ -26,6 +26,7 @@
             "12345": 111111111,
             "678910": 222222222
         },
-        "challenges": []
+        "challenges": [],
+        "five_yes_sound_enabled": true
     }
 }
