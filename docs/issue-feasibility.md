@@ -1,4 +1,4 @@
-# Feature issue status — 21 October 2026
+# Feature issue status — 22 October 2026
 
 The defined feature batch is implemented in Rust with the existing JSON volume
 and Docker deployment. See [configuration, commands and limits](features.md).
@@ -13,7 +13,7 @@ and Docker deployment. See [configuration, commands and limits](features.md).
 | [#37](https://github.com/Eixix/sili-telegram-bot/issues/37) | Observed personal kills/assists/KDA maxima, silent baseline, strict improvements and durable outbox. Includes solo matches; preserves catch-up suppression. |
 | [#10](https://github.com/Eixix/sili-telegram-bot/issues/10) | Thursday challenge drawn from Telegram yes voters at 20:00 local time, persisted participant rotation and read-only `/challenge`. Optional Dota mapping is private config only. Completion is discussed by the group. |
 | [#13](https://github.com/Eixix/sili-telegram-bot/issues/13) | Public `/memeteam` and `/memestrats`, curated role/strategy pools and five distinct heroes. Repeated calls generate independent drafts; no private-chat authorization expansion. |
-| [#56](https://github.com/Eixix/sili-telegram-bot/issues/56) | **Skipped at the user's request.** Leave open until the audio clip is available. |
+| [#56](https://github.com/Eixix/sili-telegram-bot/issues/56) | Supplied clip is available. Feature branch `issue-56-five-yes-sound` adds a durable cheer at five yes votes, with retry/deduplication and adoption of the current open tracked Thursday poll. Issue closes when its PR merges. |
 | [#16](https://github.com/Eixix/sili-telegram-bot/issues/16) | **Needs a defined interaction.** Leave open; no acceptance criteria are described. |
 
 Verification covers summary precedence/escaping/links, credential-free replay,
@@ -31,5 +31,4 @@ must not be represented as having run merely because mocked tests pass.
 Thursday assignment with an automatic draw from the Thursday poll's yes voters
 at 20:00 local time. The Dota/member mapping lives in private config and is
 optional for participation. Existing wording is retained per user clarification.
-The implementation is proposed on `issue-98-participant-challenges`; the issue
-remains open until the PR is merged. See [feature behavior and migration](features.md).
+Implemented in merged PR #99 and deployed. See [feature behavior and migration](features.md).

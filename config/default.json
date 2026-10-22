@@ -49,7 +49,8 @@
     "static_resources": {
         "dodo_voiceline_path": "resources/static/lets_dota.mpeg",
         "punline_path": "resources/static/punlines.json",
-        "daut_gif_path": "resources/static/i_daut_it.gif"
+        "daut_gif_path": "resources/static/i_daut_it.gif",
+        "five_yes_voiceline_path": "resources/static/sache.mp3"
     },
     "match_messages": {
         "hero_punchlines": {},
@@ -65,6 +66,7 @@
     "community": {
         "challenges_enabled": true,
         "challenges": [],
-        "player_members": {}
+        "player_members": {},
+        "five_yes_sound_enabled": true
     }
 }

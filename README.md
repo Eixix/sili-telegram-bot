@@ -54,6 +54,7 @@ non-root container; instructions are in the migration notes.
 Match links, configurable hero/player punchlines, personal records, rampage
 mentions and the community commands are described in [feature notes](docs/features.md).
 Thursday challenges draw automatically from the DoDo poll at 20:00 in `TZ`.
+DoDo polls play the supplied “schöne Sache” clip once when at least five vote yes.
 Optional Dota-to-Telegram mappings belong in private `community.player_members`;
 no linking command is required.
 For offline debugging, run `cargo run --locked -- --replay-match tests/test_data/match_replay.json --seed 42`;

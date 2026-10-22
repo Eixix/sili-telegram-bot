@@ -95,6 +95,22 @@ pub fn existing(config: &Config, day: NaiveDate, chat: i64) -> Result<Option<i64
         .filter(|e| e.chat == chat)
         .map(|e| e.message_id))
 }
+/// Current open poll metadata for features that can reuse the trusted Thursday registry.
+pub fn open_poll(config: &Config, day: NaiveDate, chat: i64) -> Result<Option<(String, u64)>> {
+    if !enabled(config) {
+        return Ok(None);
+    }
+    Ok(load(config)?
+        .events
+        .get(&day)
+        .filter(|e| e.chat == chat && e.final_counts.is_none() && e.outcome.is_none())
+        .map(|e| {
+            (
+                e.poll_id.clone(),
+                e.votes.values().filter(|v| v.option == Some(0)).count() as u64,
+            )
+        }))
+}
 pub fn register(config: &Config, day: NaiveDate, chat: i64, message: &Value) -> Result<()> {
     if !thursday(day) || !enabled(config) {
         return Ok(());
