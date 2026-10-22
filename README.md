@@ -43,7 +43,7 @@ non-root container; instructions are in the migration notes.
 | `/playerinfos` | Profile, wins/losses, win percentage, last game |
 | `/lastgame` | Most recent game across tracked accounts |
 | `/birthdays` | List upcoming birthday dates |
-| `/challenge` | This week's saved player challenge |
+| `/challenge` | Thursday challenge, drawn from yes voters at 20:00 local time |
 | `/memestrats` | List meme-team strategies |
 | `/memeteam [strategy]` | Draft five distinct heroes; repeat for a new draft |
 | `/dodo` | Send the Dota voice clip and group poll |
@@ -53,6 +53,9 @@ non-root container; instructions are in the migration notes.
 
 Match links, configurable hero/player punchlines, personal records, rampage
 mentions and the community commands are described in [feature notes](docs/features.md).
+Thursday challenges draw automatically from the DoDo poll at 20:00 in `TZ`.
+Optional Dota-to-Telegram mappings belong in private `community.player_members`;
+no linking command is required.
 For offline debugging, run `cargo run --locked -- --replay-match tests/test_data/match_replay.json --seed 42`;
 this prints a summary without credentials or network access.
 

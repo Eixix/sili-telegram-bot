@@ -1,97 +1,7 @@
 use crate::{config::Config, storage};
 use anyhow::{Result, bail};
-use chrono::{Datelike, NaiveDate};
 use rand::prelude::IndexedRandom;
-use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
-
-const CHALLENGES: &[&str] = &[
-    "Spiele einen Helden, den du normalerweise nicht pickst.",
-    "Sage vor dem Spiel deinen Lane-Plan an und besprecht ihn danach im Team.",
-    "Organisiere einen Smoke-Gank mit mindestens drei Teammitgliedern.",
-    "Stelle deinem Team einen ungewöhnlichen, aber begründeten Item-Build vor.",
-    "Übernimm heute die Ansagen für Roshan und die nächsten Objectives.",
-];
-#[derive(Default, Deserialize, Serialize)]
-struct Challenges {
-    counts: BTreeMap<String, u64>,
-    last_player: Option<String>,
-    assignment: Option<Assignment>,
-}
-#[derive(Deserialize, Serialize)]
-struct Assignment {
-    week: String,
-    message: String,
-}
-
-/// One stable assignment per ISO week, shared by the command and Thursday job.
-pub fn challenge(config: &Config, today: NaiveDate) -> Result<Option<String>> {
-    if config.0["community"]["challenges_enabled"].as_bool() != Some(true) {
-        return Ok(None);
-    }
-    let accounts = config.accounts()?;
-    if accounts.is_empty() {
-        return Ok(None);
-    }
-    let path = config.state_dir().join("challenges.json");
-    let mut state: Challenges = storage::read(&path)?.unwrap_or_default();
-    let week = format!("{}-{:02}", today.iso_week().year(), today.iso_week().week());
-    if let Some(assignment) = &state.assignment
-        && assignment.week == week
-    {
-        return Ok(Some(assignment.message.clone()));
-    }
-    let min = accounts
-        .iter()
-        .map(|a| *state.counts.get(&a.identifier).unwrap_or(&0))
-        .min()
-        .unwrap_or(0);
-    let candidates: Vec<_> = accounts
-        .iter()
-        .filter(|a| *state.counts.get(&a.identifier).unwrap_or(&0) == min)
-        .collect();
-    let without_last: Vec<_> = candidates
-        .iter()
-        .copied()
-        .filter(|a| Some(&a.identifier) != state.last_player.as_ref())
-        .collect();
-    let candidates = if without_last.is_empty() {
-        &candidates
-    } else {
-        &without_last
-    };
-    let account = candidates
-        .choose(&mut rand::rng())
-        .expect("eligible player");
-    let custom: Vec<_> = config.0["community"]["challenges"]
-        .as_array()
-        .into_iter()
-        .flatten()
-        .filter_map(|v| v.as_str())
-        .filter(|s| !s.trim().is_empty())
-        .collect();
-    let pool = if custom.is_empty() {
-        CHALLENGES
-    } else {
-        &custom
-    };
-    let text = pool.choose(&mut rand::rng()).expect("challenge pool");
-    let message = format!(
-        "<b>Donnerstagschallenge · KW {}</b>\n{}: {}\nBesprecht die Challenge nach dem Spiel gemeinsam!",
-        today.iso_week().week(),
-        storage::html(&account.name),
-        storage::html(text)
-    );
-    *state.counts.entry(account.identifier.clone()).or_default() += 1;
-    state.last_player = Some(account.identifier.clone());
-    state.assignment = Some(Assignment {
-        week,
-        message: message.clone(),
-    });
-    // Persist selection first, so retries/restarts never reroll the assignment.
-    storage::write(&path, &state)?;
-    Ok(Some(message))
-}
+use serde::Serialize;
 
 #[derive(Clone, Copy, Serialize)]
 struct Hero {
@@ -215,34 +125,6 @@ pub fn memeteam(config: &Config, name: &str) -> Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::json;
-    #[test]
-    fn weekly_assignment_survives_restart_and_rotates_fairly() {
-        let temp = tempfile::tempdir().unwrap();
-        let config = Config(
-            json!({"dynamic_resources":{"hero_data_path":temp.path().join("heroes.json")},"community":{"challenges_enabled":true,"challenges":["A & B"]},"accounts":{"account_list":[{"identifier":"1","name":"One"},{"identifier":"2","name":"Two"},{"identifier":"3","name":"Three"}]}}),
-        );
-        let day = NaiveDate::from_ymd_opt(2026, 12, 31).unwrap();
-        let first = challenge(&config, day).unwrap().unwrap();
-        assert!(first.contains("A &amp; B"));
-        assert_eq!(
-            Some(first.clone()),
-            challenge(&config, day + chrono::Duration::days(1)).unwrap()
-        );
-        let second = challenge(&config, day + chrono::Duration::weeks(1))
-            .unwrap()
-            .unwrap();
-        assert_ne!(first, second);
-        challenge(&config, day + chrono::Duration::weeks(2)).unwrap();
-        let state: Challenges = storage::read(&temp.path().join("challenges.json"))
-            .unwrap()
-            .unwrap();
-        assert_eq!(state.counts.len(), 3);
-        assert!(state.counts.values().all(|n| *n == 1));
-        let empty =
-            Config(json!({"community":{"challenges_enabled":true},"accounts":{"account_list":[]}}));
-        assert!(challenge(&empty, day).unwrap().is_none());
-    }
     #[test]
     fn all_strategies_produce_distinct_heroes_with_role_constraints() {
         use rand::SeedableRng;

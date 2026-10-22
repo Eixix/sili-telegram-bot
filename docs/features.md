@@ -63,12 +63,14 @@ Old games are not backfilled. Removed accounts' names fall back to their ID.
 
 ## Community commands
 
-- `/challenge`: show this ISO week's Thursday challenge. The first call assigns
-  it; later calls and the Thursday job reuse the saved assignment. Each eligible
-  account gets a turn before anyone is selected again; ties are random and
-  immediate repeats are avoided when possible. Assignment uses configured
-  display names, without assuming a Telegram-user mapping. Thursday delivery
-  uses the existing local-time daily scheduler and completion markers.
+- `/challenge`: show the current Thursday's challenge or the waiting status. It
+  never draws early or rerolls the selected member. The Thursday poll opens as
+  before; at **20:00 in the configured `TZ`** the bot closes it and draws from
+  the actual Telegram members who voted yes. No linking command or Dota mapping
+  is required to participate. Retractions and changed answers replace old votes.
+  Selection rotates fairly among the current yes voters, keyed by Telegram ID.
+  The selected member is mentioned directly. The existing challenge text and
+  task pool are retained.
 - `/memestrats`: list curated strategies (`global`, `invisible`, `push`).
 - `/memeteam [strategy]`: generate a public five-hero draft with distinct heroes
   and strategy-specific candidates for positions 1–5. Omit the strategy for a
@@ -80,9 +82,67 @@ These commands retain the configured-chat restriction. Captain DMs, automatic
 challenge-completion verification and competitive lineup balancing are outside
 this implementation. Challenges and drafts need no additional API or LLM.
 Set `community.challenges_enabled: false` to disable challenge assignment and
-Thursday posting. Optional `community.challenges` is an array of custom text;
-empty/missing content uses the built-in pool. Changes apply next week, or after
-an operator removes `challenges.json` while the bot is stopped.
+20:00 poll closure. Optional `community.challenges` is an array of custom text;
+empty/missing content uses the built-in pool. Text changes apply to the next
+unassigned event; a saved assignment is never rerolled by a restart.
+
+### Optional Dota-to-Telegram mapping
+
+Keep the mapping in private `config.json`. Keys are configured Steam32 account
+identifiers; values are numeric Telegram **user IDs**, not usernames or the
+negative group chat ID. For example:
+
+```json
+{
+  "community": {
+    "player_members": {
+      "12345": 111111111,
+      "678910": 222222222
+    }
+  }
+}
+```
+
+Each Dota account and Telegram member may appear once. Unknown Dota accounts,
+nonpositive Telegram IDs, and duplicate member assignments fail configuration
+validation. This mapping gives a yes voter their configured Dota display name;
+an unmapped yes voter remains fully eligible and uses their Telegram name.
+There are no `/linkplayer` or `/unlinkplayer` commands. Config changes take effect
+on restart, following the existing private-config deployment workflow. Do not
+commit real member IDs or guess associations from similar display names.
+
+### Closing, delivery and migration
+
+The bot tracks only its own registered, non-anonymous Thursday poll. Repeating
+`/dodo` points back to that poll instead of replacing the participant list. A
+late start after 20:00 does not open a new signup. Other weekdays retain normal
+poll behavior. A new challenge is never published before 20:00, including if
+someone closes the poll early.
+
+Telegram provides voter identities through
+[`poll_answer` updates](https://core.telegram.org/bots/api#pollanswer). At the
+cutoff, the bot uses [`stopPoll`](https://core.telegram.org/bots/api#stoppoll),
+then waits for the closed-poll update, matching final per-option vote counts,
+and five seconds without another vote update before selecting. This can delay
+publication slightly beyond 20:00. Missing votes delay the draw rather than
+selecting from an incomplete roster. Anonymous chat/channel votes count toward
+synchronization but cannot identify an individual for the draw.
+
+Poll metadata, votes, assignment, delivery markers and participant rotation are
+saved in `dodo-challenges-v1.json`. Telegram's processed-update offset is saved
+in `telegram-offset.json`; polling acknowledges updates after they are handled,
+so queued votes survive restart. Failed message delivery retries the same saved
+assignment. A crash after Telegram accepts the send but before acknowledgement
+can still duplicate the notification, as with the existing outbox.
+
+Old `challenges.json` assignments are deliberately ignored. Rotation counts are
+migrated only where the private config identifies the corresponding Telegram
+member. An old poll cannot be adopted retrospectively: its earlier individual
+votes may already have been discarded by the previous bot version. After an
+upgrade on Thursday, create a fresh tracked `/dodo` poll before 20:00. If the bot
+is offline past Telegram's update-retention window, it cannot reconstruct the
+missing votes and will leave the challenge pending. No historic challenges are
+sent after the event day.
 
 ## Offline match replay
 
