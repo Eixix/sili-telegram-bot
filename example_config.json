@@ -19,5 +19,13 @@
                 "birthday": "1.1.1970"
             }
         ]
+    },
+    "community": {
+        "challenges_enabled": true,
+        "player_members": {
+            "12345": 111111111,
+            "678910": 222222222
+        },
+        "challenges": []
     }
 }

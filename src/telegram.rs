@@ -112,7 +112,7 @@ impl Telegram {
             .post(format!("{}/getUpdates", self.root))
             .timeout(Duration::from_secs(40))
             .json(
-                &json!({"offset":offset,"timeout":30,"allowed_updates":["message","inline_query"]}),
+                &json!({"offset":offset,"timeout":30,"allowed_updates":["message","inline_query","poll","poll_answer"]}),
             )
             .send()
             .await

@@ -69,6 +69,7 @@ impl Config {
             }
         }
         config.timezone()?;
+        crate::members::configured(&config)?;
         Ok(config)
     }
     pub fn string(&self, section: &str, key: &str) -> String {
